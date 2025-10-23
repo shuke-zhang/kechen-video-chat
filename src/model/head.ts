@@ -7,10 +7,9 @@ export type UserDropdownValueModel = 'put' | 'logout'
 
 /**
  * 头部nav菜单项值类型
- * -  device : 设备管理
- * - patient: 患者
- * - visitRecord: 治疗记录
- * - report: 报告
- * - settings: 设置
+ * -  home : 首页
+ * -  类别 : category
+ * -  工单 : workOrder
+ * -  设置 : settings
  */
-export type TopNavValueModel = 'device' | 'patient' | 'visitRecord' | 'report' | 'settings'
+export type TopNavValueModel = 'home' | 'category' | 'workOrder' | 'settings'

@@ -11,7 +11,10 @@ watch(() => userName.value, (newVal) => {
 const router = useRouter()
 const currentRoute = ref(router.currentRoute.value.path.replace('/', ''))
 const topNavList: Array<{ label: string, value: TopNavValueModel }> = [
-  { label: '患者', value: 'patient' },
+  { label: '首页', value: 'home' },
+  { label: '类别', value: 'category' },
+  { label: '工单', value: 'workOrder' },
+  { label: '设置', value: 'settings' },
 ]
 
 const dropdownItems: Array<{ label: string, value: UserDropdownValueModel }> = [
@@ -20,12 +23,8 @@ const dropdownItems: Array<{ label: string, value: UserDropdownValueModel }> = [
 ]
 
 const settingDropdownItems: Array<{ label: string, value: SettingDropdownValueModel }> = [
-  { label: '视频', value: 'video' },
-  { label: '视频类别', value: 'videoCategory' },
-  { label: '视频方案', value: 'videoPlan' },
-  { label: '用户管理', value: 'userManagement' },
-  { label: '字典管理', value: 'dict' },
-  { label: '日志', value: 'logs' },
+  { label: '个人设置', value: 'userProfile' },
+  { label: '系统设置', value: 'systemSettings' },
 ]
 
 const activeNavItem = ref<TopNavValueModel | null>(null)

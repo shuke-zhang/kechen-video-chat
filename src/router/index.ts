@@ -15,6 +15,17 @@ const router = createRouter({
           component: () => import('@/views/home.vue'),
           meta: {
             title: '首页',
+            showLeftMenu: true,
+            hidden: true,
+          },
+        },
+        {
+          path: 'workOrder',
+          name: 'WorkOrder',
+          component: () => import('@/views/workOrder/index.vue'),
+          meta: {
+            title: '工单',
+            showLeftMenu: false,
             hidden: true,
           },
         },
