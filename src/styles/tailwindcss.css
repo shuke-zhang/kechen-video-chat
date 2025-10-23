@@ -1,0 +1,140 @@
+@import "tailwindcss";
+
+@theme {
+    --color-primary: #8989fa;
+    --color-primary-100: #ecebff;
+    --color-primary-300: #c5c5fb;
+    --color-primary-500: #8989fa;
+    /* 默认 */
+    --color-primary-700: #4f4ff4;
+    --color-primary-900: #1a1ae5;
+    --color-error: #ffce45;
+    --color-surfaceTint: #8989fa;
+    --color-onPrimary: #FFFFFF;
+    --color-primaryContainer: #D6E3FF;
+    --color-onPrimaryContainer: #001B3E;
+    --color-secondary: #565F71;
+    --color-onSecondary: #FFFFFF;
+    --color-secondaryContainer: #DAE2F9;
+    --color-onSecondaryContainer: #131C2B;
+    --color-tertiary: #705575;
+    --color-onTertiary: #FFFFFF;
+    --color-tertiaryContainer: #FAD8FD;
+    --color-onTertiaryContainer: #28132E;
+    --color-error: #BA1A1A;
+    --color-onError: #FFFFFF;
+    --color-errorContainer: #FFDAD6;
+    --color-onErrorContainer: #410002;
+    --color-background: #F9F9FF;
+    --color-onBackground: #191C20;
+    --color-surface: #F9F9FF;
+    --color-onSurface: #191C20;
+    --color-surfaceVariant: #E0E2EC;
+    --color-onSurfaceVariant: #44474E;
+    --color-outline: #74777F;
+    --color-outlineVariant: #C4C6D0;
+    --color-shadow: #000000;
+    --color-scrim: #000000;
+    --color-inverseSurface: #2E3036;
+    --color-inverseOnSurface: #F0F0F7;
+    --color-inversePrimary: #AAC7FF;
+    --color-primaryFixed: #D6E3FF;
+    --color-onPrimaryFixed: #001B3E;
+    --color-primaryFixedDim: #AAC7FF;
+    --color-onPrimaryFixedVariant: #284777;
+    --color-secondaryFixed: #DAE2F9;
+    --color-onSecondaryFixed: #131C2B;
+    --color-secondaryFixedDim: #BEC6DC;
+    --color-onSecondaryFixedVariant: #3E4759;
+    --color-tertiaryFixed: #FAD8FD;
+    --color-onTertiaryFixed: #28132E;
+    --color-tertiaryFixedDim: #DDBCE0;
+    --color-onTertiaryFixedVariant: #573E5C;
+    --color-surfaceDim: #D9D9E0;
+    --color-surfaceBright: #F9F9FF;
+    --color-surfaceContainerLowest: #FFFFFF;
+    --color-surfaceContainerLow: #F3F3FA;
+    --color-surfaceContainer: #EDEDF4;
+    --color-surfaceContainerHigh: #E7E8EE;
+    --color-surfaceContainerHighest: #E2E2E9;
+
+
+    --text-xs: 12px;
+    --text-sm: 14px;
+    --text-base: 16px;
+    /* 默认 */
+    --text-lg: 18px;
+    --text-xl: 20px;
+    --text-2xl: 24px;
+    --text-3xl: 30px;
+}
+
+@layer components {
+
+
+    .flex-center {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .app-container {
+        height: 100%;
+        width: 100%;
+        background-color: #fefefe;
+        padding: 20px;
+    }
+
+    .card {
+        border-radius: 8px;
+        /* Element Plus 默认圆角 4px，可稍微大一点 */
+        background-color: #ffffff;
+        box-sizing: border-box;
+        position: relative;
+        padding: 20px;
+
+        border: 1px solid #ebeef5;
+        /* 淡灰边框 */
+        box-shadow: 0 2px 12px 0 rgba(0, 0, 0, .1);
+        /* 轻阴影 */
+        transition: .3s;
+        /* 平滑过渡 */
+    }
+
+    /* 悬停时加深阴影，模仿 is-hover-shadow */
+    .card:hover {
+        box-shadow: 0 4px 20px 0 rgba(0, 0, 0, .12);
+    }
+
+    /* header / body / footer 区分（Element Plus 内置结构） */
+    .card__header {
+        padding: 18px 20px;
+        border-bottom: 1px solid #ebeef5;
+        font-size: 16px;
+        font-weight: 500;
+        color: #303133;
+    }
+
+    .card__body {
+        padding: 20px;
+        color: #606266;
+        font-size: 14px;
+    }
+
+    .card__footer {
+        padding: 10px 20px;
+        border-top: 1px solid #ebeef5;
+        text-align: right;
+    }
+
+}
+
+@layer base {
+
+    input,
+    textarea {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+            'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+            'Noto Color Emoji';
+    }
+}
