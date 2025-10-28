@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import type { MenuItemRegistered } from 'element-plus'
+
+const emit = defineEmits<{
+  (e: 'menu-item-click', item: MenuItemRegistered): void
+}>()
 const sidebars = [
   {
     label: '公共',
@@ -9,6 +14,7 @@ const sidebars = [
     value: 'private',
   },
 ]
+const activeKey = ref('public')
 function hasTitle(title: string) {
   if (title.length > 5) {
     return title
@@ -17,6 +23,22 @@ function hasTitle(title: string) {
     return ''
   }
 }
+
+function handleMenuItemClick(item: MenuItemRegistered) {
+  // TODO 点击侧边栏菜单项的逻辑
+  emit('menu-item-click', item)
+}
+// 统一用 el-menu 的 select 事件
+
+// 可选：首次挂载时主动触发一次（如果你需要立刻加载“公共”内容）
+onMounted(() => {
+  const item = {
+    index: '公共',
+    indexPath: ['public'],
+    active: true,
+  } as MenuItemRegistered
+  handleMenuItemClick(item)
+})
 </script>
 
 <template>
@@ -28,12 +50,14 @@ function hasTitle(title: string) {
         active-text-color="#ff9632"
         :collapse-transition="false"
         mode="vertical"
+        :default-active="activeKey"
       >
         <el-menu-item
           v-for="(item) in sidebars"
           :key="item.value"
           :item="item"
           :index="item.value"
+          @click="handleMenuItemClick"
         >
           <template #title>
             <span class="menu-title" :title="hasTitle(item.label)">{{ item.label }}</span>

@@ -81,7 +81,7 @@
     .app-container {
         height: 100%;
         width: 100%;
-        background-color: #fefefe;
+        /* background-color: #fefefe; */
         padding: 20px;
     }
 
