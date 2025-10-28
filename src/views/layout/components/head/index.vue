@@ -12,7 +12,12 @@ const router = useRouter()
 const currentRoute = ref(router.currentRoute.value.path.replace('/', ''))
 const topNavList: Array<{ label: string, value: TopNavValueModel }> = [
   { label: '首页', value: 'home' },
-  { label: '类别', value: 'category' },
+  { label: '类别1', value: 'category' },
+  { label: '类别2', value: 'category' },
+  { label: '类别3', value: 'category' },
+  { label: '类别4', value: 'category' },
+  { label: '类别5', value: 'category' },
+  { label: '类别6', value: 'category' },
   { label: '工单', value: 'workOrder' },
   { label: '设置', value: 'settings' },
 ]
@@ -86,54 +91,55 @@ onMounted(() => {
   <header
     class="header-container fixed top-0 right-0 left-0  px-5 bg-white flex items-center z-50 shadow-[inset_0_-2px_0_0_#e5e7eb] box-content"
   >
-    <nav class="flex-1 h-full">
-      <ul class="flex h-full">
-        <li
-          v-for="item in topNavList"
-          :key="item.value"
-          class="flex items-center h-full cursor-pointer text-[20px]"
-        >
-          <!-- 只有“设置”使用下拉 -->
-          <template v-if="item.value === 'settings'">
-            <el-dropdown
-              trigger="click"
-              @command="handleSettingCommand"
-            >
+    <el-scrollbar>
+      <nav class="flex-1 h-full  ">
+        <ul class=" flex  whitespace-nowrap h-[60px]">
+          <li
+            v-for="item in topNavList"
+            :key="item.value"
+            class="flex items-center h-full cursor-pointer text-[20px]"
+          >
+            <!-- 只有“设置”使用下拉 -->
+            <template v-if="item.value === 'settings'">
+              <el-dropdown
+                trigger="click"
+                @command="handleSettingCommand"
+              >
+                <div
+                  class=" w-[100px] h-full  border-b-[2px] border-transparent hover:text-primary flex-center text-[20px]"
+                  :class="[activeNavItem === item.value ? 'text-primary border-primary!' : '']"
+                >
+                  {{ item.label }}
+                </div>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item
+                      v-for="el in settingDropdownItems"
+                      :key="el.value"
+                      :command="el.value"
+                      :class="{ 'is-active-item': currentRoute === el.value }"
+                    >
+                      {{ el.label }}
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </template>
+
+            <!-- 非“设置”：普通点击跳转 -->
+            <template v-else>
               <div
-                class="h-full px-4 py-2 border-b-[2px] border-transparent hover:text-primary flex-center text-[20px]"
+                class=" w-[100px] h-full  border-b-[2px] border-transparent hover:text-primary flex-center"
                 :class="[activeNavItem === item.value ? 'text-primary border-primary!' : '']"
+                @click="handleNavClick(item.value)"
               >
                 {{ item.label }}
               </div>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item
-                    v-for="el in settingDropdownItems"
-                    :key="el.value"
-                    :command="el.value"
-                    :class="{ 'is-active-item': currentRoute === el.value }"
-                  >
-                    {{ el.label }}
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </template>
-
-          <!-- 非“设置”：普通点击跳转 -->
-          <template v-else>
-            <div
-              class="h-full px-4 py-2 border-b-[2px] border-transparent hover:text-primary flex-center"
-              :class="[activeNavItem === item.value ? 'text-primary border-primary!' : '']"
-              @click="handleNavClick(item.value)"
-            >
-              {{ item.label }}
-            </div>
-          </template>
-        </li>
-      </ul>
-    </nav>
-
+            </template>
+          </li>
+        </ul>
+      </nav>
+    </el-scrollbar>
     <!-- 右侧登录/用户菜单 -->
     <div class="ml-auto">
       <el-dropdown
