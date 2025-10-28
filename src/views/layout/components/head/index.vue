@@ -98,7 +98,7 @@ onMounted(() => {
   <header
     class="header-container fixed top-0 right-0 left-0  px-5 bg-white flex items-center z-50 shadow-[inset_0_-2px_0_0_#e5e7eb] box-content"
   >
-    <el-scrollbar>
+    <el-scrollbar class="flex-1 h-full  ">
       <nav class="flex-1 h-full  ">
         <ul class=" flex  whitespace-nowrap h-[60px]">
           <li

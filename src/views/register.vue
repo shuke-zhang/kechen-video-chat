@@ -138,7 +138,7 @@ onMounted(() => {
         <Password-strength :password="registerForm.newPasswordTwo" />
       </el-form-item>
 
-      <el-form-item prop="phone">
+      <!-- <el-form-item prop="phone">
         <el-input
           v-model="registerForm.phone "
           type="text"
@@ -150,9 +150,9 @@ onMounted(() => {
             <icon-font name="account-lock" class="el-input__icon input-icon" />
           </template>
         </el-input>
-      </el-form-item>
+      </el-form-item> -->
 
-      <el-form-item prop="code">
+      <!-- <el-form-item prop="code">
         <div class="w-full flex items-center justify-between">
           <el-input
             v-model="registerForm.code"
@@ -175,7 +175,7 @@ onMounted(() => {
             {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
           </el-button>
         </div>
-      </el-form-item>
+      </el-form-item> -->
 
       <el-form-item style="width: 100%">
         <el-button
