@@ -138,6 +138,16 @@ const routes: RouteRecordRaw[] = [
       hidden: true,
     },
   },
+  {
+    path: '/register',
+    name: 'register',
+    component: () => import('@/views/register.vue'),
+    meta: {
+      title: '注册',
+      hidden: true,
+    },
+  },
+
 ]
 
 export default routes

@@ -28,8 +28,9 @@ const dropdownItems: Array<{ label: string, value: UserDropdownValueModel }> = [
 ]
 
 const settingDropdownItems: Array<{ label: string, value: SettingDropdownValueModel }> = [
+  { label: '模型配置', value: 'modelSettings' },
+  { label: '音色配置', value: 'voiceSettings' },
   { label: '个人设置', value: 'userProfile' },
-  { label: '系统设置', value: 'systemSettings' },
 ]
 
 const activeNavItem = ref<TopNavValueModel | null>(null)
