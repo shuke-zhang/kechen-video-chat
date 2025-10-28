@@ -12,12 +12,12 @@ const router = useRouter()
 const currentRoute = ref(router.currentRoute.value.path.replace('/', ''))
 const topNavList: Array<{ label: string, value: TopNavValueModel }> = [
   { label: '首页', value: 'home' },
-  { label: '类别1', value: 'category' },
-  { label: '类别2', value: 'category' },
-  { label: '类别3', value: 'category' },
-  { label: '类别4', value: 'category' },
-  { label: '类别5', value: 'category' },
-  { label: '类别6', value: 'category' },
+  { label: '类别1', value: 'category1' },
+  { label: '类别2', value: 'category2' },
+  { label: '类别3', value: 'category3' },
+  { label: '类别4', value: 'category4' },
+  { label: '类别5', value: 'category5' },
+  { label: '类别6', value: 'category6' },
   { label: '工单', value: 'workOrder' },
   { label: '设置', value: 'settings' },
 ]
@@ -37,7 +37,13 @@ const activeNavItem = ref<TopNavValueModel | null>(null)
 function handleNavClick(value: TopNavValueModel) {
   if (value === 'settings')
     return
+  console.log(value.includes('category'), '测试')
+
   activeNavItem.value = value
+  if (value.includes('category')) {
+    currentRoute.value = 'category'
+    return router.push(`/category`)
+  }
   router.push(`/${value}`)
 }
 
@@ -141,7 +147,7 @@ onMounted(() => {
       </nav>
     </el-scrollbar>
     <!-- 右侧登录/用户菜单 -->
-    <div class="ml-auto">
+    <div class="ml-[20px] ">
       <el-dropdown
         v-if="isLoggedIn"
         trigger="click"

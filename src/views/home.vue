@@ -20,30 +20,11 @@ watch(
 <template>
   <div class="app-container">
     <div class="body-item border-radius-20 bg-white flex flex-col justify-between">
-      <div class="body-item-title flex items-center justify-between fz-20">
+      <div class="body-item-title flex items-center justify-between fz-20 border-b border-b-[#ccc] border-solid pl-[20px] pr-[20px]">
         <div>测试</div>
       </div>
-      <div class="body-item-content flex">
-        <div
-          class="content-item mt-20 border-radius-20 bg-white flex flex-col justify-between"
-        >
-          <el-tooltip placement="top">
-            <template #content>
-              哈哈哈
-            </template>
-
-            <template #default>
-              <div>
-                <div class="content-item-img border-radius-20 bg-white flex-center menuIcon">
-                  <!-- <SvgIcon :icon-class="subItem.icon!" size="43" color="#7c91fc" /> -->
-                </div>
-                <div class="flex justify-center">
-                  <!-- <span class="line-clamp-1">111</span> -->
-                </div>
-              </div>
-            </template>
-          </el-tooltip>
-        </div>
+      <div class="body-item-content flex p-[20px] ">
+        内容
       </div>
     </div>
   </div>
@@ -51,41 +32,26 @@ watch(
 
 <style scoped lang="scss">
 .body-item {
-  padding: 20px 60px;
   overflow: hidden;
+  border-radius: 6px;
   .body-item-title {
-    height: 30px;
+    height: 40px;
     position: relative;
     &::before {
       content: '';
       position: absolute;
       top: 50%;
-      left: 0;
-      transform: translate(-9px, -50%);
+      left: 10px;
+      transform: translate(0px, -50%);
       height: 20px;
       width: 5px;
-      border-radius: 10px;
+      border-radius: 8px;
       background-color: global.$color-system-primary;
     }
   }
-  .body-item-content {
-    .content-item {
-      width: 80px;
-      height: 120px;
-      min-width: 80px;
-      min-height: 120px;
-      cursor: pointer;
-      &:hover {
-        color: $color-primary;
-      }
-    }
-    .content-item-img {
-      height: 80px;
-      box-shadow: 0px 3px 5px 1px rgba(223, 231, 243, 1);
-    }
-    .content-item + .content-item {
-      margin-left: 80px;
-    }
+
+  & + .body-item {
+    margin-top: 20px;
   }
 }
 </style>
