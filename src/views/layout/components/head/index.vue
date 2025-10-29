@@ -96,8 +96,11 @@ onMounted(() => {
 
 <template>
   <header
-    class="header-container fixed top-0 right-0 left-0  px-5 bg-white flex items-center z-50 shadow-[inset_0_-2px_0_0_#e5e7eb] box-content"
+    class="header-container fixed top-0 right-0 left-0  pr-[20px] bg-white flex items-center z-50 shadow-[inset_0_-2px_0_0_#e5e7eb] box-content"
   >
+    <div class="app-logo flex-center pr-[6px]">
+      <router-link to="/home" />
+    </div>
     <el-scrollbar class="flex-1 h-full  ">
       <nav class="flex-1 h-full  ">
         <ul class=" flex  whitespace-nowrap h-[60px]">
@@ -185,6 +188,15 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
+.app-logo {
+  width: vars.$sidebar-menu-width;
+  height: vars.$header-height;
+  background-image: url('@/assets/logo.png');
+  background-size: cover;
+  background-repeat: no-repeat; /* 防止图片重复 */
+  cursor: pointer;
+  // 添加右侧阴影
+}
 .header-container {
   height: vars.$header-height;
 }
