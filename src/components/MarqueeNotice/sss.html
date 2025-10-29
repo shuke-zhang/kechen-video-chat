@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>通知跑马灯</title>
+    <style>
+        .marquee-box {
+            position: relative;
+            width: 100%;
+            height: 48px;
+            overflow: hidden;
+            background-color: #fffbea;
+            display: flex;
+            align-items: center;
+            border-radius: 8px;
+            padding: 0 16px;
+        }
+
+        .marquee-content {
+            position: absolute;
+            white-space: nowrap;
+            will-change: transform;
+            color: #c05621;
+            font-size: 16px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="marquee-box" id="marqueeBox">
+        <div class="marquee-content" id="marqueeText">
+            📢 uni-app 版正式发布，开发一次，同时发布 iOS、Android、H5、小程序等多个平台！
+        </div>
+    </div>
+
+    <script>
+        const textEl = document.getElementById('marqueeText')
+        const boxEl = document.getElementById('marqueeBox')
+
+        let position = 0
+        let textWidth = 0
+        let boxWidth = 0
+        let speed = 5
+        let paused = false
+        let frameId = 0
+
+        function updateSize() {
+            textWidth = textEl.offsetWidth
+            boxWidth = boxEl.offsetWidth
+            position = boxWidth
+        }
+
+        function loop() {
+            if (!paused) {
+                position -= speed
+                textEl.style.transform = `translateX(${position}px)`
+                if (position < -textWidth) {
+                    position = boxWidth
+                }
+            }
+            frameId = requestAnimationFrame(loop)
+        }
+
+        boxEl.addEventListener('mouseenter', () => paused = true)
+        boxEl.addEventListener('mouseleave', () => paused = false)
+
+        window.addEventListener('resize', updateSize)
+
+        // 初始化
+        updateSize()
+        loop()
+    </script>
+
+</body>
+
+</html>

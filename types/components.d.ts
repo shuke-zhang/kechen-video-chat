@@ -41,6 +41,7 @@ declare module 'vue' {
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
     IconFont: typeof import('./../src/components/icon-font/icon-font.vue')['default']
     KcTable: typeof import('./../src/components/KcTable/KcTable.vue')['default']
+    MarqueeNotice: typeof import('./../src/components/MarqueeNotice/MarqueeNotice.vue')['default']
     Pagination: typeof import('./../src/components/Pagination/Pagination.vue')['default']
     PasswordStrength: typeof import('./../src/components/PasswordStrength/PasswordStrength.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

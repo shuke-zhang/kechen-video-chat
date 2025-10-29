@@ -81,14 +81,15 @@ onMounted(() => {
   left: 0;
   z-index: 1001;
   overflow: hidden;
-  -webkit-box-shadow: 2px 0 6px rgba(0, 21, 41, 0.35);
-  box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.1);
   .scrollbar-wrapper {
     background-color: #282c34 !important;
   }
 
   :deep(.el-sub-menu__title:hover) {
     background-color: #2e3033 !important;
+  }
+  :deep(.el-menu) {
+    border-color: #2e3033;
   }
 
   :deep(.el-menu-item:hover) {

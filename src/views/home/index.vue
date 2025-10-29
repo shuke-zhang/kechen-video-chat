@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { MenuItemRegistered } from 'element-plus'
+import ChatModelPrice from './chat-model-price.vue'
 
 const props = defineProps({
   currentSidebarItem: {
@@ -19,14 +20,21 @@ watch(
 
 <template>
   <div class="app-container">
-    <div class="body-item border-radius-20 bg-white flex flex-col justify-between">
+    <!-- <div class="body-item border-radius-20 bg-white flex flex-col justify-between">
       <div class="body-item-title flex items-center justify-between fz-20 border-b border-b-[#ccc] border-solid pl-[20px] pr-[20px]">
         <div>测试</div>
       </div>
       <div class="body-item-content flex p-[20px] ">
         内容
       </div>
-    </div>
+    </div> -->
+    <MarqueeNotice
+      text="大大的通知，这个通知非常重要，你要认真认真仔细仔细再仔细的看，就是今天天气怎么样？ ❤️"
+      bg-color="bg-green-500"
+      :speed="1"
+    />
+    <!-- 模型价格 -->
+    <ChatModelPrice />
   </div>
 </template>
 
