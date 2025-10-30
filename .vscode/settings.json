@@ -12,6 +12,7 @@
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "css.lint.unknownAtRules": "ignore",
   "cSpell.words": [
+    "Arrayable",
     "Attributify",
     "Complelted",
     "Conv",

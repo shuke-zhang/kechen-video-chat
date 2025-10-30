@@ -2,7 +2,6 @@
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-
 // ✅ 一次性几十个分类，填满页面
 const categories = Array.from({ length: 36 }).map((_, i) => {
   const pool = [
