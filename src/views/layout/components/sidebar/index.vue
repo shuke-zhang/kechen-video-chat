@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import type { MenuItemRegistered } from 'element-plus'
+import { sidebarVideo } from './video'
 
 const emit = defineEmits<{
   (e: 'menu-item-click', item: MenuItemRegistered): void
 }>()
-const sidebars = [
+const route = useRoute()
+const isActiveCategory = ref(false)
+const publicSidebars = [
   {
     label: '公共',
     value: 'public',
@@ -14,7 +17,8 @@ const sidebars = [
     value: 'private',
   },
 ]
-const activeKey = ref('public')
+const sidebars = computed(() => isActiveCategory.value ? sidebarVideo : publicSidebars)
+const activeKey = ref('')
 function hasTitle(title: string) {
   if (title.length > 5) {
     return title
@@ -32,13 +36,25 @@ function handleMenuItemClick(item: MenuItemRegistered) {
 
 // 可选：首次挂载时主动触发一次（如果你需要立刻加载“公共”内容）
 onMounted(() => {
-  const item = {
-    index: '公共',
-    indexPath: ['public'],
-    active: true,
-  } as MenuItemRegistered
-  handleMenuItemClick(item)
+
+  // 获取当前页面路由中是否包含了category
 })
+// 监听路由变化
+watch(
+  () => route.fullPath,
+  (newPath) => {
+    console.log(route, '路由')
+    const item = {
+      index: newPath.includes('category') ? sidebarVideo[0].label : publicSidebars[0].label,
+      indexPath: [newPath.includes('category') ? sidebarVideo[0].value : publicSidebars[0].value],
+      active: true,
+    } as MenuItemRegistered
+    handleMenuItemClick(item)
+    isActiveCategory.value = newPath.includes('category')
+    activeKey.value = newPath.includes('category') ? sidebarVideo[0].value : publicSidebars[0].value
+  },
+  { immediate: true },
+)
 </script>
 
 <template>

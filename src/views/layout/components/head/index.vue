@@ -9,6 +9,8 @@ watch(() => userName.value, (newVal) => {
   console.log(newVal, 'userName')
 })
 const router = useRouter()
+const isActiveCategory = ref(false)
+
 const currentRoute = ref(router.currentRoute.value.path.replace('/', ''))
 const topNavList: Array<{ label: string, value: TopNavValueModel }> = [
   { label: '首页', value: 'home' },
@@ -43,8 +45,10 @@ function handleNavClick(value: TopNavValueModel) {
   activeNavItem.value = value
   if (value.includes('category')) {
     currentRoute.value = 'category'
+    isActiveCategory.value = true
     return router.push(`/category`)
   }
+  isActiveCategory.value = false
   router.push(`/${value}`)
 }
 

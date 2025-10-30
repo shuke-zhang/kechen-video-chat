@@ -166,9 +166,9 @@ watch(
         <div
           class="cursor-pointer bg-white rounded-2xl shadow-md p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border border-slate-100 group"
         >
-          <div class="flex items-center mb-3">
+          <div class="flex items-center  mb-3">
             <div
-              class="w-10 h-10 flex items-center justify-center bg-indigo-100 rounded-xl mr-3 group-hover:bg-indigo-600 transition"
+              class="w-10 h-10 flex  justify-center bg-indigo-100 rounded-xl mr-3 group-hover:bg-indigo-600 transition"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
