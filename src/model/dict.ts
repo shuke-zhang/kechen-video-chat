@@ -1,12 +1,8 @@
 export interface DictModel {
   dictType?: string
   dictName?: string
-  remark?: string
-  dictId?: number
-  /**
-   * 0-正常 1-停用
-   */
-  status?: string
+  description?: string
+  id?: number
   /**
    * 时间-前端判断
    */
@@ -16,12 +12,15 @@ export interface DictModel {
 export interface DictDataModel {
   dictType?: string
   dictName?: string
-  remark?: string
-  dictId?: number
+  /**
+   * 描述
+   */
+  dictDesc?: string
+  id?: number
   /**
    * 0-正常 1-停用
    */
-  status?: string
+  status?: number
   /**
    * 字典编码
    */
@@ -37,7 +36,7 @@ export interface DictDataModel {
   /**
    * 排序
    */
-  dictSort?: number
+  sort?: number
 }
 
 /**

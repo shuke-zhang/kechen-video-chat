@@ -45,6 +45,7 @@ const settingDropdownItems: Array<{ label: string, value: SettingDropdownValueMo
   { label: '模型配置', value: 'modelSettings' },
   { label: '音色配置', value: 'voiceSettings' },
   { label: '个人设置', value: 'userProfile' },
+  { label: '字典管理', value: 'dict' },
 ]
 
 const activeNavItem = ref<TopNavValueModel | null>(null)
@@ -134,10 +135,11 @@ onMounted(() => {
             <template v-if="item.value === 'settings'">
               <el-dropdown
                 trigger="click"
+                class="h-full"
                 @command="handleSettingCommand"
               >
                 <div
-                  class=" w-[100px] h-full  border-b-[2px] border-transparent hover:text-primary flex-center text-[20px]"
+                  class=" w-[100px] h-full  border-b-[2px] border-transparent hover:text-primary flex-center text-[20px] text-[#303133]"
                   :class="[activeNavItem === item.value ? 'text-primary border-primary!' : '']"
                 >
                   {{ item.label }}

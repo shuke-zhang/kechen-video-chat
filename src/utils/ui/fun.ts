@@ -15,7 +15,7 @@
  *     .then(...).catch(...);
  */
 
-import type { MessageOptionsWithType } from 'element-plus'
+import type { MessageHandler } from 'element-plus'
 import { ElMessage } from 'element-plus'
 
 type Thunk<T> = () => Promise<T>
@@ -24,17 +24,20 @@ type Thunk<T> = () => Promise<T>
  * delMsgLoading
  * @param promiseOrThunk 可传：已创建的 Promise 或 返回 Promise 的函数
  * @param loadingText 加载提示文案
- * @param options 可选的 Message 选项（会与 duration:0、showClose:false、grouping:false 合并）
- * @returns 原始 Promise<T>
  */
 export function delMsgLoading<T>(
   promiseOrThunk: Promise<T> | Thunk<T>,
   loadingText: string,
-  options: MessageOptionsWithType = {},
 ): Promise<T> {
-  showLoadingMessageInfo(loadingText, { duration: 0, showClose: false, grouping: false, ...options })
+  const loadingMsg: MessageHandler = ElMessage({
+    type: 'info',
+    message: loadingText,
+    duration: 0,
+    showClose: false,
+    grouping: false,
+  })
   const p = typeof promiseOrThunk === 'function' ? (promiseOrThunk as Thunk<T>)() : (promiseOrThunk as Promise<T>)
   return p.finally(() => {
-    ElMessage.closeAll()
+    loadingMsg?.close()
   })
 }

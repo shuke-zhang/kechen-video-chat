@@ -19,7 +19,7 @@ const loginRules = {
 const loading = ref(false)
 
 /** 注册开关 */
-const register = ref(false)
+// const register = ref(false)
 const redirect = ref<string | undefined>(undefined)
 
 /**

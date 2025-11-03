@@ -5,7 +5,7 @@ import type { DictDataModel, DictModel } from '@/model/dict'
  */
 export function getDictList(data?: ListPageQuery<DictModel>) {
   return request.post<ResponseListData<DictModel[]>>({
-    url: '/api/sysDictType/list',
+    url: '/api/sysDict/list',
     data,
   })
 }
@@ -15,7 +15,7 @@ export function getDictList(data?: ListPageQuery<DictModel>) {
  */
 export function getDictInfo(id: number) {
   return request.post({
-    url: `/api/sysDictType/${id}`,
+    url: `/api/sysDict/${id}`,
   })
 }
 
@@ -24,7 +24,7 @@ export function getDictInfo(id: number) {
  */
 export function addDict(data: DictModel) {
   return request.post({
-    url: '/api/sysDictType/add',
+    url: '/api/sysDict/add',
     data,
   })
 }
@@ -33,7 +33,7 @@ export function addDict(data: DictModel) {
  */
 export function PutDict(data: DictModel) {
   return request.post({
-    url: '/api/sysDictType/update',
+    url: '/api/sysDict/update',
     data,
   })
 }
@@ -42,7 +42,7 @@ export function PutDict(data: DictModel) {
  */
 export function DelDict(idList: number[]) {
   return request.delete({
-    url: `/api/sysDictType/delete`,
+    url: `/api/sysDict/delete`,
     data: idList,
   })
 }
@@ -54,7 +54,7 @@ export function DelDict(idList: number[]) {
  */
 export function getDictDataList(data: ListPageQuery<DictDataModel>) {
   return request.post<ResponseListData<DictDataModel[]>>({
-    url: '/api/sysDictData/list',
+    url: '/api/dictInfo/list',
     data,
   })
 }
@@ -66,7 +66,7 @@ export function getDictDataSelect(params: {
   dictType: string
 }) {
   return request.get<ResponseData<DictDataModel[]>>({
-    url: '/api/sysDictData/dictType',
+    url: '/api/dictInfo/dictType',
     params,
   })
 }
@@ -76,7 +76,7 @@ export function getDictDataSelect(params: {
  */
 export function getDictDataInfo(id: number) {
   return request.post({
-    url: `/api/sysDictData/${id}`,
+    url: `/api/dictInfo/${id}`,
   })
 }
 
@@ -85,7 +85,7 @@ export function getDictDataInfo(id: number) {
  */
 export function addDictData(data: DictModel) {
   return request.post({
-    url: '/api/sysDictData/add',
+    url: '/api/dictInfo/add',
     data,
   })
 }
@@ -94,7 +94,7 @@ export function addDictData(data: DictModel) {
  */
 export function PutDictData(data: DictModel) {
   return request.post({
-    url: '/api/sysDictData/update',
+    url: '/api/dictInfo/update',
     data,
   })
 }
@@ -103,7 +103,7 @@ export function PutDictData(data: DictModel) {
  */
 export function DelDictData(idList: number[]) {
   return request.delete({
-    url: `/api/sysDictData/delete`,
+    url: `/api/dictInfo/delete`,
     data: idList,
   })
 }

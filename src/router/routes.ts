@@ -58,6 +58,25 @@ const routes: RouteRecordRaw[] = [
         },
       },
       {
+        path: 'dict',
+        name: 'Dict',
+        component: () => import('@/views/settings/dict/index.vue'),
+        meta: {
+          title: '字典管理',
+          hidden: true,
+        },
+      },
+      {
+        path: 'dict/data/:dictType',
+        name: 'DictData',
+        component: () => import('@/views/settings/dict/data.vue'),
+        // props: true, // 自动注册为props
+        meta: {
+          title: '字典数据',
+          hidden: true,
+        },
+      },
+      {
         path: 'video',
         name: 'Video',
         component: () => import('@/views/settings/video/index.vue'),

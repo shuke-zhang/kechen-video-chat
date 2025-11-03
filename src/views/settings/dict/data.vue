@@ -24,8 +24,8 @@ const queryParams = ref<ListPageParamsWrapper<DictDataModel>>({
 })
 const form = ref<DictDataModel>({
   dictType: route.params.dictType as string,
-  dictSort: 0,
-  status: '0',
+  sort: 0,
+  status: 0,
 })
 const currentDictType = computed(() => route.params.dictType as string)
 
@@ -33,6 +33,7 @@ const rules: FormRules = {
   dictType: [{ required: true, trigger: 'blur', message: '请输入字典类型' }],
   dictLabel: [{ required: true, trigger: 'change', message: '请输入字典标签' }],
   dictValue: [{ required: true, trigger: 'change', message: '请输入字典键值' }],
+  status: [{ required: true, trigger: 'change', message: '请输入字典状态' }],
 }
 /** 静态日志数据（示例） */
 const list = ref<DictDataModel[]>([])
@@ -63,12 +64,17 @@ function handleAddDict() {
 
 function handlePut(row: DictDataModel) {
   isAdd.value = false
-  form.value = { ...row }
+  form.value = {
+    ...row,
+    status: Number(row.status),
+  }
   visible.value = true
 }
 
 function handleDel(_ids: number[] | DictDataModel) {
-  const delIds = Array.isArray(_ids) ? _ids : [_ids.dictCode!]
+  const delIds = Array.isArray(_ids) ? _ids : [_ids.id!]
+  console.log(delIds, 'delIds')
+
   const delNames = Array.isArray(_ids) ? names.value : [_ids.dictLabel!]
   confirmWarning(`是否确认删除字典标签为：${delNames.join(', ')} 的数据？`).then(() => {
     // 删除接口
@@ -117,9 +123,10 @@ function handleSubmit() {
         dictType: form.value.dictType,
         dictLabel: form.value.dictLabel,
         dictValue: form.value.dictValue,
-        dictSort: form.value.dictSort,
-        status: form.value.status,
-        remark: form.value.remark,
+        sort: form.value.sort,
+        status: Number(form.value.status),
+        dictDesc: form.value.dictDesc,
+        id: isAdd.value ? undefined : form.value.id,
       }
       api(data).then(() => {
         showMessageSuccess('操作成功')
@@ -136,8 +143,8 @@ function handleSubmit() {
 function reset() {
   form.value = {
     dictType: currentDictType.value,
-    dictSort: 0,
-    status: '0',
+    sort: 0,
+    status: 0,
   }
   resetForm(formRef.value)
   submitLoading.value = false
@@ -149,7 +156,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
+  <div class="app-container">
     <!-- 查询 -->
     <el-form ref="queryEl" :inline="true" :model="queryParams" @submit.prevent>
       <el-form-item>
@@ -164,8 +171,8 @@ onMounted(() => {
 
       <el-form-item>
         <el-select v-model="queryParams.status" placeholder="请选择状态查询" clearable style="width: 160px" @change="getList">
-          <el-option label="正常" value="0" />
-          <el-option label="停用" value="1" />
+          <el-option label="正常" :value="0" />
+          <el-option label="停用" :value="1" />
         </el-select>
       </el-form-item>
 
@@ -194,23 +201,23 @@ onMounted(() => {
     >
       <el-table-column type="selection" width="55" />
 
-      <el-table-column align="center" prop="dictCode" label="字典编码" width="200" />
+      <el-table-column align="center" prop="id" label="字典编码" width="200" />
 
       <el-table-column align="center" prop="dictLabel" label="字典标签" width="200" />
 
       <el-table-column align="center" prop="dictValue" label="字典键值" width="200" />
 
-      <el-table-column align="center" prop="dictSort" label="字典排序" width="200" sortable />
+      <el-table-column align="center" prop="sort" label="字典排序" width="200" sortable />
 
       <el-table-column align="center" prop="status" label="状态" width="80">
         <template #default="{ row }">
-          <el-tag :type="row.status === '0' ? 'success' : 'danger'">
-            {{ row.status === '0' ? '正常' : '停用' }}
+          <el-tag :type="row.status === 0 ? 'success' : 'danger'">
+            {{ row.status === 0 ? '正常' : '停用' }}
           </el-tag>
         </template>
       </el-table-column>
 
-      <el-table-column label="备注" align="center" prop="remark" show-overflow-tooltip :formatter="$formatterTableEmpty" />
+      <el-table-column label="描述" align="center" prop="dictDesc" show-overflow-tooltip :formatter="$formatterTableEmpty" />
 
       <el-table-column label="创建人" align="center" prop="createdUserName" width="220">
         <template #default="{ row }">
@@ -224,7 +231,7 @@ onMounted(() => {
         </template>
       </el-table-column>
 
-      <el-table-column label="操作" align="center" width="180" fixed="right" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" width="140" fixed="right" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button type="primary" size="small" @click="handlePut(scope.row)">
             修改
@@ -244,78 +251,78 @@ onMounted(() => {
       :total="total"
       @pagination="getList"
     />
+
+    <el-dialog
+      v-model="visible"
+      :title="isAdd ? '新增字典数据' : '修改字典数据'"
+      width="500"
+      :close-on-click-modal="false"
+      @close="cancel"
+    >
+      <el-form ref="formRef" :inline="true" :model="form" :rules="rules" class="large-form" label-width="100">
+        <el-row :gutter="20">
+          <el-col :span="24">
+            <el-form-item label="字典标签" prop="dictType" style="width: 100%">
+              <el-input v-model="form.dictType" disabled placeholder="请输入字典类型" size="large" />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="24">
+            <el-form-item label="字典标签" prop="dictLabel" style="width: 100%">
+              <el-input v-model="form.dictLabel" placeholder="请输入字典标签" size="large" />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="24">
+            <el-form-item label="字典键值" prop="dictValue" style="width: 100%">
+              <el-input v-model="form.dictValue" placeholder="请输入字典键值" size="large" />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="24">
+            <el-form-item label="显示排序" prop="sort" style="width: 100%">
+              <el-input-number v-model="form.sort" controls-position="right" />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="24">
+            <el-form-item label="状态" prop="status" style="width: 100%">
+              <el-radio-group v-model="form.status">
+                <el-radio :value="0" size="large">
+                  正常
+                </el-radio>
+                <el-radio :value="1" size="large">
+                  停用
+                </el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="24">
+            <el-form-item label="描述" prop="dictDesc" style="width: 100%">
+              <el-input
+                v-model="form.dictDesc"
+                style="width: 240px"
+                type="textarea"
+                placeholder="请输入内容"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
+
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="cancel">
+            取 消
+          </el-button>
+          <el-button type="primary" :loading="submitLoading" @click="handleSubmit">
+            提 交
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
-
-  <el-dialog
-    v-model="visible"
-    :title="isAdd ? '新增字典数据' : '修改字典数据'"
-    width="500"
-    :close-on-click-modal="false"
-    @close="cancel"
-  >
-    <el-form ref="formRef" :inline="true" :model="form" :rules="rules" class="large-form" label-width="100">
-      <el-row :gutter="20">
-        <el-col :span="24">
-          <el-form-item label="字典标签" prop="dictType" style="width: 100%">
-            <el-input v-model="form.dictType" disabled placeholder="请输入字典类型" size="large" />
-          </el-form-item>
-        </el-col>
-
-        <el-col :span="24">
-          <el-form-item label="字典标签" prop="dictLabel" style="width: 100%">
-            <el-input v-model="form.dictLabel" placeholder="请输入字典标签" size="large" />
-          </el-form-item>
-        </el-col>
-
-        <el-col :span="24">
-          <el-form-item label="字典键值" prop="dictValue" style="width: 100%">
-            <el-input v-model="form.dictValue" placeholder="请输入字典键值" size="large" />
-          </el-form-item>
-        </el-col>
-
-        <el-col :span="24">
-          <el-form-item label="显示排序" prop="dictSort" style="width: 100%">
-            <el-input-number v-model="form.dictSort" controls-position="right" />
-          </el-form-item>
-        </el-col>
-
-        <el-col :span="24">
-          <el-form-item label="状态" prop="status" style="width: 100%">
-            <el-radio-group v-model="form.status">
-              <el-radio value="0" size="large">
-                正常
-              </el-radio>
-              <el-radio value="1" size="large">
-                停用
-              </el-radio>
-            </el-radio-group>
-          </el-form-item>
-        </el-col>
-
-        <el-col :span="24">
-          <el-form-item label="备注" prop="remark" style="width: 100%">
-            <el-input
-              v-model="form.remark"
-              style="width: 240px"
-              type="textarea"
-              placeholder="请输入内容"
-            />
-          </el-form-item>
-        </el-col>
-      </el-row>
-    </el-form>
-
-    <template #footer>
-      <div class="dialog-footer">
-        <el-button @click="cancel">
-          取 消
-        </el-button>
-        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">
-          提 交
-        </el-button>
-      </div>
-    </template>
-  </el-dialog>
 </template>
 
 <style scoped lang="scss">

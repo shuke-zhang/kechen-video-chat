@@ -60,6 +60,8 @@ const request = new HttpRequest<UserCustomConfig>(
         return _response
       }
       const responseData = _response.data as ResponseResultData<object>
+      console.log(responseData, 'responseData')
+
       // 成功 - 0  警告300 没登录 401  服务器错误501
       if (responseData.code === 0) {
         // 请求成功
@@ -141,10 +143,12 @@ export function removeAllPending() {
 
 function handleError(msg: string, showErrorMsg = true) {
   if (showErrorMsg) {
+    console.log('调用了handleError')
     showMessageError(msg)
+    console.log('调用了handleError2')
+
     throw new Error(msg)
   }
-  console.log('调用了handleError')
 
   // 静默失败时，不抛错
   return undefined

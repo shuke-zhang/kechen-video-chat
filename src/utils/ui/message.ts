@@ -19,6 +19,7 @@ export function createBaseMessage(type: MessageOptionsType) {
           resolve(true)
         },
       })
+      console.log('createBaseMessage')
     })
   }
 }

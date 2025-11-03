@@ -1,7 +1,6 @@
 <!-- src/components/DocsLayout.vue -->
 <script setup lang="ts">
 import type { MenuItemRegistered } from 'element-plus'
-import { getCategoryList } from '@/api/category'
 import AppMain from './AppMain.vue'
 import Head from './components/head/index.vue'
 import Sidebar from './components/sidebar/index.vue'
