@@ -1,519 +1,522 @@
 <script setup lang="ts">
-import type { Awaitable } from '@vueuse/core'
-import type {
-  UploadFile,
-  UploadFiles,
-  UploadProgressEvent,
-  UploadRawFile,
-  UploadUserFile,
-} from 'element-plus'
-import type { EpPropMergeType } from 'element-plus/es/utils'
+import type { UploadFile, UploadInstance, UploadProgressEvent, UploadRawFile, UploadRequestOptions, UploadUserFile } from 'element-plus'
+
+import type { EpPropMergeType } from 'element-plus/es/utils/index.mjs'
 import type { PropType } from 'vue'
-import type { UploadFileModel } from '@/model/upload'
-import { Plus, Upload } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import type { UploadRow } from '@/model/upload'
+import { Plus } from '@element-plus/icons-vue'
+import axios from 'axios'
 
-// pdf.js（v4）
-import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist'
-import pdfjsWorker from 'pdfjs-dist/build/pdf.worker?url'
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { dayjs, ElMessage, genFileId } from 'element-plus'
+import { computed, defineExpose, defineModel, defineProps, nextTick, ref, watch } from 'vue'
+/**
+ * 上传模式
+ *  - 'avatar' → 头像模式（单文件、固定圆形/方形容器、通常只显示最后一张图）
+ *  - 'list'   → 列表模式（可多文件，显示缩略图列表）
+ *  - 'drag'   → 拖拽模式，支持拖拽，没有预览情况
+ */
+type UploadFileModel = 'avatar' | 'list' | 'drag'
 
-/* ===================== Props ===================== */
 const props = defineProps({
   action: { type: String, default: '/file/upload' },
-  uploadUrl: { type: String },
-  width: { type: String, default: '120px' },
-  height: { type: String, default: '120px' },
-  iconSize: { type: String, default: '16' },
-  iconColor: { type: String, default: '#000000' },
-  /**
-   * 上传模式
-   * - 'avatar' → 头像模式（单文件、固定圆形/方形容器、通常只显示最后一张图）
-   * - 'list'   → 列表模式（可多文件，显示缩略图列表）
-   */
   mode: {
-    type: String as PropType<'avatar' | 'list'>,
+    type: String as PropType<UploadFileModel>,
     default: 'list',
   },
-
-  /**
-   * 可上传的文件类型规则
-   *
-   * 支持以下几种写法：
-   * 1. 不传 / [] —— 允许所有文件类型（无限制）。
-   *
-   * 2. 传入字符串：
-   *    - 'image'        → 允许常见图片后缀 ['jpg', 'jpeg', 'png', 'GIF', 'JPG', 'PNG']
-   *    - 'image/*'      → 等价于 'image'，允许常见图片格式。
-   *    - 'pdf'          → 仅允许 pdf 文件。
-   *    - 'zip'          → 仅允许 zip 文件。
-   *    - '.jpg' / 'jpg' → 仅允许指定的单一后缀。
-   *    - 'application/pdf' → 等价于 'pdf'。
-   *
-   * 3. 传入数组（混合多个规则）：
-   *    - ['jpg', 'png']      → 同时允许 jpg 和 png。
-   *    - ['image', 'pdf']    → 允许图片（jpg/jpeg/png/gif）+ pdf。
-   *    - ['.zip', '.pdf']    → 允许 zip 和 pdf。
-   *
-   * 注意：
-   * - 不区分大小写（例如 'JPG'、'PNG' 都能匹配）。
-   * - 如果数组或字符串为空，视为不做限制。
-   * - 未识别的 MIME 类型写法会被忽略（默认允许所有）。
-   */
-  fileTypes: {
-    type: [Array, String] as PropType<string[] | string>,
-    default: () => [] as string[],
+  uploadUrl: { type: String },
+  iconSize: { type: String, default: '16' },
+  iconColor: { type: String, default: '#000000' },
+  width: { type: String, default: '100' },
+  height: { type: String, default: '100' },
+  resolveUrl: {
+    type: Function as PropType<(resp: any) => string>,
+    default: (resp: any) => {
+      return resp?.data?.url ?? resp?.data?.public_url ?? resp?.data?.download_url ?? resp?.url ?? ''
+    },
   },
-  fluid: { type: Boolean, default: false },
+  readonly: { type: Boolean, default: false },
   listType: {
     type: String as PropType<EpPropMergeType<StringConstructor, 'picture-card' | 'text' | 'picture', unknown> | undefined>,
     default: 'picture-card',
   },
-  btnText: { type: String, default: '上传' },
+  method: { type: String as PropType<'POST' | 'PUT' | 'PATCH'>, default: 'POST' },
 
-  drag: { type: Boolean, default: false },
-  multiple: { type: Boolean, default: false },
-  disabled: { type: Boolean, default: false },
-  readonly: { type: Boolean, default: false },
-
+  headers: { type: Object as PropType<Record<string, string>>, default: () => ({}) },
+  withCredentials: { type: Boolean, default: false },
+  extraForm: { type: Object as PropType<Record<string, any>>, default: () => ({}) },
+  fileTypes: { type: [Array, String] as PropType<string[] | string>, default: () => [] as string[] },
+  maxSizeMB: { type: Number, default: 0 },
   limit: { type: Number, default: 0 },
-  fileSize: { type: Number, default: 100 },
-
-  /** ✅ 是否显示右上角角标（你提的第 2 点） */
   isOccupyCorner: { type: Boolean, default: false },
-
-  /** 是否显示下方文件名 */
-  showFilename: { type: Boolean, default: true },
 })
-
-/* ===================== Emits / v-model ===================== */
-const emit = defineEmits(['onProgress', 'onRemove', 'onSuccess', 'onError', 'onBeforeRemove', 'update:fileList'])
-
-const IMAGE_EXT_WHITELIST = ['jpg', 'jpeg', 'png', 'GIF', 'JPG', 'PNG']
-const normalizedRules = computed(() => normalizeFileTypes(props.mode === 'avatar' ? ['image'] : props.fileTypes))
-const acceptAttr = computed(() => {
-  if (normalizedRules.value.mode === 'all') {
-    return undefined
-  }
-  const dots = [...normalizedRules.value.exts].map(e => `.${e}`)
-  return dots.join(',')
-})
-GlobalWorkerOptions.workerSrc = pdfjsWorker
-
-type UploadFileWithThumb = UploadFile & { thumbnailUrl?: string, originUrl?: string }
-
-/** v-model（string | string[]，值为 public_url） */
-const fileLists = defineModel<string | string[]>()
-
-/* ===================== State ===================== */
-const fileData = ref<UploadUserFile[]>([]) // 传给 el-upload 的文件列表
-const dialogImageUrl = ref('') // 预览缩略图
-const dialogOriginalUrl = ref('') // 原文件URL
-const dialogVisible = ref(false)
-
-const uploadUrl = computed(() => props.uploadUrl ? props.uploadUrl : `${import.meta.env.VITE_API_URL || ''}${props.action}`)
-
+const emit = defineEmits<{
+  (e: 'progress', row: UploadRow): void
+  (e: 'success', row: UploadRow): void
+  (e: 'error', row: UploadRow): void
+}>()
+/**
+ * 是否开启了拖拽
+ */
+const isFileDrag = computed(() => props.mode === 'drag')
+/**
+ * 是否为头像模式
+ */
+const isFileAvatar = computed(() => props.mode === 'avatar')
+/**
+ * 是否为列表模式
+ */
+const isFileList = computed(() => props.mode === 'list')
 const max = computed(() => props.mode === 'avatar' ? 1 : props.limit)
-const itemMarin = computed(() => ((props.limit === 1 || props.mode === 'avatar') ? 0 : '10px'))
+const itemMargin = computed(() => ((props.limit === 1 || props.mode === 'avatar') ? 0 : '10px'))
 const width = computed(() => (props.width.includes('px') ? props.width : `${props.width}px`))
 const height = computed(() => (props.height.includes('px') ? props.height : `${props.height}px`))
 const borderRadius = computed(() => (props.mode === 'avatar' ? '50%' : '6px'))
 const progressSize = computed(() => (props.height.includes('px') ? `${Number.parseFloat(props.height) - 10}px` : `${Number(props.height) - 10}px`))
 const oneLimitHeight = computed(() => (props.limit === 1 ? height.value : null))
 
-/* ===================== 工具：类型/扩展名/accept ===================== */
-function getExt(nameOrUrl = '') {
-  const q = nameOrUrl.split('?')[0]
-  const seg = q.split('/').pop() || ''
-  const dot = seg.lastIndexOf('.')
-  return dot >= 0 ? seg.slice(dot + 1).toLowerCase() : ''
-}
-function isImageExt(ext: string) {
-  return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'].includes(ext)
-}
+const IMAGE_EXTS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg']
+const VIDEO_EXTS = ['mp4', 'avi', 'mov', 'rmvb', 'wmv', 'flv', 'mkv', 'webm', 'm4v', '3gp']
+const KNOWN_MIMES: Record<string, string[]> = { 'application/pdf': ['pdf'], 'application/zip': ['zip'], 'application/x-zip-compressed': ['zip'] }
 
-function matchTypeByRules(file: UploadRawFile): boolean {
-  const rules = normalizedRules.value
-  if (rules.mode === 'all') {
-    return true
+const uploadRef = ref<UploadInstance | null>(null)
+const files = defineModel<UploadRow[] | UploadRow | null>('files', { default: () => null })
+const inFlight = new Map<string, AbortController>()
+
+const isSingle = computed(() => {
+  return props.limit === 1
+})
+
+const finalUploadUrl = computed(() => {
+  const base = import.meta.env.VITE_API_URL || ''
+  const act = props.action || ''
+  return props.uploadUrl ?? `${base}${act}`
+})
+
+function getRows(): UploadRow[] {
+  const val = files.value
+  if (Array.isArray(val)) {
+    return [...val]
   }
-  const ext = getExt(file.name).toLowerCase()
-  return rules.exts.has(ext)
-}
-
-/* ===================== PDF → 缩略图 ===================== */
-async function pdfToThumbDataUrl(src: Blob | string, maxW = 480): Promise<string> {
-  try {
-    let buffer: ArrayBuffer
-    if (src instanceof Blob) {
-      buffer = await src.arrayBuffer()
-    }
-    else {
-      const res = await fetch(src, { credentials: 'omit' })
-      if (!res.ok)
-        throw new Error(`HTTP ${res.status}`)
-      buffer = await res.arrayBuffer()
-    }
-    const loadingTask = getDocument({ data: buffer })
-    const pdf = await loadingTask.promise
-    const page = await pdf.getPage(1)
-
-    const viewport = page.getViewport({ scale: 1 })
-    const scale = Math.min(1, maxW / viewport.width)
-    const scaledViewport = page.getViewport({ scale })
-
-    const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d')!
-    canvas.width = Math.floor(scaledViewport.width)
-    canvas.height = Math.floor(scaledViewport.height)
-
-    await page.render({ canvas, canvasContext: ctx, viewport: scaledViewport } as any).promise
-    return canvas.toDataURL('image/jpeg', 0.85)
+  if (val && typeof val === 'object') {
+    return [val]
   }
-  catch (e) {
-    console.error('pdfToThumbDataUrl error:', e)
-    return iconDataUrl('pdf') // 兜底
-  }
+  return []
 }
 
-/* ===================== 类型图标 & 缩略图 ===================== */
-const ICONS: Record<string, string> = {
-  pdf: `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="160"><rect width="100%" height="100%" fill="#f6e9ea"/><text x="50%" y="55%" text-anchor="middle" font-size="48" fill="#d93025" font-family="Arial">PDF</text></svg>`,
-  doc: `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="160"><rect width="100%" height="100%" fill="#e7efff"/><text x="50%" y="55%" text-anchor="middle" font-size="48" fill="#2b579a" font-family="Arial">DOC</text></svg>`,
-  docx: `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="160"><rect width="100%" height="100%" fill="#e7efff"/><text x="50%" y="55%" text-anchor="middle" font-size="48" fill="#2b579a" font-family="Arial">DOCX</text></svg>`,
-  xls: `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="160"><rect width="100%" height="100%" fill="#ebf7ec"/><text x="50%" y="55%" text-anchor="middle" font-size="48" fill="#217346" font-family="Arial">XLS</text></svg>`,
-  xlsx: `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="160"><rect width="100%" height="100%" fill="#ebf7ec"/><text x="50%" y="55%" text-anchor="middle" font-size="48" fill="#217346" font-family="Arial">XLSX</text></svg>`,
-  ppt: `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="160"><rect width="100%" height="100%" fill="#fff0e6"/><text x="50%" y="55%" text-anchor="middle" font-size="48" fill="#d24726" font-family="Arial">PPT</text></svg>`,
-  pptx: `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="160"><rect width="100%" height="100%" fill="#fff0e6"/><text x="50%" y="55%" text-anchor="middle" font-size="48" fill="#d24726" font-family="Arial">PPTX</text></svg>`,
-  txt: `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="160"><rect width="100%" height="100%" fill="#f4f6f8"/><text x="50%" y="55%" text-anchor="middle" font-size="48" fill="#5f6368" font-family="Arial">TXT</text></svg>`,
-  zip: `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="160"><rect width="100%" height="100%" fill="#fff8e1"/><text x="50%" y="55%" text-anchor="middle" font-size="48" fill="#f4b400" font-family="Arial">ZIP</text></svg>`,
-}
-const DEFAULT_ICON
-  = `data:image/svg+xml;utf8,${
-    encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="240" height="160"><rect width="100%" height="100%" fill="#eef0f5"/><text x="50%" y="55%" text-anchor="middle" font-size="42" fill="#6b7280" font-family="Arial">FILE</text></svg>`)}`
-
-function iconDataUrl(ext: string) {
-  const svg = ICONS[ext] || DEFAULT_ICON
-  return svg.startsWith('data:') ? svg : `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
-}
-
-/** 缩略图：图片=原图；PDF=第一页封面；其它=类型图标 */
-async function ensureThumbnail(uploadFile: UploadFile): Promise<string> {
-  const f = uploadFile as UploadFileWithThumb
-  const url = (f.originUrl || f.url || '') as string
-  const nameOrUrl = url || f.name
-  const ext = getExt(nameOrUrl)
-
-  if (isImageExt(ext)) {
-    const img = url || f.url || ''
-    f.thumbnailUrl = img
-    f.url = img
-    return img
-  }
-  if (ext === 'pdf') {
-    const placeholder = iconDataUrl('pdf')
-    f.thumbnailUrl = placeholder
-    f.url = placeholder
-    const dataUrl = url
-      ? await pdfToThumbDataUrl(url)
-      : (f as any).raw
-          ? await pdfToThumbDataUrl((f as any).raw as Blob)
-          : iconDataUrl('pdf')
-    f.thumbnailUrl = dataUrl
-    f.url = dataUrl
-    return dataUrl
-  }
-  const icon = iconDataUrl(ext)
-  f.thumbnailUrl = icon
-  f.url = icon
-  return icon
-}
-
-/* ===================== 角标（后缀）渲染辅助 ===================== */
-/**
- * 角标渲染
- */
-async function updateExtBadges() {
-  if (!props.isOccupyCorner)
+function setRows(rows: UploadRow[]): void {
+  if (isSingle.value) {
+    const first = rows[0] || null
+    files.value = first
     return
-  await nextTick()
-  const items = document.querySelectorAll('.el-upload-list__item')
-  items.forEach((el, i) => {
-    const it = fileData.value[i] as any
-    const nameOrUrl = (it?.originUrl || it?.url || it?.name || '') as string
-    const ext = getExt(nameOrUrl).toUpperCase()
-    ;(el as HTMLElement).setAttribute('data-ext', ext || '')
-  })
+  }
+  files.value = rows
 }
 
-/* ===================== 公共：从列表和 v-model 中移除文件 ===================== */
-function removeFromLists(uploadFile: UploadFile) {
-  // 从 el-upload 的 fileData 移除
-  const idx = fileData.value.findIndex((f: any) => (f.uid && (f as any).uid === (uploadFile as any).uid) || f.url === uploadFile.url)
-  if (idx !== -1)
-    fileData.value.splice(idx, 1)
-
-  // 同步 v-model
-  if (Array.isArray(fileLists.value)) {
-    const i2 = fileLists.value.findIndex(u => u === uploadFile.url || (uploadFile as any).originUrl === u)
-    if (i2 !== -1)
-      fileLists.value.splice(i2, 1)
-  }
-  else {
-    fileLists.value = ''
-  }
-}
-
-/* ===================== Hooks ===================== */
-function beforeUpload(file: UploadRawFile): Awaitable<boolean | void> {
-  console.log(file, 'mode="avatar"mode="avatar"mode="avatar"mode="avatar"')
-
-  if (props.fileSize > 0 && props.fileSize * 1024 * 1024 < file.size) {
-    ElMessage.error(`上传文件大小不能超过 ${props.fileSize}M`)
-    return false
-  }
-
-  if (!matchTypeByRules(file)) {
-    const rules = normalizedRules.value
-    if (rules.mode === 'all') {
-      return true
+function ensureArrayMode(): void {
+  const val = files.value
+  if (isSingle.value) {
+    if (Array.isArray(val)) {
+      const first = val[0] || null
+      files.value = first
     }
-    const allow = [...rules.exts].join(', ')
-    ElMessage.error(`仅允许上传：${allow}`)
-    return false
-  }
-}
-
-function handleProgress(_evt: UploadProgressEvent, _uploadFile: UploadFile, _uploadFiles: UploadFiles) {
-  emit('onProgress')
-}
-
-/** 成功回调（非 200 也视为失败处理） */
-async function handleSuccess(response: ResponseData<UploadFileModel>, uploadFile: UploadFile, uploadFiles: UploadFiles) {
-  if (response.code === 0 && response?.data) {
-    const publicUrl = response.data.accessPath
-    uploadFile.url = publicUrl
-    ;(uploadFile as any).originUrl = publicUrl
-
-    // 同步 v-model
-    if (Array.isArray(fileLists.value))
-      fileLists.value.push(publicUrl)
-    else fileLists.value = publicUrl
-
-    // 生成缩略图 + 角标
-    await ensureThumbnail(uploadFile)
-    await updateExtBadges()
-
-    emit('onSuccess', { response, uploadFile, uploadFiles })
-  }
-  else {
-    // ❗ 非 200：按失败处理并移除预览
-    ElMessage.error(response?.msg || '上传失败')
-    removeFromLists(uploadFile)
-    await updateExtBadges()
-  }
-}
-
-function handleExceed() {
-  ElMessage.warning(`最多上传${props.limit}个文件`)
-}
-
-function handleRemove(uploadFile: UploadFile, uploadFiles: UploadFiles) {
-  if (Array.isArray(fileLists.value)) {
-    const idx = fileLists.value.findIndex(it => it === uploadFile.url || (uploadFile as any).originUrl === it)
-    if (idx !== -1)
-      fileLists.value.splice(idx, 1)
-  }
-  else {
-    fileLists.value = ''
-  }
-  emit('onRemove', { uploadFile, uploadFiles })
-  updateExtBadges()
-}
-
-/** 允许外部拦截删除 */
-function beforeRemove(_uploadFile: UploadFile, _uploadFiles: UploadFiles): Awaitable<boolean> {
-  emit('onBeforeRemove', { _uploadFile, _uploadFiles })
-  return true
-}
-
-/** 失败回调：❗移除该文件，避免失败预览残留（你提的第 1 点） */
-function handleError(_error: Error, uploadFile: UploadFile, uploadFiles: UploadFiles) {
-  ElMessage.error(_error?.message || '上传失败')
-  removeFromLists(uploadFile)
-  updateExtBadges()
-  emit('onError', { error: _error, uploadFile, uploadFiles })
-}
-
-/** 预览：图片/封面/图标，并提供“在新窗口打开原文件” */
-async function handlePictureCardPreview(uploadFile: UploadFile) {
-  const f = uploadFile as UploadFileWithThumb
-  const thumb = f.thumbnailUrl || await ensureThumbnail(uploadFile)
-  dialogImageUrl.value = thumb
-  dialogOriginalUrl.value = (f.originUrl || uploadFile.url || '') as string
-  dialogVisible.value = true
-}
-
-/** 在新标签页内联预览原文件（Blob 方式） */
-async function openOriginal() {
-  const fileUrl = dialogOriginalUrl.value
-  if (!fileUrl)
     return
-  try {
-    const res = await fetch(fileUrl, { credentials: 'omit' })
-    if (!res.ok)
-      throw new Error(`HTTP ${res.status}`)
-    const blob = await res.blob()
-    const blobUrl = URL.createObjectURL(blob)
-    window.open(blobUrl, '_blank')
-    setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000)
   }
-  catch (e) {
-    console.error(e)
-    ElMessage.error('预览失败')
-  }
-}
-
-function normalizeFileTypes(
-  raw: string[] | string | undefined,
-): { mode: 'all' | 'ext', exts: Set<string> } {
-  if (!raw || (Array.isArray(raw) && raw.length === 0)) {
-    return { mode: 'all', exts: new Set() }
-  }
-
-  const list = Array.isArray(raw) ? raw : [raw]
-  const exts = new Set<string>()
-
-  for (const item of list) {
-    const r = (item || '').trim().toLowerCase()
-    if (!r) {
-      continue
-    }
-    if (r === 'image' || r === 'images') {
-      IMAGE_EXT_WHITELIST.forEach(e => exts.add(e))
-      continue
-    }
-    if (r === 'image/*') {
-      IMAGE_EXT_WHITELIST.forEach(e => exts.add(e))
-      continue
-    }
-    if (r === 'application/pdf' || r === 'pdf') {
-      exts.add('pdf')
-      continue
-    }
-    if (r === 'application/zip' || r === 'zip') {
-      exts.add('zip')
-      continue
-    }
-    if (r.startsWith('.')) {
-      exts.add(r.slice(1))
-      continue
-    }
-    if (r.includes('/')) {
-      // 其它 mime 不强制映射；按“全部允许”处理更宽松
-      // 你也可以在此扩展更多 mime→ext 的映射
-      continue
-    }
-    exts.add(r)
-  }
-
-  if (exts.size === 0) {
-    return { mode: 'all', exts: new Set() }
-  }
-  return { mode: 'ext', exts }
-}
-
-/* ===================== v-model → el-upload ===================== */
-watch(
-  () => fileLists.value,
-  async (val) => {
-    if (!val) {
-      fileData.value = []
-      await updateExtBadges()
+  if (!Array.isArray(val)) {
+    if (val) {
+      files.value = [val]
       return
     }
-    const arr = Array.isArray(val) ? val : val.split(',')
-    fileData.value = await Promise.all(arr.map(async (u) => {
-      const f = { name: u, url: u } as any as UploadFile
-      ;(f as any).originUrl = u
-      const thumb = await ensureThumbnail(f)
-      ;(f as any).thumbnailUrl = thumb
-      return f as any
-    }))
-    await updateExtBadges()
+    files.value = []
+  }
+}
+
+watch(
+  () => props.limit,
+  () => {
+    ensureArrayMode()
   },
   { immediate: true },
 )
 
-onMounted(() => updateExtBadges())
-watch(fileData, () => updateExtBadges(), { deep: true })
-watch(() => props.isOccupyCorner, () => updateExtBadges())
+function formatBytes(bytes: number): string {
+  const KB = 1024
+  const MB = KB * 1024
+  const GB = MB * 1024
+  if (bytes < MB) {
+    return `${(bytes / KB).toFixed(2)} KB`
+  }
+  if (bytes < GB) {
+    return `${(bytes / MB).toFixed(2)} MB`
+  }
+  return `${(bytes / GB).toFixed(2)} GB`
+}
+
+interface NormalizedTypes {
+  exts: Set<string>
+  mimes: Set<string>
+  acceptAttr: string
+}
+
+function normalizeFileTypes(input: string[] | string | undefined): NormalizedTypes {
+  const tokens = Array.isArray(input) ? input : input ? [input] : []
+  const exts = new Set<string>()
+  const mimes = new Set<string>()
+  if (tokens.length === 0) {
+    return { exts, mimes, acceptAttr: '' }
+  }
+  tokens.forEach((raw) => {
+    const t = String(raw).trim().toLowerCase()
+    if (!t) {
+      return
+    }
+    if (t === 'image' || t === 'image/*') {
+      IMAGE_EXTS.forEach((e) => {
+        exts.add(e)
+      })
+      mimes.add('image/*')
+      return
+    }
+    if (t === 'video' || t === 'video/*') {
+      VIDEO_EXTS.forEach((e) => {
+        exts.add(e)
+      })
+      mimes.add('video/*')
+      return
+    }
+    if (t === 'pdf') {
+      exts.add('pdf')
+      mimes.add('application/pdf')
+      return
+    }
+    if (t === 'zip') {
+      exts.add('zip')
+      mimes.add('application/zip')
+      return
+    }
+    if (t.startsWith('application/')) {
+      const mapped = KNOWN_MIMES[t] || []
+      mapped.forEach((e) => {
+        exts.add(e)
+      })
+      mimes.add(t)
+      return
+    }
+    const pure = t.startsWith('.') ? t.slice(1) : t
+    if (/^[a-z0-9]+$/.test(pure)) {
+      exts.add(pure)
+    }
+  })
+  const acceptParts: string[] = []
+  mimes.forEach((m) => {
+    acceptParts.push(m)
+  })
+  exts.forEach((e) => {
+    acceptParts.push(`.${e}`)
+  })
+  return { exts, mimes, acceptAttr: acceptParts.join(',') }
+}
+
+const normalizedTypes = computed(() => {
+  return normalizeFileTypes(props.fileTypes)
+})
+
+function matchByType(file: UploadRawFile, norm: NormalizedTypes): boolean {
+  if (norm.exts.size === 0 && norm.mimes.size === 0) {
+    return true
+  }
+  const mime = (file.type || '').toLowerCase()
+  const name = file.name || ''
+  const ext = name.includes('.') ? name.split('.').pop()!.toLowerCase() : ''
+  if (ext && norm.exts.has(ext)) {
+    return true
+  }
+  const okMime = mime && (norm.mimes.has(mime) || [...norm.mimes].some((m) => {
+    if (!m.endsWith('/*')) {
+      return false
+    }
+    const prefix = `${m.split('/')[0]}/`
+    return mime.startsWith(prefix)
+  }))
+  if (okMime) {
+    return true
+  }
+  return false
+}
+
+function checkSize(file: UploadRawFile, maxMB: number): true | string {
+  if (!maxMB || maxMB <= 0) {
+    return true
+  }
+  const ok = file.size <= maxMB * 1024 * 1024
+  if (ok) {
+    return true
+  }
+  return `文件过大，最大支持 ${maxMB} MB，当前 ${formatBytes(file.size)}`
+}
+
+function beforeUpload(file: UploadRawFile) {
+  const okType = matchByType(file, normalizedTypes.value)
+  if (!okType) {
+    const hint = normalizedTypes.value.acceptAttr || '所需类型'
+    ElMessage.error(`文件类型不符合要求，仅支持：${hint}`)
+    files.value = isSingle.value ? null : []
+    return false
+  }
+  const sizeCheck = checkSize(file, props.maxSizeMB)
+  if (sizeCheck !== true) {
+    ElMessage.error(sizeCheck)
+    return false
+  }
+  return true
+}
+
+function onExceed(filesRaw: File[]) {
+  const raw = filesRaw[0] as UploadRawFile
+  uploadRef.value?.clearFiles()
+  setRows([])
+  raw.uid = genFileId()
+  uploadRef.value?.handleStart(raw)
+  uploadRef.value?.submit()
+}
+
+function upsert(uid: string, patch: Partial<UploadRow> & Pick<UploadRow, 'uid'>) {
+  const rows = getRows()
+  if (isSingle.value) {
+    const old = rows[0] || null
+    const merged = { ...(old || {}), ...patch } as UploadRow
+    setRows([merged])
+    return
+  }
+  const idx = rows.findIndex((r) => {
+    return r.uid === uid
+  })
+  if (idx === -1) {
+    rows.push(patch as UploadRow)
+    setRows(rows)
+    return
+  }
+  rows[idx] = { ...rows[idx], ...patch }
+  setRows(rows)
+}
+
+function getRow(uid: string): UploadRow {
+  const rows = getRows()
+  const found = rows.find((r) => {
+    return r.uid === uid
+  })
+  return found as UploadRow
+}
+
+function currentForUid(uid: string): UploadRow {
+  const val = files.value
+  if (isSingle.value) {
+    return val as UploadRow
+  }
+  return getRow(uid)
+}
+
+function handleChange(uploadFile: UploadUserFile) {
+  const uid = String((uploadFile as any).uid)
+  const rows = getRows()
+  const exists = rows.some((r) => {
+    return r.uid === uid
+  })
+  if (exists) {
+    return
+  }
+  if (isSingle.value) {
+    setRows([])
+  }
+  const f = uploadFile.raw as File
+  const sizeBytes = f?.size ?? 0
+  upsert(uid, {
+    uid,
+    name: uploadFile.name || f?.name || '',
+    type: f?.type || '',
+    size: formatBytes(sizeBytes),
+    sizeBytes,
+    createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+    progress: 0,
+    url: '',
+    status: 'uploading',
+  })
+  emit('progress', currentForUid(uid))
+}
+
+function makeUploadProgressEvent(percent: number, loaded = 0, total = 100): UploadProgressEvent {
+  const evt = new ProgressEvent('progress', { lengthComputable: true, loaded, total })
+  ;(evt as any).percent = percent
+  return evt as UploadProgressEvent
+}
+
+async function doUpload({ file, onProgress, onSuccess, onError }: UploadRequestOptions) {
+  const f = file as File
+  const uidStr = String((file as any).uid)
+  const rows = getRows()
+  const exists = rows.some((r) => {
+    return r.uid === uidStr
+  })
+  if (!exists) {
+    if (isSingle.value) {
+      setRows([])
+    }
+    const sizeBytes = f.size
+    upsert(uidStr, {
+      uid: uidStr,
+      name: f.name,
+      type: f.type || '',
+      size: formatBytes(sizeBytes),
+      sizeBytes,
+      createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+      progress: 0,
+      url: '',
+      status: 'uploading',
+    })
+  }
+  const controller = new AbortController()
+  inFlight.set(uidStr, controller)
+  try {
+    const form = new FormData()
+    form.append('file', f)
+    Object.entries(props.extraForm).forEach(([k, v]) => {
+      form.append(k, String(v))
+    })
+    let last = 0
+    const res = await axios.request({
+      method: props.method,
+      url: finalUploadUrl.value,
+      data: form,
+      headers: { 'Content-Type': 'multipart/form-data', ...props.headers },
+      withCredentials: props.withCredentials,
+      signal: controller.signal,
+      onUploadProgress: (e) => {
+        if (!e.total) {
+          return
+        }
+        let p = Math.floor((e.loaded / e.total) * 100)
+        if (p >= 100) {
+          p = 99
+        }
+        if (p > last) {
+          last = p
+          upsert(uidStr, { uid: uidStr, progress: p, status: 'uploading' })
+          onProgress?.(makeUploadProgressEvent(p, e.loaded, e.total))
+          emit('progress', currentForUid(uidStr))
+        }
+      },
+    })
+    const data = res.data
+    if (data?.code && data.code !== 0) {
+      throw new Error(data?.msg || '上传失败')
+    }
+    const url = props.resolveUrl(data)
+    upsert(uidStr, { uid: uidStr, progress: 100, status: 'success', url, response: data })
+    onSuccess?.(data)
+    onProgress?.(makeUploadProgressEvent(100, 1, 1))
+    await nextTick()
+    emit('success', currentForUid(uidStr))
+    clearAfterEnd()
+  }
+  catch (err: any) {
+    const canceled = err?.code === 'ERR_CANCELED' || err?.name === 'CanceledError' || err?.message === 'canceled'
+    if (canceled) {
+      upsert(uidStr, { uid: uidStr, status: 'fail', message: '已取消' })
+      onError?.(err)
+    }
+    else {
+      upsert(uidStr, { uid: uidStr, status: 'fail', message: err?.message || '上传失败' })
+      onError?.(err)
+      emit('error', currentForUid(uidStr))
+      ElMessage.error(err?.message || '上传失败')
+    }
+  }
+  finally {
+    inFlight.delete(uidStr)
+  }
+}
+
+function clearAfterEnd() {
+  if (isSingle.value) {
+    uploadRef.value?.clearFiles()
+  }
+}
+
+function abortUpload(target: UploadFile | UploadRow | string | number) {
+  const uidStr = typeof target === 'object' ? String((target as any).uid) : String(target)
+  const controller = inFlight.get(uidStr)
+  if (controller) {
+    controller.abort()
+  }
+  const elFile = { name: '', status: 'ready', uid: Number(uidStr) } as UploadFile
+  uploadRef.value?.abort(elFile)
+  upsert(uidStr, { uid: uidStr, status: 'fail', message: '已取消' })
+}
+
+defineExpose({
+  abortUpload,
+})
 </script>
 
 <template>
-  <!-- 根节点加 has-corner 类，用于控制角标开关 -->
-  <div class="upload-wrap" :class="{ 'has-corner': isOccupyCorner }">
+  <div
+    class="upload-wrap" :class="{ 'has-corner': isOccupyCorner }"
+  >
     <el-upload
-      v-model:file-list="fileData"
-      :class="{ 'avatar-mode': mode === 'avatar', 'readonly': readonly || (max > 0 && fileData.length >= max) }"
-      :accept="acceptAttr"
-      :action="uploadUrl"
-      :disabled="disabled"
-      :drag="drag"
-      :multiple="multiple"
-      :limit=" max"
+      ref="uploadRef"
+      :class="{ 'avatar-mode': mode === 'avatar', 'readonly': readonly || (max > 0 && Array.isArray(files) ? files.length >= max : false) }"
+      :drag="isFileDrag"
+      action=""
       :list-type="mode === 'avatar' ? 'picture-card' : listType"
+      :show-file-list="false"
+      :http-request="doUpload"
+      :on-change="handleChange"
       :before-upload="beforeUpload"
-      :before-remove="beforeRemove"
-      :on-success="handleSuccess"
-      :on-error="handleError"
-      :on-progress="handleProgress"
-      :on-preview="handlePictureCardPreview"
-      :on-remove="handleRemove"
-      :on-exceed="handleExceed"
+      :on-exceed="onExceed"
+      multiple
+      :limit="limit > 0 ? limit : undefined"
+      :accept="normalizedTypes.acceptAttr"
+      style="background-color:#fafafa;height: 100%;"
     >
+      <div v-if="isFileDrag" class="h-full flex flex-col justify-center items-center text-[#1b79ff]">
+        <svg
+          viewBox="0 0 1024 1024"
+          focusable="false"
+          data-icon="inbox"
+          width="1.5em"
+          height="1.5em"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            d="M885.2 446.3l-.2-.8-112.2-285.1c-5-16.1-19.9-27.2-36.8-27.2H281.2c-17 0-32.1 11.3-36.9 27.6L139.4 443l-.3.7-.2.8c-1.3 4.9-1.7 9.9-1 14.8-.1 1.6-.2 3.2-.2 4.8V830a60.9 60.9 0 0060.8 60.8h627.2c33.5 0 60.8-27.3 60.9-60.8V464.1c0-1.3 0-2.6-.1-3.7.4-4.9 0-9.6-1.3-14.1zm-295.8-43l-.3 15.7c-.8 44.9-31.8 75.1-77.1 75.1-22.1 0-41.1-7.1-54.8-20.6S436 441.2 435.6 419l-.3-15.7H229.5L309 210h399.2l81.7 193.3H589.4zm-375 76.8h157.3c24.3 57.1 76 90.8 140.4 90.8 33.7 0 65-9.4 90.3-27.2 22.2-15.6 39.5-37.4 50.7-63.6h156.5V814H214.4V480.1z"
+          />
+        </svg>
+        <div class="text-[#000000] text-xs mt-[4px]">
+          单击或拖动文件到此区域进行上传
+        </div>
+        <div v-if="limit > 1" class="mt-[4px] text-[12px] text-gray-400">
+          支持批量上传
+        </div>
+      </div>
+
       <div
-        v-if="listType === 'picture-card'"
+        v-if="isFileList"
         class="flex-center flex-col text-center"
-        :class="{ 'avatar-upload': mode === 'avatar' }"
+        :class="{ 'avatar-upload': isFileAvatar }"
       >
         <el-icon :size="iconSize" :color="iconColor">
           <Plus />
         </el-icon>
       </div>
-      <div v-else>
-        <el-button type="primary" :icon="Upload" plain :disabled="disabled">
-          {{ btnText }}
-        </el-button>
-      </div>
     </el-upload>
-
-    <!-- 可选：文件名 -->
-    <!--
-    <div v-if="showFilename && fileData.length" class="filename-grid">
-      <div v-for="(f, i) in fileData" :key="i" class="name">
-        {{ (f as any).name || (f as any).originUrl || f.url }}
-      </div>
-    </div>
-    -->
-
-    <el-dialog v-model="dialogVisible" append-to-body width="520px">
-      <div class="mb-3 flex items-center justify-between">
-        <div class="text-xs text-gray-500 truncate" :title="dialogOriginalUrl">
-          {{ dialogOriginalUrl }}
-        </div>
-        <el-button v-if="dialogOriginalUrl" type="primary" text @click="openOriginal">
-          在新窗口打开
-        </el-button>
-      </div>
-      <img :src="dialogImageUrl" alt="预览">
-    </el-dialog>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .upload-wrap {
   position: relative;
+  width: v-bind(width) !important;
+  height: v-bind(height) !important;
 }
 
 img {
@@ -531,8 +534,8 @@ img {
 :deep(.el-upload--picture-card) {
   width: v-bind(width) !important;
   height: v-bind(height) !important;
-  margin-bottom: v-bind(itemMarin) !important;
-  margin-right: v-bind(itemMarin) !important;
+  margin-bottom: v-bind(itemMargin) !important;
+  margin-right: v-bind(itemMargin) !important;
   border-radius: v-bind(borderRadius) !important;
 }
 :deep(.is-uploading) {
@@ -544,8 +547,8 @@ img {
 :deep(.el-upload-list__item) {
   width: v-bind(width) !important;
   height: v-bind(height) !important;
-  margin-bottom: v-bind(itemMarin) !important;
-  margin-right: v-bind(itemMarin) !important;
+  margin-bottom: v-bind(itemMargin) !important;
+  margin-right: v-bind(itemMargin) !important;
   border-radius: v-bind(borderRadius) !important;
 }
 
@@ -568,6 +571,12 @@ img {
 :deep(.el-progress) {
   width: v-bind(progressSize) !important;
   height: v-bind(progressSize) !important;
+  border-radius: v-bind(borderRadius) !important;
+}
+
+:deep(.el-upload-dragger) {
+  width: v-bind(width) !important;
+  height: v-bind(height) !important;
   border-radius: v-bind(borderRadius) !important;
 }
 

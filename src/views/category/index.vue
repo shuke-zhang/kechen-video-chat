@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type UploadFile from '@/components/UploadFile/UploadFile.vue'
+import type { UploadRow } from '@/model/upload'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -84,11 +86,97 @@ const categories = Array.from({ length: 36 }).map((_, i) => {
 function openCategory(path: string) {
   router.push(path)
 }
+const uploadFile = ref<UploadRow | null>(null)
+const sss = ref<UploadRow | null>(null)
+const aaaa = ref<UploadRow | null>(null)
+const form = ref<any>({
+})
+const DragUploadFileRef = ref<InstanceType<typeof UploadFile> | null>(null)
+function handleUploadSuccess(file: UploadRow) {
+  console.log(file, 'file-success')
+
+  if (file.status !== 'success')
+    return
+  form.value.address = file.response?.data.accessPath
+  form.value.videoLength = String(file.response?.data.duration) || '0'
+  form.value.fileType = file.response?.data.fileExtension
+}
+
+watch(() => uploadFile.value, (uploadFile) => {
+  console.log(uploadFile)
+})
 </script>
 
 <template>
   <div class="category-page max-w-7xl mx-auto px-6 py-10">
-    <div
+    <!-- <UploadFile class="my-[20px] w-[300px] h-[300px]" /> -->
+    <el-row class="mb-[20px]">
+      <!-- 上传视频· -->
+      <el-col :span="16">
+        <el-form-item label="视频文件" prop="video" style="width: 100%">
+          <div class="flex  items-center w-full">
+            <UploadFile
+              ref="DragUploadFileRef"
+              v-model:files="uploadFile"
+              width="300px"
+              height="300px"
+              :limit="1"
+              file-types="video"
+              @success="handleUploadSuccess"
+            />
+          </div>
+          <div class="ml-[10px] flex-1 mt-[50px]">
+            <div class="flex items-center justify-between gap-2">
+              <div class="min-w-0 flex-1">
+                <!-- 前面省略，后面展示 -->
+                <div
+                  v-trunc="{ lines: 1, titleWhenTruncated: true, observeMutations: true }"
+                  class="w-[180px] overflow-hidden text-ellipsis whitespace-nowrap [direction:rtl] [text-align:left] "
+                >
+                  {{ uploadFile?.name || '--' }}
+                </div>
+              </div>
+
+              <span class="shrink-0">
+                {{ uploadFile?.size || 0 }}
+              </span>
+            </div>
+            <el-progress
+              :key="uploadFile?.uid"
+              :text-inside="true"
+              :stroke-width="14"
+              :percentage="uploadFile?.progress"
+              status="success"
+            />
+          </div>
+
+          <div class="mt-[50px]">
+            <UploadFile
+              ref="DragUploadFileRef"
+              v-model:files="sss"
+              width="300px"
+              mode="drag"
+              height="300px"
+              :limit="1"
+              file-types="video"
+            />
+          </div>
+
+          <div class="mt-[50px]">
+            <UploadFile
+              ref="DragUploadFileRef"
+              v-model:files="aaaa"
+              width="300px"
+              mode="avatar"
+              height="300px"
+              :limit="1"
+              file-types="video"
+            />
+          </div>
+        </el-form-item>
+      </el-col>
+    </el-row>
+    <!-- <div
       class="grid gap-[16px] [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]"
     >
       <div
@@ -97,7 +185,6 @@ function openCategory(path: string) {
         class="group bg-white rounded-2xl shadow hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer border border-slate-100"
         @click="openCategory(item.path)"
       >
-        <!-- 封面图 -->
         <div class="relative w-full h-[120px] overflow-hidden">
           <img
             :src="item.cover"
@@ -109,7 +196,6 @@ function openCategory(path: string) {
           />
         </div>
 
-        <!-- 内容 -->
         <div class="p-4">
           <h3
             class="text-lg font-semibold text-slate-800 mb-1 truncate group-hover:text-indigo-600 transition"
@@ -123,7 +209,7 @@ function openCategory(path: string) {
           </p>
         </div>
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 

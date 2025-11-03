@@ -39,7 +39,7 @@ export const useUserStore = defineStore('user', () => {
 
     setCacheToken(res.data)
     setCache('IS_LOGGED_IN', true)
-    // await getInfo()
+    await getInfo()
   }
   function logout() {
     resetAllState()

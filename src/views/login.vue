@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { LoginFormModel } from '@/model/login'
+import { getUserList } from '@/api/user'
 
 const title = import.meta.env.VITE_APP_TITLE
 const userStore = useUserStore()
@@ -64,6 +65,9 @@ watch(
 )
 
 onMounted(() => {
+  getUserList().then((res) => {
+    console.log(res)
+  })
 })
 </script>
 
@@ -118,14 +122,14 @@ onMounted(() => {
           <span v-if="!loading">登 录</span>
           <span v-else>登 录 中...</span>
         </el-button>
-        <div class="w-full flex justify-between">
+        <!-- <div class="w-full flex justify-between">
           <text class="text-[#337ab7] hover:text-[rgb(32,160,255)] cursor-pointer focus:text-[#337ab7] text-[14px]">
             忘记密码？
           </text>
           <router-link class="text-[#337ab7] hover:text-[rgb(32,160,255)] cursor-pointer focus:text-[#337ab7] text-[14px]" to="/register">
             立即注册
           </router-link>
-        </div>
+        </div> -->
       </el-form-item>
     </el-form>
   </div>
