@@ -5,24 +5,36 @@ import type { SettingDropdownValueModel } from '@/model/setting'
 
 const UserStore = useUserStore()
 const { userName, isLoggedIn } = storeToRefs(UserStore)
-watch(() => userName.value, (newVal) => {
-  console.log(newVal, 'userName')
-})
+
 const router = useRouter()
 const isActiveCategory = ref(false)
 
 const currentRoute = ref(router.currentRoute.value.path.replace('/', ''))
-const topNavList: Array<{ label: string, value: TopNavValueModel }> = [
-  { label: '首页', value: 'home' },
-  { label: '类别1', value: 'category1' },
-  { label: '类别2', value: 'category2' },
-  { label: '类别3', value: 'category3' },
-  { label: '类别4', value: 'category4' },
-  { label: '类别5', value: 'category5' },
-  { label: '类别6', value: 'category6' },
-  { label: '工单', value: 'workOrder' },
-  { label: '设置', value: 'settings' },
-]
+// const topNavList = ref<{ label: string, value: TopNavValueModel }[]>([
+//   { label: '首页', value: 'home' },
+//   { label: '工单', value: 'workOrder' },
+//   { label: '设置', value: 'settings' },
+// ])
+
+const topNavList = computed(() => {
+  const base = [
+    { label: '首页', value: 'home' },
+    { label: '工单', value: 'workOrder' },
+    { label: '设置', value: 'settings' },
+  ]
+  const categoryList = toRaw(UserStore.categoryList).map((item) => {
+    return {
+      label: item.name,
+      value: item.path,
+    }
+  })
+  const list = insertArrayAfterIndex(base, categoryList) as {
+    label: string
+    value: TopNavValueModel
+  }[]
+
+  return list
+})
 
 const dropdownItems: Array<{ label: string, value: UserDropdownValueModel }> = [
   { label: '修改', value: 'put' },
@@ -40,7 +52,6 @@ const activeNavItem = ref<TopNavValueModel | null>(null)
 function handleNavClick(value: TopNavValueModel) {
   if (value === 'settings')
     return
-  console.log(value.includes('category'), '测试')
 
   activeNavItem.value = value
   if (value.includes('category')) {
@@ -55,7 +66,6 @@ function handleNavClick(value: TopNavValueModel) {
 function handleCommand(command: UserDropdownValueModel) {
   switch (command) {
     case 'put':
-      // console.log('修改')
       router.push('/user/profile')
       activeNavItem.value = 'settings'
       break
@@ -84,6 +94,13 @@ function handleAvatarClick() {
     // 未登录 -> 跳转登录页
     UserStore.logout()
   }
+}
+
+function insertArrayAfterIndex<T>(oldArr: T[], newArr: T[], num = 0): T[] {
+  const pos = Math.min(1, oldArr.length)
+  const head = oldArr.slice(num, pos)
+  const tail = oldArr.slice(pos)
+  return [...head, ...newArr, ...tail]
 }
 
 onMounted(() => {
@@ -145,7 +162,7 @@ onMounted(() => {
               <div
                 class=" w-[100px] h-full  border-b-[2px] border-transparent hover:text-primary flex-center"
                 :class="[activeNavItem === item.value ? 'text-primary border-primary!' : '']"
-                @click="handleNavClick(item.value)"
+                @click="handleNavClick(item.value!)"
               >
                 {{ item.label }}
               </div>

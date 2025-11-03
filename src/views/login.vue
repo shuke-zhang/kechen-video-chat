@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { LoginFormModel } from '@/model/login'
-import { getUserList } from '@/api/user'
 
 const title = import.meta.env.VITE_APP_TITLE
 const userStore = useUserStore()
@@ -47,6 +46,8 @@ function handleLogin() {
             },
             {},
           )
+          console.log('进行跳转')
+
           router.push({ path: redirect.value || '/', query: otherQueryParams })
         })
         .catch(() => {
@@ -65,9 +66,7 @@ watch(
 )
 
 onMounted(() => {
-  getUserList().then((res) => {
-    console.log(res)
-  })
+
 })
 </script>
 

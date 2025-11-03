@@ -1,5 +1,6 @@
 import type { CacheTime } from './cache'
 
+import type { CategoryModel } from '@/model/category'
 import type { LoginFormModel } from '@/model/login'
 import type { UserModel } from '@/model/user'
 import { name, version } from '../../../package.json'
@@ -22,6 +23,10 @@ interface CacheType {
    * 用户信息
    */
   USER_INFO: UserModel
+  /**
+   * 分类列表
+   */
+  CATEGORY_LIST: CategoryModel[]
 }
 /**
  * 缓存

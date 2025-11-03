@@ -120,20 +120,16 @@ export class Cache<CacheType extends AnyObject> {
   set<K extends keyof CacheType>(key: K, value: CacheType[K], options: number | Partial<CacheTime> = this.defaultExpires) {
     if (typeof localStorage === 'undefined')
       return
-    console.log('111111')
 
     const _key = this.getRealKey(key)
-    console.log('222222')
 
     const data = this.stringifyJson({
       value,
       expires: this.getExpires(options),
     })
-    console.log('33333')
 
     try {
       if (data) {
-        console.log('设置缓存1111', _key, data)
         localStorage.setItem(_key, data)
       }
     }
