@@ -87,12 +87,11 @@ const categories = Array.from({ length: 36 }).map((_, i) => {
 function openCategory(path: string) {
   router.push(path)
 }
-const uploadFile = ref<UploadRow | null>(null)
-const sss = ref<UploadRow | null>(null)
-const aaaa = ref<UploadRow | null>(null)
+const uploadFile = ref<UploadRow[] | null>(null)
+const fileData = ref<any>([])
 const form = ref<any>({
 })
-const DragUploadFileRef = ref<InstanceType<typeof UploadFile> | null>(null)
+const DragUploadFileRef = useTemplateRef('DragUploadFileRef')
 function handleUploadSuccess(file: UploadRow) {
   console.log(file, 'file-success')
 
@@ -104,79 +103,60 @@ function handleUploadSuccess(file: UploadRow) {
 }
 
 watch(() => uploadFile.value, (uploadFile) => {
-  console.log(uploadFile)
+  console.log('uploadFile变化了', uploadFile)
+}, {
+  deep: true,
+})
+watch(() => fileData.value, (fileData) => {
+  console.log('fileData变化了', fileData)
+}, {
+  deep: true,
 })
 </script>
 
 <template>
   <div class="category-page max-w-7xl mx-auto px-6 py-10">
-    <!-- <UploadFile class="my-[20px] w-[300px] h-[300px]" /> -->
     <el-row class="mb-[20px]">
-      <el-button type="primary" @click="sidebarStore.setIsShowSidebar(!sidebarStore.isShowSidebar)">
+      <!-- <el-button type="primary" @click="sidebarStore.setIsShowSidebar(!sidebarStore.isShowSidebar)">
         测试
-      </el-button>
+      </el-button> -->
       <!-- 上传视频· -->
       <el-col :span="16">
-        <el-form-item label="视频文件" prop="video" style="width: 100%">
-          <div class="flex  items-center w-full">
-            <UploadFile
-              ref="DragUploadFileRef"
-              v-model:files="uploadFile"
-              width="300px"
-              height="300px"
-              :limit="1"
-              file-types="video"
-              @success="handleUploadSuccess"
-            />
-          </div>
-          <div class="ml-[10px] flex-1 mt-[50px]">
-            <div class="flex items-center justify-between gap-2">
-              <div class="min-w-0 flex-1">
-                <!-- 前面省略，后面展示 -->
-                <div
-                  v-trunc="{ lines: 1, titleWhenTruncated: true, observeMutations: true }"
-                  class="w-[180px] overflow-hidden text-ellipsis whitespace-nowrap [direction:rtl] [text-align:left] "
-                >
-                  {{ uploadFile?.name || '--' }}
-                </div>
+        <UploadFile
+          ref="DragUploadFileRef"
+          v-model:uploaded-files="uploadFile"
+          v-model:file-data="fileData"
+          width="150px"
+          height="150px"
+          :limit="3"
+          mode="drag"
+          @success="handleUploadSuccess"
+        />
+        <div v-for="item in fileData" :key="item.uid" class="ml-[10px] flex-1 mt-[50px]">
+          <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0 flex-1">
+              <!-- 前面省略，后面展示 -->
+              <div
+                v-trunc="{ lines: 1, titleWhenTruncated: true, observeMutations: true }"
+                class="w-[180px] overflow-hidden text-ellipsis whitespace-nowrap [direction:rtl] [text-align:left] "
+              >
+                {{ item.name || '--' }}
               </div>
-
-              <span class="shrink-0">
-                {{ uploadFile?.size || 0 }}
-              </span>
             </div>
-            <el-progress
-              :key="uploadFile?.uid"
-              :text-inside="true"
-              :stroke-width="14"
-              :percentage="uploadFile?.progress"
-              status="success"
-            />
-          </div>
 
-          <div class="mt-[50px]">
-            <UploadFile
-              ref="DragUploadFileRef"
-              v-model:files="sss"
-              width="300px"
-              mode="drag"
-              height="300px"
-              :limit="1"
-              file-types="video"
-            />
+            <span class="shrink-0">
+              {{ item.size || 0 }}
+            </span>
           </div>
-
-          <div class="mt-[50px]">
-            <UploadFile
-              ref="DragUploadFileRef"
-              v-model:files="aaaa"
-              width="300px"
-              mode="avatar"
-              height="300px"
-              :limit="1"
-              file-types="video"
-            />
-          </div>
+          <el-progress
+            :key="item?.uid"
+            :text-inside="true"
+            :stroke-width="14"
+            :percentage="item?.progress"
+            status="success"
+          />
+        </div><el-form-item label="视频文件" prop="video" style="width: 100%">
+          <div class="flex  items-center w-full" />
         </el-form-item>
       </el-col>
     </el-row>

@@ -1,59 +1,113 @@
-<script setup lang="ts">
-import type { UploadFile, UploadInstance, UploadProgressEvent, UploadRawFile, UploadRequestOptions, UploadUserFile } from 'element-plus'
+<script setup lang="ts" generic="T extends number | undefined = undefined">
+import type { UploadFile, UploadFiles, UploadInstance, UploadProgressEvent, UploadRawFile, UploadRequestOptions, UploadUserFile } from 'element-plus'
 
 import type { EpPropMergeType } from 'element-plus/es/utils/index.mjs'
-import type { PropType } from 'vue'
+import type { UploadedFilesModel, UploadFileModel, UploadFileResponseModel } from './types'
 import type { UploadRow } from '@/model/upload'
 import { Plus } from '@element-plus/icons-vue'
-import axios from 'axios'
 
+import axios from 'axios'
 import { dayjs, ElMessage, genFileId } from 'element-plus'
 import { computed, defineExpose, defineModel, defineProps, nextTick, ref, watch } from 'vue'
 /**
- * 上传模式
- *  - 'avatar' → 头像模式（单文件、固定圆形/方形容器、通常只显示最后一张图）
- *  - 'list'   → 列表模式（可多文件，显示缩略图列表）
- *  - 'drag'   → 拖拽模式，支持拖拽，没有预览情况
+ * 上传组件 Props 定义
  */
-type UploadFileModel = 'avatar' | 'list' | 'drag'
+const props = withDefaults(defineProps<{
+  /** 上传接口地址（相对路径，若未指定 uploadUrl 则拼接此路径） */
+  action?: string
 
-const props = defineProps({
-  action: { type: String, default: '/file/upload' },
-  mode: {
-    type: String as PropType<UploadFileModel>,
-    default: 'list',
-  },
-  uploadUrl: { type: String },
-  iconSize: { type: String, default: '16' },
-  iconColor: { type: String, default: '#000000' },
-  width: { type: String, default: '100' },
-  height: { type: String, default: '100' },
-  resolveUrl: {
-    type: Function as PropType<(resp: any) => string>,
-    default: (resp: any) => {
-      return resp?.data?.url ?? resp?.data?.public_url ?? resp?.data?.download_url ?? resp?.url ?? ''
-    },
-  },
-  readonly: { type: Boolean, default: false },
-  listType: {
-    type: String as PropType<EpPropMergeType<StringConstructor, 'picture-card' | 'text' | 'picture', unknown> | undefined>,
-    default: 'picture-card',
-  },
-  method: { type: String as PropType<'POST' | 'PUT' | 'PATCH'>, default: 'POST' },
+  /**
+   * - drag：拖拽上传模式
+   * - avatar：头像上传模式 此时只允许传递一张
+   * - list：列表上传模式
+   */
+  mode?: UploadFileModel
 
-  headers: { type: Object as PropType<Record<string, string>>, default: () => ({}) },
-  withCredentials: { type: Boolean, default: false },
-  extraForm: { type: Object as PropType<Record<string, any>>, default: () => ({}) },
-  fileTypes: { type: [Array, String] as PropType<string[] | string>, default: () => [] as string[] },
-  maxSizeMB: { type: Number, default: 0 },
-  limit: { type: Number, default: 0 },
-  isOccupyCorner: { type: Boolean, default: false },
+  /** 完整上传地址（若存在则优先使用） */
+  uploadUrl?: string
+
+  /** 上传按钮图标尺寸（字符串，如 '16' 表示 16px） */
+  iconSize?: string
+
+  /** 上传按钮图标颜色（默认黑色） */
+  iconColor?: string
+
+  /** 预览容器宽度（字符串，自动补 px） */
+  width?: string
+
+  /** 预览容器高度（字符串，自动补 px） */
+  height?: string
+
+  /** 从服务端响应中解析文件 URL 的函数 */
+  resolveUrl?: (resp: any) => string
+
+  /** 是否只读（禁用上传交互） */
+  readonly?: boolean
+
+  /** 列表样式：'picture-card'、'text'、'picture' */
+  listType?: EpPropMergeType<StringConstructor, 'picture-card' | 'text' | 'picture', unknown> | undefined
+
+  /** HTTP 请求方法（POST、PUT、PATCH） */
+  method?: 'POST' | 'PUT' | 'PATCH'
+
+  /** 额外的请求头参数 */
+  headers?: Record<string, string>
+
+  /** 是否携带 cookie 信息 */
+  withCredentials?: boolean
+
+  /** 额外表单字段 */
+  extraForm?: Record<string, any>
+
+  /** 允许的文件类型，可为数组或字符串 */
+  fileTypes?: string[] | string
+
+  /** 限制文件最大体积（单位 MB） */
+  maxSizeMB?: number
+
+  /** 文件上传上限（limit=1 表示单文件模式） */
+  limit?: T
+
+  /** 是否在文件角上显示绿色角标 */
+  isOccupyCorner?: boolean
+}>(), {
+  action: '/file/upload',
+  mode: 'list',
+  iconSize: '16',
+  iconColor: '#000000',
+  width: '100',
+  height: '100',
+  resolveUrl: (resp: any) =>
+    resp?.data?.url
+    ?? resp?.data?.public_url
+    ?? resp?.data?.download_url
+    ?? resp?.url
+    ?? '',
+  readonly: false,
+  listType: 'picture-card',
+  method: 'POST',
+  headers: () => ({}),
+  withCredentials: false,
+  extraForm: () => ({}),
+  fileTypes: () => [],
+  maxSizeMB: 0,
+  isOccupyCorner: false,
 })
 const emit = defineEmits<{
   (e: 'progress', row: UploadRow): void
   (e: 'success', row: UploadRow): void
   (e: 'error', row: UploadRow): void
+  (e: 'onBeforeRemove', payload: { uploadFile: UploadFile, uploadFiles: UploadFiles }): void
+  (e: 'onSuccess', payload: { response: ResponseData<UploadFileResponseModel>, uploadFile: UploadFile, uploadFiles: UploadFiles }): void
+  (e: 'onError', payload: { error: Error, uploadFile: UploadFile, uploadFiles: UploadFiles }): void
+  (e: 'onProgress', payload: { evt: UploadProgressEvent, uploadFile: UploadFile, uploadFiles: UploadFiles }): void
+  (e: 'onRemove', payload: { uploadFile: UploadFile, uploadFiles: UploadFiles }): void
 }>()
+// 类型守卫
+function isSingleMode(limit: number | undefined): limit is 1 {
+  return limit === 1
+}
+
 /**
  * 是否开启了拖拽
  */
@@ -66,22 +120,55 @@ const isFileAvatar = computed(() => props.mode === 'avatar')
  * 是否为列表模式
  */
 const isFileList = computed(() => props.mode === 'list')
-const max = computed(() => props.mode === 'avatar' ? 1 : props.limit)
+
+const max = computed(() => props.mode === 'avatar' ? 1 : props.limit || 0)
+const limit = computed(() => props.mode === 'avatar' ? 1 : props.limit || 0)
 const itemMargin = computed(() => ((props.limit === 1 || props.mode === 'avatar') ? 0 : '10px'))
+
 const width = computed(() => (props.width.includes('px') ? props.width : `${props.width}px`))
 const height = computed(() => (props.height.includes('px') ? props.height : `${props.height}px`))
+const numericWidth = computed(() => {
+  const val = props.width || '100'
+  const match = val.match(/\d+(\.\d+)?/)
+  return match ? Number(match[0]) : 100
+})
+const numericHeight = computed(() => {
+  const val = props.height || '100'
+  const match = val.match(/\d+(\.\d+)?/)
+  return match ? Number(match[0]) : 100
+})
+
 const borderRadius = computed(() => (props.mode === 'avatar' ? '50%' : '6px'))
 const progressSize = computed(() => (props.height.includes('px') ? `${Number.parseFloat(props.height) - 10}px` : `${Number(props.height) - 10}px`))
 const oneLimitHeight = computed(() => (props.limit === 1 ? height.value : null))
+
+const dialogImageUrl = ref('') // 预览缩略图
+const dialogOriginalUrl = ref('') // 原文件URL
+const dialogVisible = ref(false)
 
 const IMAGE_EXTS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg']
 const VIDEO_EXTS = ['mp4', 'avi', 'mov', 'rmvb', 'wmv', 'flv', 'mkv', 'webm', 'm4v', '3gp']
 const KNOWN_MIMES: Record<string, string[]> = { 'application/pdf': ['pdf'], 'application/zip': ['zip'], 'application/x-zip-compressed': ['zip'] }
 
 const uploadRef = ref<UploadInstance | null>(null)
-const files = defineModel<UploadRow[] | UploadRow | null>('files', { default: () => null })
+/**
+ * 上传成功后的列表，当 limit 为1的时候为对象，其余时候为数组
+ */
+const fileData = defineModel<UploadUserFile[]>('fileData', {
+  default: () => [], // ✅ 必须是数组
+})
+/**
+ * 可实时更新上传进度的列表，当 limit 为1的时候为对象，其余时候为数组
+ */
+const uploadedFiles = defineModel<UploadedFilesModel<T>>('uploadedFiles', {
+  default: () => null as any,
+})
+
 const inFlight = new Map<string, AbortController>()
 
+/**
+ * 是否限制为1
+ */
 const isSingle = computed(() => {
   return props.limit === 1
 })
@@ -93,7 +180,7 @@ const finalUploadUrl = computed(() => {
 })
 
 function getRows(): UploadRow[] {
-  const val = files.value
+  const val = uploadedFiles.value
   if (Array.isArray(val)) {
     return [...val]
   }
@@ -104,29 +191,27 @@ function getRows(): UploadRow[] {
 }
 
 function setRows(rows: UploadRow[]): void {
-  if (isSingle.value) {
-    const first = rows[0] || null
-    files.value = first
-    return
+  if (isSingleMode(props.limit)) {
+    // 单文件：UploadRow | null
+    uploadedFiles.value = (rows[0] ?? null) as unknown as UploadedFilesModel<T>
   }
-  files.value = rows
+  else {
+    // 多文件：UploadRow[] | null
+    uploadedFiles.value = rows as unknown as UploadedFilesModel<T>
+  }
 }
 
 function ensureArrayMode(): void {
-  const val = files.value
-  if (isSingle.value) {
+  const val = uploadedFiles.value
+  if (isSingleMode(props.limit)) {
     if (Array.isArray(val)) {
-      const first = val[0] || null
-      files.value = first
+      uploadedFiles.value = (val[0] ?? null) as unknown as UploadedFilesModel<T>
     }
-    return
   }
-  if (!Array.isArray(val)) {
-    if (val) {
-      files.value = [val]
-      return
+  else {
+    if (!Array.isArray(val)) {
+      uploadedFiles.value = (val ? [val] : []) as unknown as UploadedFilesModel<T>
     }
-    files.value = []
   }
 }
 
@@ -253,13 +338,62 @@ function checkSize(file: UploadRawFile, maxMB: number): true | string {
   }
   return `文件过大，最大支持 ${maxMB} MB，当前 ${formatBytes(file.size)}`
 }
+/** 在新标签页内联预览原文件（Blob 方式） */
+async function openOriginal() {
+  const fileUrl = dialogOriginalUrl.value
+  if (!fileUrl)
+    return
+  try {
+    const res = await fetch(fileUrl, { credentials: 'omit' })
+    if (!res.ok)
+      throw new Error(`HTTP ${res.status}`)
+    const blob = await res.blob()
+    const blobUrl = URL.createObjectURL(blob)
+    window.open(blobUrl, '_blank')
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000)
+  }
+  catch (e) {
+    console.error(e)
+    ElMessage.error('预览失败')
+  }
+}
 
+/** 预览：图片/封面/图标，并提供“在新窗口打开原文件” */
+async function handlePictureCardPreview(uploadFile: UploadFile) {
+  const f = uploadFile
+  dialogImageUrl.value = f.url || ''
+  dialogOriginalUrl.value = (f.url || uploadFile.url || '') as string
+  dialogVisible.value = true
+}
+
+function handleRemove(uploadFile: UploadFile, uploadFiles: UploadFiles) {
+  // if (Array.isArray(fileLists.value)) {
+  //   const idx = fileLists.value.findIndex(it => it === uploadFile.url || (uploadFile as any).originUrl === it)
+  //   if (idx !== -1)
+  //     fileLists.value.splice(idx, 1)
+  // }
+  // else {
+  //   fileLists.value = ''
+  // }
+  emit('onRemove', { uploadFile, uploadFiles })
+  // updateExtBadges()
+}
+
+/* ===================== Hooks ===================== */
+/**
+ * 上传之前
+ */
 function beforeUpload(file: UploadRawFile) {
   const okType = matchByType(file, normalizedTypes.value)
   if (!okType) {
     const hint = normalizedTypes.value.acceptAttr || '所需类型'
     ElMessage.error(`文件类型不符合要求，仅支持：${hint}`)
-    files.value = isSingle.value ? null : []
+    if (isSingleMode(props.limit)) {
+      uploadedFiles.value = null as UploadedFilesModel<T>
+    }
+    else {
+      uploadedFiles.value = [] as unknown as UploadedFilesModel<T>
+    }
     return false
   }
   const sizeCheck = checkSize(file, props.maxSizeMB)
@@ -268,6 +402,56 @@ function beforeUpload(file: UploadRawFile) {
     return false
   }
   return true
+}
+
+/** 允许外部拦截删除 */
+function beforeRemove(_uploadFile: UploadFile, _uploadFiles: UploadFiles): Awaitable<boolean> {
+  emit('onBeforeRemove', { uploadFile: _uploadFile, uploadFiles: _uploadFiles })
+  return true
+}
+
+/** 成功回调（非 200 也视为失败处理） */
+async function handleSuccess(response: ResponseData<UploadFileResponseModel>, uploadFile: UploadFile, uploadFiles: UploadFiles) {
+  if (response.code === 0 && response?.data) {
+    const publicUrl = response.data.accessPath
+    uploadFile.url = publicUrl
+    console.log(response, 'response')
+
+    // 同步 v-model
+    // ✅ 同步到 fileData（Element Plus 预览列表）
+    if (Array.isArray(fileData.value)) {
+      const target = fileData.value.find(f => f.uid === uploadFile.uid)
+      if (target) {
+        target.url = `${__API_URL__}${publicUrl}`
+        target.status = 'success'
+      }
+      else {
+        fileData.value.push({
+          name: uploadFile.name,
+          url: `_URL__}${publicUrl}`,
+          status: 'success',
+          uid: uploadFile.uid,
+        })
+      }
+    }
+
+    emit('onSuccess', { response, uploadFile, uploadFiles })
+  }
+  else {
+    ElMessage.error(response?.msg || '上传失败')
+    // removeFromLists(uploadFile)
+    // await updateExtBadges()
+  }
+}
+
+/** 失败回调：❗移除该文件，避免失败预览残留（你提的第 1 点） */
+function handleError(_error: Error, uploadFile: UploadFile, uploadFiles: UploadFiles) {
+  ElMessage.error(_error?.message || '上传失败')
+  emit('onError', { error: _error, uploadFile, uploadFiles })
+}
+
+function handleProgress(_evt: UploadProgressEvent, _uploadFile: UploadFile, _uploadFiles: UploadFiles) {
+  emit('onProgress', { evt: _evt, uploadFile: _uploadFile, uploadFiles: _uploadFiles })
 }
 
 function onExceed(filesRaw: File[]) {
@@ -308,7 +492,7 @@ function getRow(uid: string): UploadRow {
 }
 
 function currentForUid(uid: string): UploadRow {
-  const val = files.value
+  const val = uploadedFiles.value
   if (isSingle.value) {
     return val as UploadRow
   }
@@ -415,7 +599,6 @@ async function doUpload({ file, onProgress, onSuccess, onError }: UploadRequestO
     onProgress?.(makeUploadProgressEvent(100, 1, 1))
     await nextTick()
     emit('success', currentForUid(uidStr))
-    clearAfterEnd()
   }
   catch (err: any) {
     const canceled = err?.code === 'ERR_CANCELED' || err?.name === 'CanceledError' || err?.message === 'canceled'
@@ -463,27 +646,32 @@ defineExpose({
   >
     <el-upload
       ref="uploadRef"
-      :class="{ 'avatar-mode': mode === 'avatar', 'readonly': readonly || (max > 0 && Array.isArray(files) ? files.length >= max : false) }"
+      v-model:file-list="fileData"
+      :class="{ 'avatar-mode': mode === 'avatar', 'readonly': readonly || (max > 0 && Array.isArray(fileData) ? fileData.length >= max : false) }"
       :drag="isFileDrag"
       action=""
       :list-type="mode === 'avatar' ? 'picture-card' : listType"
-      :show-file-list="false"
+      multiple
+      :limit="limit"
+      :accept="normalizedTypes.acceptAttr"
       :http-request="doUpload"
       :on-change="handleChange"
       :before-upload="beforeUpload"
+      :before-remove="beforeRemove"
+      :on-success="handleSuccess"
+      :on-error="handleError"
+      :on-progress="handleProgress"
+      :on-preview="handlePictureCardPreview"
+      :on-remove="handleRemove"
       :on-exceed="onExceed"
-      multiple
-      :limit="limit > 0 ? limit : undefined"
-      :accept="normalizedTypes.acceptAttr"
-      style="background-color:#fafafa;height: 100%;"
     >
       <div v-if="isFileDrag" class="h-full flex flex-col justify-center items-center text-[#1b79ff]">
         <svg
           viewBox="0 0 1024 1024"
           focusable="false"
           data-icon="inbox"
-          width="1.5em"
-          height="1.5em"
+          width="32px"
+          height="32px"
           fill="currentColor"
           aria-hidden="true"
         >
@@ -494,13 +682,13 @@ defineExpose({
         <div class="text-[#000000] text-xs mt-[4px]">
           单击或拖动文件到此区域进行上传
         </div>
-        <div v-if="limit > 1" class="mt-[4px] text-[12px] text-gray-400">
+        <div v-if="limit || 0 > 1" class="mt-[4px] text-[12px] text-gray-400">
           支持批量上传
         </div>
       </div>
 
       <div
-        v-if="isFileList"
+        v-if="isFileList || isFileAvatar"
         class="flex-center flex-col text-center"
         :class="{ 'avatar-upload': isFileAvatar }"
       >
@@ -509,14 +697,24 @@ defineExpose({
         </el-icon>
       </div>
     </el-upload>
+
+    <el-dialog v-model="dialogVisible" append-to-body width="520px">
+      <div class="mb-3 flex items-center justify-between">
+        <div class="text-xs text-gray-500 truncate" :title="dialogOriginalUrl">
+          {{ dialogOriginalUrl }}
+        </div>
+        <el-button v-if="dialogOriginalUrl" type="primary" text @click="openOriginal">
+          在新窗口打开
+        </el-button>
+      </div>
+      <img :src="dialogImageUrl" alt="预览">
+    </el-dialog>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .upload-wrap {
   position: relative;
-  width: v-bind(width) !important;
-  height: v-bind(height) !important;
 }
 
 img {
@@ -530,6 +728,10 @@ img {
   :deep(.el-upload--picture-card) {
     display: none !important;
   }
+}
+:deep(.el-upload-list__item-actions) {
+  width: v-bind(width) !important;
+  height: v-bind(height) !important;
 }
 :deep(.el-upload--picture-card) {
   width: v-bind(width) !important;
@@ -625,5 +827,8 @@ img {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.avatar-mode {
+  background-color: unset !important;
 }
 </style>

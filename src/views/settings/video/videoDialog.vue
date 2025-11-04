@@ -188,7 +188,7 @@ watch(() => visible.value, () => {
         <el-col :span="8">
           <el-form-item label="视频封面" prop="coverLink" style="width: 100%">
             <UploadFile
-              v-model="form.coverLink"
+              v-model:uploaded-files="form.coverLink"
               :limit="1"
               file-types="image"
               :show-file-list="false"
