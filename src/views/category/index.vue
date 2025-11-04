@@ -4,6 +4,7 @@ import type { UploadRow } from '@/model/upload'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+const sidebarStore = useSidebarStore()
 // ✅ 一次性几十个分类，填满页面
 const categories = Array.from({ length: 36 }).map((_, i) => {
   const pool = [
@@ -111,6 +112,9 @@ watch(() => uploadFile.value, (uploadFile) => {
   <div class="category-page max-w-7xl mx-auto px-6 py-10">
     <!-- <UploadFile class="my-[20px] w-[300px] h-[300px]" /> -->
     <el-row class="mb-[20px]">
+      <el-button type="primary" @click="sidebarStore.setIsShowSidebar(!sidebarStore.isShowSidebar)">
+        测试
+      </el-button>
       <!-- 上传视频· -->
       <el-col :span="16">
         <el-form-item label="视频文件" prop="video" style="width: 100%">

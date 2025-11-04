@@ -152,6 +152,7 @@ declare global {
   const usePromptStore: typeof import('../src/stores/modules/prompt/index')['usePromptStore']
   const useRoute: typeof import('vue-router')['useRoute']
   const useRouter: typeof import('vue-router')['useRouter']
+  const useSidebarStore: typeof import('../src/stores/modules/sidebar/index')['useSidebarStore']
   const useSlots: typeof import('vue')['useSlots']
   const useTemplateRef: typeof import('vue')['useTemplateRef']
   const useUserStore: typeof import('../src/stores/modules/user/index')['useUserStore']

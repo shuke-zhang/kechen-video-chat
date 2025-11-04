@@ -6,6 +6,7 @@ import { vTrunc } from './directive'
 import router from './router'
 import { formatDefaultDate, formatterTableEmpty, getSelectData, selectDictLabels } from './utils'
 import './styles/tailwindcss.css'
+import './styles/index.scss'
 import '@/components/icon-font/iconfont'
 
 const app = createApp(App)

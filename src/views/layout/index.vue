@@ -4,17 +4,13 @@ import type { MenuItemRegistered } from 'element-plus'
 import AppMain from './AppMain.vue'
 import Head from './components/head/index.vue'
 import Sidebar from './components/sidebar/index.vue'
-// 获取当前路由对象
-const route = useRoute()
+
 /**
  * 当前点击的是公共还是私有侧边栏菜单
  */
 const currentSidebarItem = ref<MenuItemRegistered | null>(null)
-// 计算属性：判断当前页面是否显示左侧菜单
-const showSidebar = computed(() => {
-  // meta 可能不存在，所以要加安全判断
-  return route.meta?.showLeftMenu === true
-})
+const sidebarStore = useSidebarStore()
+const isShowSidebar = computed(() => sidebarStore.isShowSidebar)
 
 function onMenuItemClick(item: MenuItemRegistered) {
   currentSidebarItem.value = item
@@ -29,9 +25,12 @@ onMounted(() => {
     <!-- 固定头部 -->
     <Head />
 
-    <Sidebar v-if="showSidebar" @menu-item-click="onMenuItemClick" />
+    <Sidebar v-if="isShowSidebar" @menu-item-click="onMenuItemClick" />
 
-    <div class="app-wrapper" :class="{ 'no-sidebar': !showSidebar }">
+    <div
+      class="app-wrapper" :class="{ 'no-sidebar': !isShowSidebar }"
+    >
+      {{ isShowSidebar }}
       <AppMain :current-sidebar-item="currentSidebarItem" />
     </div>
 

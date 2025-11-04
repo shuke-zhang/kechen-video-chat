@@ -171,6 +171,7 @@
     "validateEmailReg": true,
     "validateIdCardReg": true,
     "validatePhoneReg": true,
-    "ElLoading": true
+    "ElLoading": true,
+    "useSidebarStore": true
   }
 }
