@@ -670,8 +670,8 @@ defineExpose({
           viewBox="0 0 1024 1024"
           focusable="false"
           data-icon="inbox"
-          width="32px"
-          height="32px"
+          width="1.5em"
+          height="1.5em"
           fill="currentColor"
           aria-hidden="true"
         >
@@ -683,7 +683,7 @@ defineExpose({
           单击或拖动文件到此区域进行上传
         </div>
         <div v-if="limit || 0 > 1" class="mt-[4px] text-[12px] text-gray-400">
-          支持批量上传
+          <!-- 支持批量上传 -->
         </div>
       </div>
 
