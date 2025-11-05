@@ -38,6 +38,7 @@ router.beforeEach(async (to) => {
       // await userStore.getInfo()
       return true
     }
+
     return true
   }
   catch (_err: any) {

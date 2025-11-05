@@ -30,7 +30,6 @@ onMounted(() => {
     <div
       class="app-wrapper" :class="{ 'no-sidebar': !isShowSidebar }"
     >
-      {{ isShowSidebar }}
       <AppMain :current-sidebar-item="currentSidebarItem" />
     </div>
 

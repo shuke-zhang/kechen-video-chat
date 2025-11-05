@@ -18,7 +18,7 @@ const routes: RouteRecordRaw[] = [
         },
       },
       {
-        path: 'category',
+        path: 'category/:id',
         name: 'Category',
         component: () => import('@/views/category/index.vue'),
         meta: {
@@ -78,7 +78,6 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: 'video',
-        name: 'Video',
         component: () => import('@/views/settings/video/index.vue'),
         meta: {
           title: '视频',

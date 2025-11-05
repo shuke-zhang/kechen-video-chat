@@ -51,6 +51,8 @@ const settingDropdownItems: Array<{ label: string, value: SettingDropdownValueMo
 const activeNavItem = ref<TopNavValueModel | null>(null)
 
 function handleNavClick(value: TopNavValueModel) {
+  console.log('点击了handleNavClick')
+
   if (value === 'settings')
     return
 
@@ -58,7 +60,9 @@ function handleNavClick(value: TopNavValueModel) {
   if (value.includes('category')) {
     currentRoute.value = 'category'
     isActiveCategory.value = true
-    return router.push(`/category`)
+    const id = String(value).replace(/^\/?category\//, '')
+    router.push({ path: `/category/${id}` })
+    return
   }
   isActiveCategory.value = false
   router.push(`/${value}`)
@@ -82,6 +86,8 @@ function handleCommand(command: UserDropdownValueModel) {
  * 设置点击
  */
 function handleSettingCommand(command: SettingDropdownValueModel) {
+  console.log('点击了handleSettingCommand')
+
   activeNavItem.value = 'settings'
   router.push(`/${command}`)
   currentRoute.value = command
@@ -106,6 +112,7 @@ function insertArrayAfterIndex<T>(oldArr: T[], newArr: T[], num = 0): T[] {
 
 onMounted(() => {
   // 获取用户信息
+  console.log(currentRoute.value, '123')
 
   if (settingDropdownItems.some(item => item.value === currentRoute.value) || currentRoute.value === 'user/profile') {
     activeNavItem.value = 'settings'

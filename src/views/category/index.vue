@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import type UploadFile from '@/components/UploadFile/UploadFile.vue'
 import type { UploadRow } from '@/model/upload'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-const sidebarStore = useSidebarStore()
 // ✅ 一次性几十个分类，填满页面
 const categories = Array.from({ length: 36 }).map((_, i) => {
   const pool = [
@@ -89,18 +87,6 @@ function openCategory(path: string) {
 }
 const uploadFile = ref<UploadRow[] | null>(null)
 const fileData = ref<any>([])
-const form = ref<any>({
-})
-const DragUploadFileRef = useTemplateRef('DragUploadFileRef')
-function handleUploadSuccess(file: UploadRow) {
-  console.log(file, 'file-success')
-
-  if (file.status !== 'success')
-    return
-  form.value.address = file.response?.data.accessPath
-  form.value.videoLength = String(file.response?.data.duration) || '0'
-  form.value.fileType = file.response?.data.fileExtension
-}
 
 watch(() => uploadFile.value, (uploadFile) => {
   console.log('uploadFile变化了', uploadFile)
@@ -116,51 +102,7 @@ watch(() => fileData.value, (fileData) => {
 
 <template>
   <div class="category-page max-w-7xl mx-auto px-6 py-10">
-    <el-row class="mb-[20px]">
-      <!-- <el-button type="primary" @click="sidebarStore.setIsShowSidebar(!sidebarStore.isShowSidebar)">
-        测试
-      </el-button> -->
-      <!-- 上传视频· -->
-      <el-col :span="16">
-        <UploadFile
-          ref="DragUploadFileRef"
-          v-model:uploaded-files="uploadFile"
-          v-model:file-data="fileData"
-          width="150px"
-          height="150px"
-          :limit="3"
-          mode="drag"
-          @success="handleUploadSuccess"
-        />
-        <div v-for="item in fileData" :key="item.uid" class="ml-[10px] flex-1 mt-[50px]">
-          <div class="flex items-center justify-between gap-2">
-            <div class="min-w-0 flex-1">
-              <!-- 前面省略，后面展示 -->
-              <div
-                v-trunc="{ lines: 1, titleWhenTruncated: true, observeMutations: true }"
-                class="w-[180px] overflow-hidden text-ellipsis whitespace-nowrap [direction:rtl] [text-align:left] "
-              >
-                {{ item.name || '--' }}
-              </div>
-            </div>
-
-            <span class="shrink-0">
-              {{ item.size || 0 }}
-            </span>
-          </div>
-          <el-progress
-            :key="item?.uid"
-            :text-inside="true"
-            :stroke-width="14"
-            :percentage="item?.progress"
-            status="success"
-          />
-        </div><el-form-item label="视频文件" prop="video" style="width: 100%">
-          <div class="flex  items-center w-full" />
-        </el-form-item>
-      </el-col>
-    </el-row>
-    <!-- <div
+    <div
       class="grid gap-[16px] [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]"
     >
       <div
@@ -193,14 +135,13 @@ watch(() => fileData.value, (fileData) => {
           </p>
         </div>
       </div>
-    </div> -->
+    </div>
   </div>
 </template>
 
 <style scoped>
 .line-clamp-2 {
   display: -webkit-box;
-  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
