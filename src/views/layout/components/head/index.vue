@@ -9,7 +9,7 @@ const { userName, isLoggedIn } = storeToRefs(UserStore)
 const router = useRouter()
 const isActiveCategory = ref(false)
 
-const currentRoute = ref(router.currentRoute.value.path.replace('/', ''))
+const currentRoute = ref(router.currentRoute.value.path)
 // const topNavList = ref<{ label: string, value: TopNavValueModel }[]>([
 //   { label: '首页', value: 'home' },
 //   { label: '工单', value: 'workOrder' },
@@ -51,8 +51,6 @@ const settingDropdownItems: Array<{ label: string, value: SettingDropdownValueMo
 const activeNavItem = ref<TopNavValueModel | null>(null)
 
 function handleNavClick(value: TopNavValueModel) {
-  console.log('点击了handleNavClick')
-
   if (value === 'settings')
     return
 
@@ -86,8 +84,6 @@ function handleCommand(command: UserDropdownValueModel) {
  * 设置点击
  */
 function handleSettingCommand(command: SettingDropdownValueModel) {
-  console.log('点击了handleSettingCommand')
-
   activeNavItem.value = 'settings'
   router.push(`/${command}`)
   currentRoute.value = command
@@ -112,11 +108,13 @@ function insertArrayAfterIndex<T>(oldArr: T[], newArr: T[], num = 0): T[] {
 
 onMounted(() => {
   // 获取用户信息
-  console.log(currentRoute.value, '123')
 
   if (settingDropdownItems.some(item => item.value === currentRoute.value) || currentRoute.value === 'user/profile') {
     activeNavItem.value = 'settings'
   }
+  // if (currentRoute.value.includes('category')) {
+  //   activeNavItem.value = 'category'
+  // }
   else {
     activeNavItem.value = currentRoute.value as TopNavValueModel
   }

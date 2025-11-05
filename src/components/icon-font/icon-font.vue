@@ -1,9 +1,9 @@
 <!-- IconFont.vue -->
 <script setup lang="ts">
 import type { CSSProperties, PropType } from 'vue'
+import type { IconFontType } from './iconfont'
 import { computed } from 'vue'
 // 如果你有类型枚举就沿用；没有也可用 string
-type IconFontType = string
 
 type HoverStyle
   = | string // 仅传颜色，如 '#16a34a' / 'rgb(0,200,0)'

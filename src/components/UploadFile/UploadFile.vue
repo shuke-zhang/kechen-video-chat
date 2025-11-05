@@ -20,6 +20,7 @@ const props = withDefaults(defineProps<{
    * - drag：拖拽上传模式
    * - avatar：头像上传模式 此时只允许传递一张
    * - list：列表上传模式
+   * - button：按钮上传模式
    */
   mode?: UploadFileModel
 
@@ -120,23 +121,32 @@ const isFileAvatar = computed(() => props.mode === 'avatar')
  * 是否为列表模式
  */
 const isFileList = computed(() => props.mode === 'list')
+/**
+ * 是否为按钮模式
+ */
+const isFileBtn = computed(() => props.mode === 'button')
 
 const max = computed(() => props.mode === 'avatar' ? 1 : props.limit || 0)
 const limit = computed(() => props.mode === 'avatar' ? 1 : props.limit || 0)
 const itemMargin = computed(() => ((props.limit === 1 || props.mode === 'avatar') ? 0 : '10px'))
 
-const width = computed(() => (props.width.includes('px') ? props.width : `${props.width}px`))
-const height = computed(() => (props.height.includes('px') ? props.height : `${props.height}px`))
-const numericWidth = computed(() => {
-  const val = props.width || '100'
-  const match = val.match(/\d+(\.\d+)?/)
-  return match ? Number(match[0]) : 100
+const width = computed(() => {
+  if (props.mode === 'button') {
+    return 'auto'
+  }
+  else {
+    return props.width.includes('px') ? props.width : `${props.width}px`
+  }
 })
-const numericHeight = computed(() => {
-  const val = props.height || '100'
-  const match = val.match(/\d+(\.\d+)?/)
-  return match ? Number(match[0]) : 100
+const height = computed(() => {
+  if (props.mode === 'button') {
+    return 'auto'
+  }
+  else {
+    return props.height.includes('px') ? props.height : `${props.height}px`
+  }
 })
+// const height = computed(() => (props.height.includes('px') ? props.height : `${props.height}px`))
 
 const borderRadius = computed(() => (props.mode === 'avatar' ? '50%' : '6px'))
 const progressSize = computed(() => (props.height.includes('px') ? `${Number.parseFloat(props.height) - 10}px` : `${Number(props.height) - 10}px`))
@@ -157,6 +167,7 @@ const uploadRef = ref<UploadInstance | null>(null)
 const fileData = defineModel<UploadUserFile[]>('fileData', {
   default: () => [], // ✅ 必须是数组
 })
+
 /**
  * 可实时更新上传进度的列表，当 limit 为1的时候为对象，其余时候为数组
  */
@@ -412,10 +423,14 @@ function beforeRemove(_uploadFile: UploadFile, _uploadFiles: UploadFiles): Await
 
 /** 成功回调（非 200 也视为失败处理） */
 async function handleSuccess(response: ResponseData<UploadFileResponseModel>, uploadFile: UploadFile, uploadFiles: UploadFiles) {
-  if (response.code === 0 && response?.data) {
+  if (!response) {
+    // 判空，主要是element-plus内部还会自动触发一次
+    // 目前我已经在doUpload中主动触发了
+    return
+  }
+  if (response && response.code === 0 && response.data) {
     const publicUrl = response.data.accessPath
     uploadFile.url = publicUrl
-    console.log(response, 'response')
 
     // 同步 v-model
     // ✅ 同步到 fileData（Element Plus 预览列表）
@@ -439,8 +454,6 @@ async function handleSuccess(response: ResponseData<UploadFileResponseModel>, up
   }
   else {
     ElMessage.error(response?.msg || '上传失败')
-    // removeFromLists(uploadFile)
-    // await updateExtBadges()
   }
 }
 
@@ -618,12 +631,6 @@ async function doUpload({ file, onProgress, onSuccess, onError }: UploadRequestO
   }
 }
 
-function clearAfterEnd() {
-  if (isSingle.value) {
-    uploadRef.value?.clearFiles()
-  }
-}
-
 function abortUpload(target: UploadFile | UploadRow | string | number) {
   const uidStr = typeof target === 'object' ? String((target as any).uid) : String(target)
   const controller = inFlight.get(uidStr)
@@ -650,8 +657,9 @@ defineExpose({
       :class="{ 'avatar-mode': mode === 'avatar', 'readonly': readonly || (max > 0 && Array.isArray(fileData) ? fileData.length >= max : false) }"
       :drag="isFileDrag"
       action=""
-      :list-type="mode === 'avatar' ? 'picture-card' : listType"
+      :list-type="mode !== 'button' ? (mode === 'avatar' ? 'picture-card' : listType) : undefined"
       multiple
+      :show-file-list="mode !== 'button'"
       :limit="limit"
       :accept="normalizedTypes.acceptAttr"
       :http-request="doUpload"
@@ -660,8 +668,8 @@ defineExpose({
       :before-remove="beforeRemove"
       :on-success="handleSuccess"
       :on-error="handleError"
-      :on-progress="handleProgress"
-      :on-preview="handlePictureCardPreview"
+      :on-progress="mode !== 'button' ? handleProgress : undefined"
+      :on-preview="mode !== 'button' ? handlePictureCardPreview : undefined"
       :on-remove="handleRemove"
       :on-exceed="onExceed"
     >
@@ -696,6 +704,10 @@ defineExpose({
           <Plus />
         </el-icon>
       </div>
+
+      <el-button v-if="isFileBtn" type="primary">
+        选择文件
+      </el-button>
     </el-upload>
 
     <el-dialog v-model="dialogVisible" append-to-body width="520px">
