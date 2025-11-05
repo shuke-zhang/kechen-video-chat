@@ -6,12 +6,16 @@ export const useSidebarStore = defineStore('sidebar', () => {
     isShowSidebar.value = value
   }
   watch(() => route.path, () => {
+    console.log('route.path', route.path)
+
     if (route.path.includes('category')) {
       return isShowSidebar.value = false
     }
     if (typeof route.meta?.showLeftMenu === 'boolean') {
       isShowSidebar.value = route.meta.showLeftMenu
     }
+  }, {
+    immediate: true,
   })
   return {
     isShowSidebar,
