@@ -14,32 +14,15 @@ export type UploadedFilesModel<T extends number | undefined>
 export type UploadFileModel = 'avatar' | 'list' | 'drag' | 'button'
 
 export interface UploadFileResponseModel {
-  /**
-   * 字节大小
-   */
-  // size: number
-  /**
-   * 文件名
-   */
-  // public_name: string
-  /**
-   * 原本的文件名
-   */
-  original_name: string
-  /**
-   * 封面图
-   */
-  // coverPath: string
-  /**
-   * 地址
-   */
-  accessPath: string
 
-  // wang
   /**
    * 当前文件名
    */
   currentName: string
+  /**
+   * 文件路径
+   */
+  accessPath: string
   /**
    * 描述
    */

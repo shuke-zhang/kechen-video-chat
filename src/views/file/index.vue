@@ -110,19 +110,6 @@ onMounted(() => {
         />
       </el-form-item>
 
-      <!--
-      <el-form-item>
-        <el-date-picker
-          v-model="queryParams.dateRange"
-          type="datetimerange"
-          range-separator="至"
-          start-placeholder="开始时间"
-          end-placeholder="结束时间"
-          value-format="YYYY-MM-DD HH:mm:ss"
-          size="large"
-        />
-      </el-form-item> -->
-
       <el-form-item>
         <el-button type="primary" :icon="Search" @click="getList">
           查询
@@ -148,11 +135,23 @@ onMounted(() => {
     >
       <el-table-column type="selection" width="55" />
 
-      <el-table-column prop="id" label="类别编号" align="center" width="90" />
+      <el-table-column prop="id" label="文件编号" align="center" width="90" />
 
-      <el-table-column prop="dictName" label="类别名称" align="center" show-overflow-tooltip />
+      <el-table-column prop="newName" label="文件名" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" />
 
-      <el-table-column prop="description" label="描述" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" />
+      <el-table-column label="文件方式" align="center" width="120">
+        <template #default="{ row }">
+          <el-tag :type="row.fileType === 0 ? 'success' : 'warning'">
+            {{ row.fileType === 0 ? '文件上传' : '内容填写' }}
+          </el-tag>
+        </template>
+      </el-table-column>
+
+      <el-table-column label="文件链接" align="center" show-overflow-tooltip>
+        <template #default="{ row }">
+          <span>{{ row.fileLink || '-' }}</span>
+        </template>
+      </el-table-column>
 
       <el-table-column label="创建人" align="center" prop="createdUserName" width="220">
         <template #default="{ row }">

@@ -705,7 +705,7 @@ defineExpose({
         </el-icon>
       </div>
 
-      <el-button v-if="isFileBtn" type="primary">
+      <el-button v-if="isFileBtn" type="primary" size="large">
         选择文件
       </el-button>
     </el-upload>

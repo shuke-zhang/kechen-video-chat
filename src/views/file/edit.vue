@@ -2,13 +2,12 @@
 import type { IDomEditor, IEditorConfig, IToolbarConfig } from '@wangeditor-next/editor'
 import { DomEditor } from '@wangeditor-next/editor'
 import { Editor, Toolbar } from '@wangeditor-next/editor-for-vue'
-import { onBeforeUnmount, onMounted, ref, shallowRef } from 'vue'
 import '@wangeditor-next/editor/dist/css/style.css'
 
 // 编辑器实例，必须用 shallowRef
 const editorRef = shallowRef<IDomEditor | undefined>(undefined)
 // 内容 HTML
-const valueHtml = ref<string>('')
+const valueHtml = defineModel({ type: String })
 
 // toolbar & editor 配置
 const toolbarConfig: Partial<IToolbarConfig> = {
@@ -18,15 +17,7 @@ const toolbarConfig: Partial<IToolbarConfig> = {
     'fullScreen',
   ],
 }
-const editorConfig = [
-  {
-    type: 'paragraph',
-    lineHeight: '1.5',
-    children: [
-      { text: 'hello world', fontFamily: '黑体', fontSize: '32px' },
-    ],
-  },
-]
+const editorConfig: Partial<IEditorConfig> = {}
 
 // 模拟 ajax 异步获取内容
 onMounted(async () => {
@@ -66,7 +57,7 @@ function handleCreated(editor: IDomEditor) {
       v-model="valueHtml"
       :default-config="editorConfig"
       mode="default"
-      style="height: 350px"
+      style="height: 160px"
       @on-created="handleCreated"
     />
   </div>
