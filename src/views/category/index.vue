@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// https://picsum.photos/400/300?random=1
 import type { FormRules, UploadFile, UploadFiles } from 'element-plus'
 import type { UploadFileResponseModel } from '@/components/UploadFile/types'
 import type { VideoProjectModel } from '@/model/videoProject'
@@ -20,7 +21,7 @@ const editFormRef = useTemplateRef('editFormEl')
 const visible = ref(false)
 const isAdd = ref(true)
 const submitLoading = ref(false)
-const ids = ref<number[]>([])
+// const ids = ref<number[]>([])
 const names = ref<string[]>([])
 
 const rules: FormRules = {
@@ -39,6 +40,7 @@ function getList() {
       size: 1000,
       current: 1,
     },
+    categoryId: Number(currentCategoryId.value),
   }).then((res) => {
     videoProjectList.value = res.data.records || []
   }).finally(() => {
@@ -109,7 +111,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="category-page max-w-7xl mx-auto px-6 py-10">
+  <div class="app-container">
     <div
       v-loading="loading"
       class="grid gap-[16px] [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))] "
@@ -117,11 +119,11 @@ onMounted(() => {
     >
       <div
         v-if="!loading"
-        class="group bg-white rounded-2xl shadow hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer border border-slate-100"
+        class="h-[260px] max-w-[350px] group bg-white rounded-2xl shadow hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer border border-slate-100"
         @click="handleAddProject()"
       >
         <div
-          class="relative w-full h-full overflow-hidden bg-gradient-to-br from-indigo-50 to-rose-50 flex items-center justify-center"
+          class="h-[260px] max-w-[350px] relative w-full overflow-hidden bg-gradient-to-br from-indigo-50 to-rose-50 flex items-center justify-center"
         >
           <div
             class="flex items-center gap-3"
@@ -149,7 +151,7 @@ onMounted(() => {
       <div
         v-for="(item, index) in videoProjectList"
         :key="index"
-        class="group bg-white rounded-2xl shadow hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer border border-slate-100 flex flex-col"
+        class="h-[260px] max-w-[450px] group bg-white rounded-2xl shadow hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer border border-slate-100 flex flex-col"
       >
         <!-- 封面图 -->
         <div class="relative w-full h-[120px] overflow-hidden">
