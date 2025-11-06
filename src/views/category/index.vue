@@ -5,7 +5,7 @@ import type { CategoryModel } from '@/model/category'
 import { CircleClose, CirclePlus, Refresh, Search } from '@element-plus/icons-vue'
 import { addCategory, DelCategory, getCategoryTree, PutCategory } from '@/api/category'
 
-const total = ref(0)
+const cascaderRef = useTemplateRef('cascaderRef')
 const loading = ref(false)
 const ids = ref<number[]>([])
 const names = ref<string[]>([])
@@ -41,12 +41,16 @@ function getList(): void {
 }
 
 function handleCascader(val: CascaderValue) {
-  console.log(val, 'CascaderValue')
-  form.value.parentId = Array.isArray(val) ? val[val.length - 1] as number : 0
+  if (Array.isArray(val)) {
+    form.value.parentId = val[val.length - 1] as number
+    form.value.containParent = val.join(',')
+  }
 }
 
 function handleAddDict(row?: CategoryModel) {
   form.value.parentId = row ? row.id : list.value[list.value.length - 1].id
+  form.value.containParent = getNodeFullPath(form.value.parentId || 0, list.value).join(',')
+
   visible.value = true
   isAdd.value = true
 }
@@ -105,7 +109,9 @@ function handleSubmit() {
         name: form.value.name,
         parentId: form.value.parentId,
         sort: form.value.sort,
+        containParent: form.value.containParent,
       }
+
       api(data).then(() => {
         showMessageSuccess('操作成功')
         visible.value = false
@@ -124,6 +130,37 @@ function reset() {
   }
   resetForm(formRef.value)
   submitLoading.value = false
+}
+
+/**
+ * 递归获取选中节点的所有父级节点
+ *
+ * @param value 当前选中节点的 ID
+ * @param options 树形数据，包含父级节点和子级节点
+ * @returns 当前节点的所有父级节点的值
+ */
+function getNodeFullPath(value: number, options: any[]): number[] {
+  const path: number[] = []
+
+  const dfs = (nodes: any[]): boolean => {
+    for (const node of nodes) {
+      path.push(node.id) // 先加入路径
+
+      if (node.id === value) {
+        return true // 找到目标节点
+      }
+
+      if (node.children && dfs(node.children)) {
+        return true // ⬅️ 子树中找到了，路径保留
+      }
+
+      path.pop() // ❗没找到，需要回溯
+    }
+    return false
+  }
+
+  dfs(options)
+  return path
 }
 
 onMounted(() => {
@@ -173,7 +210,7 @@ onMounted(() => {
     >
       <el-table-column type="selection" width="55" />
 
-      <el-table-column prop="id" label="类别编号" align="center" width="90" />
+      <el-table-column prop="id" label="类别编号" align="center" />
 
       <el-table-column prop="name" label="类别名称" align="center" show-overflow-tooltip />
 
@@ -216,6 +253,7 @@ onMounted(() => {
           <el-col :span="24">
             <el-form-item label="父级类别" prop="name" style="width: 100%">
               <el-cascader
+                ref="cascaderRef"
                 v-model="form.parentId"
                 :props="{
                   label: 'name',
