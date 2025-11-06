@@ -3,7 +3,6 @@
 import type { MenuItemRegistered } from 'element-plus'
 import AppMain from './AppMain.vue'
 import Head from './components/head/index.vue'
-import Sidebar from './components/sidebar/index.vue'
 
 /**
  * 当前点击的是公共还是私有侧边栏菜单
@@ -12,9 +11,6 @@ const currentSidebarItem = ref<MenuItemRegistered | null>(null)
 const sidebarStore = useSidebarStore()
 const isShowSidebar = computed(() => sidebarStore.isShowSidebar)
 
-function onMenuItemClick(item: MenuItemRegistered) {
-  currentSidebarItem.value = item
-}
 onMounted(() => {
 
 })
@@ -24,8 +20,6 @@ onMounted(() => {
   <div>
     <!-- 固定头部 -->
     <Head />
-
-    <Sidebar v-if="isShowSidebar" @menu-item-click="onMenuItemClick" />
 
     <div
       class="app-wrapper" :class="{ 'no-sidebar': !isShowSidebar }"
@@ -41,7 +35,7 @@ onMounted(() => {
 .app-wrapper {
   position: absolute;
   top: vars.$header-height;
-  left: vars.$sidebar-menu-width;
+  left: 0;
   right: 0;
   bottom: 0;
   background: #fff;

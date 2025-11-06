@@ -4,7 +4,7 @@
 
 <template>
   <div class="app-container">
-    角色
+    文件
   </div>
 </template>
 

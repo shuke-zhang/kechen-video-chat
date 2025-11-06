@@ -30,20 +30,20 @@ router.beforeEach(async (to) => {
   }
 
   // 3) token exists
-  const userStore = useUserStore()
+  // const userStore = useUserStore()
   try {
     // fetch user info once after the first load/refresh
 
-    if (!userStore.userInfo?.name) {
-      // await userStore.getInfo()
-      return true
-    }
+    // if (!userStore.userInfo?.name) {
+    //   // await userStore.getInfo()
+    //   return true
+    // }
 
     return true
   }
   catch (_err: any) {
     // fallback: clear session + notify + go login
-    await userStore.logout()
+    // await userStore.logout()
     // response interceptors already surfaced the message
     return { path: '/login', query: { redirect: to.fullPath } }
   }
