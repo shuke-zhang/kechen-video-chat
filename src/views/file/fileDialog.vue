@@ -1,30 +1,43 @@
 <script setup lang="ts">
-import type { ElForm, FormRules } from 'element-plus'
-import type { DictModel } from '@/model/dict'
-import { addDict, PutDict } from '@/api/dict'
+import type { CascaderOption, CascaderValue, ElForm, FormRules } from 'element-plus'
+import type { CategoryModel } from '@/model/category'
+import type { FileModel } from '@/model/file'
+import { addFile, PutFile } from '@/api/file'
+import Edit from './edit.vue'
 
 const props = defineProps<{
   isAdd: boolean
+  categoryList: CategoryModel[]
 }>()
 const emit = defineEmits<{
   (e: 'success'): void
 }>()
+const categoryList = computed(() => props.categoryList)
 const visible = defineModel<boolean>('visible', {
   type: Boolean,
   required: true,
 })
-const form = ref<DictModel>({})
+const form = ref<FileModel>({})
 const formRef = ref<InstanceType<typeof ElForm> | null>(null)
 const submitLoading = ref(false)
 const isAdd = computed(() => {
   return props.isAdd
 })
 const rules: FormRules = {
-  dictName: [{ required: true, trigger: 'change', message: '请输入类别名称' }],
+  typeId: [{ required: true, trigger: 'change', message: '请选择类别名称' }],
   dictType: [{ required: true, trigger: 'blur', message: '请输入类别类型' }],
 }
+
 function cancel() {
   visible.value = false
+}
+
+function handleCascader(val: CascaderValue) {
+  if (Array.isArray(val)) {
+    console.log(val, 'val')
+    form.value.typeId = val[val.length - 1] as number
+    form.value.typeName = findNodeById(categoryList.value, form.value.typeId)?.name
+  }
 }
 
 function handleSubmit() {
@@ -33,12 +46,9 @@ function handleSubmit() {
       if (submitLoading.value)
         return
       submitLoading.value = true
-      const api = isAdd.value ? addDict : PutDict
+      const api = isAdd.value ? addFile : PutFile
       const data = {
         id: form.value.id,
-        dictName: form.value.dictName,
-        dictType: form.value.dictType,
-        description: form.value.description,
       }
       api(data).then(() => {
         showMessageSuccess('操作成功')
@@ -62,32 +72,39 @@ function reset() {
 <template>
   <el-dialog
     v-model="visible"
-    :title="isAdd ? '新增类别' : '修改类别'"
-    width="500"
+    :title="isAdd ? '新增文件' : '修改文件'"
+    width="800"
     :close-on-click-modal="false"
     @close="cancel"
   >
     <el-form ref="formRef" :inline="true" :model="form" :rules="rules" class="large-form" label-width="100">
       <el-row :gutter="20">
         <el-col :span="24">
-          <el-form-item label="类别名称" prop="dictName" style="width: 100%">
-            <el-input v-model="form.dictName" placeholder="请输入类别名称" size="large" />
-          </el-form-item>
-        </el-col>
-        <el-col :span="24">
-          <el-form-item label="类别类型" prop="dictType" style="width: 100%">
-            <el-input v-model="form.dictType" placeholder="请输入类别类型" size="large" />
+          <el-form-item label="类别名称" prop="typeId" style="width: 100%">
+            <el-cascader
+              v-model="form.typeId"
+              :options="categoryList as CascaderOption[]"
+              :props="{
+                label: 'name',
+                value: 'id',
+                checkStrictly: true,
+              }"
+              size="large"
+              style="width: 100%;"
+              @change="handleCascader"
+            />
           </el-form-item>
         </el-col>
 
         <el-col :span="24">
-          <el-form-item label="描述" prop="description" style="width: 100%">
-            <el-input
-              v-model="form.description"
-              style="width: 240px"
-              type="textarea"
-              placeholder="请输入内容"
-            />
+          <el-form-item label="文件链接" prop="dictType" style="width: 100%">
+            <el-input v-model="form.name" placeholder="请输入文件链接" size="large" />
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="24">
+          <el-form-item label="文件内容" prop="description" style="width: 100%">
+            <Edit />
           </el-form-item>
         </el-col>
       </el-row>

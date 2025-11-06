@@ -1,10 +1,11 @@
 <!-- LogPage.vue -->
 <script setup lang="ts">
-import type { ElForm, FormRules } from 'element-plus'
-import type { DictModel } from '@/model/dict'
+import type { ElForm } from 'element-plus'
+import type { CategoryModel } from '@/model/category'
+import type { FileModel } from '@/model/file'
 import { CircleClose, CirclePlus, Refresh, Search } from '@element-plus/icons-vue'
-import { addDict, DelDict, getDictList, PutDict } from '@/api/dict'
-import Edit from './edit.vue'
+import { getCategoryTree } from '@/api/category'
+import { DelFile, getFileList } from '@/api/file'
 import FileDialog from './fileDialog.vue'
 
 const total = ref(0)
@@ -14,40 +15,34 @@ const names = ref<string[]>([])
 const single = ref(true)
 const multiple = ref(true)
 const queryRef = useTemplateRef('queryEl')
-const router = useRouter()
 const visible = ref(false)
 const isAdd = ref(false)
-const formRef = ref<InstanceType<typeof ElForm> | null>(null)
-const submitLoading = ref(false)
-const queryParams = ref<ListPageParamsWrapper<DictModel>>({
+const queryParams = ref<ListPageParamsWrapper<FileModel>>({
   page: {
     current: 1,
     size: 10,
   },
 })
-const form = ref<DictModel>({})
+const form = ref<FileModel>({})
 
 /** 静态日志数据（示例） */
-const list = ref<DictModel[]>([])
-/** 自定义跳转详情 */
-function linkTo(row: DictModel) {
-  router.push({
-    name: 'DictData',
-    params: {
-      dictType: row.dictType,
-    },
-  })
-}
-
+const list = ref<FileModel[]>([])
+const categoryList = ref<CategoryModel[]>([])
 function getList(): void {
   if (loading.value)
     return
   loading.value = true
-  getDictList(queryParams.value).then((res) => {
+  getFileList(queryParams.value).then((res) => {
     list.value = res.data.records
     total.value = res.data.total
   }).finally(() => {
     loading.value = false
+  })
+}
+
+function getCategoryListData() {
+  getCategoryTree({}).then((res) => {
+    categoryList.value = res.data
   })
 }
 
@@ -56,18 +51,18 @@ function handleAddDict() {
   isAdd.value = true
 }
 
-function handlePut(row: DictModel) {
+function handlePut(row: FileModel) {
   isAdd.value = false
   form.value = { ...row }
   visible.value = true
 }
 
-function handleDel(_ids: number[] | DictModel) {
+function handleDel(_ids: number[] | FileModel) {
   const delIds = Array.isArray(_ids) ? _ids : [_ids.id!]
-  const delNames = Array.isArray(_ids) ? names.value : [_ids.dictType!]
-  confirmWarning(`是否确认删除类别名称为：${delNames.join(', ')} 的数据？`).then(() => {
+  const delNames = Array.isArray(_ids) ? names.value : [_ids.newName!]
+  confirmWarning(`是否确认删除文件名称为：${delNames.join(', ')} 的数据？`).then(() => {
     // 删除接口
-    delMsgLoading(DelDict(delIds), '正在删除 …').then(() => {
+    delMsgLoading(DelFile(delIds), '正在删除 …').then(() => {
       loading.value = false
       ids.value = []
       names.value = []
@@ -78,9 +73,9 @@ function handleDel(_ids: number[] | DictModel) {
     })
   })
 }
-function handleSelectionChange(selection: DictModel[]) {
+function handleSelectionChange(selection: FileModel[]) {
   ids.value = selection.map(item => item.id!)
-  names.value = selection.map(item => item.dictName!)
+  names.value = selection.map(item => item.newName!)
   single.value = selection.length !== 1
   multiple.value = !selection.length
 }
@@ -96,6 +91,7 @@ function retQuery(): void {
 
 onMounted(() => {
   getList()
+  getCategoryListData()
   // showMessageError('测试错误消息提示')
 })
 </script>
@@ -106,8 +102,8 @@ onMounted(() => {
     <el-form ref="queryEl" :inline="true" :model="queryParams" @submit.prevent>
       <el-form-item>
         <el-input
-          v-model="queryParams.dictName"
-          placeholder="请输入类别名称查询"
+          v-model="queryParams.newName"
+          placeholder="请输入文件名称查询"
           clearable
           style="width: 200px"
           @keyup.enter="getList"
@@ -156,14 +152,6 @@ onMounted(() => {
 
       <el-table-column prop="dictName" label="类别名称" align="center" show-overflow-tooltip />
 
-      <el-table-column align="center" prop="dictType" label="类别类型" min-width="180">
-        <template #default="scope">
-          <el-button link type="primary" @click="linkTo(scope.row)">
-            {{ scope.row.dictType }}
-          </el-button>
-        </template>
-      </el-table-column>
-
       <el-table-column prop="description" label="描述" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" />
 
       <el-table-column label="创建人" align="center" prop="createdUserName" width="220">
@@ -199,8 +187,7 @@ onMounted(() => {
       @pagination="getList"
     />
 
-    <FileDialog v-model:visible="visible" :is-add="isAdd" @success="getList" />
-    <Edit />
+    <FileDialog v-model:visible="visible" :is-add="isAdd" :category-list="categoryList" @success="getList" />
   </div>
 </template>
 
