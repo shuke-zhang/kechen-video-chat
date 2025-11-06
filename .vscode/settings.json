@@ -41,6 +41,7 @@
     "uuidv",
     "Vite",
     "vue'eslintimport",
-    "vueuse"
+    "vueuse",
+    "wangeditor"
   ]
 }
