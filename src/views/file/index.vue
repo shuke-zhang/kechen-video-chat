@@ -15,6 +15,7 @@ const toolbarConfig: Partial<IToolbarConfig> = {
   excludeKeys: [
     'group-image',
     'group-video',
+    'fullScreen',
   ],
 }
 const editorConfig = {

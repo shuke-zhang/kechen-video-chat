@@ -29,7 +29,76 @@ const rules: FormRules = {
   dictType: [{ required: true, trigger: 'blur', message: '请输入类别类型' }],
 }
 /** 静态日志数据（示例） */
-const list = ref<DictModel[]>([])
+// const list = ref<DictModel[]>([])
+const list = ref([
+  {
+    id: 1,
+    categoryName: '影视制作',
+    categoryCode: 'video_production',
+    description: '影视类内容分类',
+    createdUserName: 'Admin',
+    createdTime: '2025-01-01 10:00:00',
+    children: [
+      {
+        id: 11,
+        categoryName: 'AI 视频',
+        categoryCode: 'ai_video',
+        description: 'AI 视频生成技术分类',
+        createdUserName: 'Admin',
+        createdTime: '2025-01-01 10:10:00',
+        children: [
+          {
+            id: 111,
+            categoryName: '文本生成视频',
+            categoryCode: 'text2video',
+            createdUserName: 'Admin',
+            createdTime: '2025-01-01 10:20:00',
+          },
+          {
+            id: 112,
+            categoryName: '图片生成视频',
+            categoryCode: 'image2video',
+            createdUserName: 'Admin',
+            createdTime: '2025-01-01 10:25:00',
+          },
+        ],
+      },
+      {
+        id: 12,
+        categoryName: '剪辑模板',
+        categoryCode: 'video_template',
+        description: '视频创作辅助分类',
+        createdUserName: 'Admin',
+        createdTime: '2025-01-01 10:30:00',
+      },
+    ],
+  },
+  {
+    id: 2,
+    categoryName: '图片创作',
+    categoryCode: 'image_generation',
+    description: '图片创意内容分类',
+    createdUserName: 'Admin',
+    createdTime: '2025-01-05 11:00:00',
+    children: [
+      {
+        id: 21,
+        categoryName: 'AI 绘画',
+        categoryCode: 'ai_art',
+        createdUserName: 'Admin',
+        createdTime: '2025-01-05 11:10:00',
+      },
+      {
+        id: 22,
+        categoryName: '图像修复',
+        categoryCode: 'image_restore',
+        createdUserName: 'Admin',
+        createdTime: '2025-01-05 11:20:00',
+      },
+    ],
+  },
+])
+
 /** 自定义跳转详情 */
 function linkTo(row: DictModel) {
   router.push({
@@ -182,6 +251,8 @@ onMounted(() => {
     <el-table
       v-loading="loading"
       :data="list"
+      row-key="id"
+      default-expand-all
       style="width: 100%"
       @selection-change="handleSelectionChange"
     >
@@ -191,7 +262,7 @@ onMounted(() => {
 
       <el-table-column prop="dictName" label="类别名称" align="center" show-overflow-tooltip />
 
-      <el-table-column align="center" prop="dictType" label="类别类型" min-width="180">
+      <el-table-column prop="dictType" label="类别类型" align="center" min-width="180">
         <template #default="scope">
           <el-button link type="primary" @click="linkTo(scope.row)">
             {{ scope.row.dictType }}
@@ -213,7 +284,7 @@ onMounted(() => {
         </template>
       </el-table-column>
 
-      <el-table-column label="操作" align="center" width="140" fixed="right" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" width="140" fixed="right">
         <template #default="{ row }">
           <el-button type="primary" size="small" @click="handlePut(row)">
             修改
