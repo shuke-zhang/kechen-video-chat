@@ -1,9 +1,9 @@
 <!-- LogPage.vue -->
 <script setup lang="ts">
-import type { ElForm, FormRules } from 'element-plus'
-import type { DictModel } from '@/model/dict'
+import type { CascaderValue, ElForm, FormRules } from 'element-plus'
+import type { CategoryModel } from '@/model/category'
 import { CircleClose, CirclePlus, Refresh, Search } from '@element-plus/icons-vue'
-import { addDict, DelDict, getDictList, PutDict } from '@/api/dict'
+import { addCategory, DelCategory, getCategoryTree, PutCategory } from '@/api/category'
 
 const total = ref(0)
 const loading = ref(false)
@@ -12,132 +12,60 @@ const names = ref<string[]>([])
 const single = ref(true)
 const multiple = ref(true)
 const queryRef = useTemplateRef('queryEl')
-const router = useRouter()
 const visible = ref(false)
 const isAdd = ref(false)
 const formRef = ref<InstanceType<typeof ElForm> | null>(null)
 const submitLoading = ref(false)
-const queryParams = ref<ListPageParamsWrapper<DictModel>>({
-  page: {
-    current: 1,
-    size: 10,
-  },
+const queryParams = ref<CategoryModel>({
+
 })
-const form = ref<DictModel>({})
+const form = ref<CategoryModel>({
+  sort: 0,
+})
 const rules: FormRules = {
   dictName: [{ required: true, trigger: 'change', message: '请输入类别名称' }],
   dictType: [{ required: true, trigger: 'blur', message: '请输入类别类型' }],
 }
 /** 静态日志数据（示例） */
-// const list = ref<DictModel[]>([])
-const list = ref([
-  {
-    id: 1,
-    categoryName: '影视制作',
-    categoryCode: 'video_production',
-    description: '影视类内容分类',
-    createdUserName: 'Admin',
-    createdTime: '2025-01-01 10:00:00',
-    children: [
-      {
-        id: 11,
-        categoryName: 'AI 视频',
-        categoryCode: 'ai_video',
-        description: 'AI 视频生成技术分类',
-        createdUserName: 'Admin',
-        createdTime: '2025-01-01 10:10:00',
-        children: [
-          {
-            id: 111,
-            categoryName: '文本生成视频',
-            categoryCode: 'text2video',
-            createdUserName: 'Admin',
-            createdTime: '2025-01-01 10:20:00',
-          },
-          {
-            id: 112,
-            categoryName: '图片生成视频',
-            categoryCode: 'image2video',
-            createdUserName: 'Admin',
-            createdTime: '2025-01-01 10:25:00',
-          },
-        ],
-      },
-      {
-        id: 12,
-        categoryName: '剪辑模板',
-        categoryCode: 'video_template',
-        description: '视频创作辅助分类',
-        createdUserName: 'Admin',
-        createdTime: '2025-01-01 10:30:00',
-      },
-    ],
-  },
-  {
-    id: 2,
-    categoryName: '图片创作',
-    categoryCode: 'image_generation',
-    description: '图片创意内容分类',
-    createdUserName: 'Admin',
-    createdTime: '2025-01-05 11:00:00',
-    children: [
-      {
-        id: 21,
-        categoryName: 'AI 绘画',
-        categoryCode: 'ai_art',
-        createdUserName: 'Admin',
-        createdTime: '2025-01-05 11:10:00',
-      },
-      {
-        id: 22,
-        categoryName: '图像修复',
-        categoryCode: 'image_restore',
-        createdUserName: 'Admin',
-        createdTime: '2025-01-05 11:20:00',
-      },
-    ],
-  },
-])
-
-/** 自定义跳转详情 */
-function linkTo(row: DictModel) {
-  router.push({
-    name: 'DictData',
-    params: {
-      dictType: row.dictType,
-    },
-  })
-}
+const list = ref<CategoryModel[]>([])
 
 function getList(): void {
   if (loading.value)
     return
   loading.value = true
-  getDictList(queryParams.value).then((res) => {
-    list.value = res.data.records
-    total.value = res.data.total
+  getCategoryTree(queryParams.value).then((res) => {
+    list.value = res.data
   }).finally(() => {
     loading.value = false
   })
 }
 
-function handleAddDict() {
+function handleCascader(val: CascaderValue) {
+  console.log(val, 'CascaderValue')
+  form.value.parentId = Array.isArray(val) ? val[val.length - 1] as number : 0
+}
+
+function handleAddDict(row?: CategoryModel) {
+  form.value.parentId = row ? row.id : list.value[list.value.length - 1].id
   visible.value = true
   isAdd.value = true
 }
 
-function handlePut(row: DictModel) {
+function handlePut(row: CategoryModel) {
   isAdd.value = false
-  form.value = { ...row }
+  form.value = {
+    ...row,
+    sort: Number(row.sort),
+  }
   visible.value = true
 }
 
-function handleDel(_ids: number[] | DictModel) {
+function handleDel(_ids: number[] | CategoryModel) {
   const delIds = Array.isArray(_ids) ? _ids : [_ids.id!]
-  const delNames = Array.isArray(_ids) ? names.value : [_ids.dictType!]
+  const delNames = Array.isArray(_ids) ? names.value : [_ids.name!]
   confirmWarning(`是否确认删除类别名称为：${delNames.join(', ')} 的数据？`).then(() => {
     // 删除接口
-    delMsgLoading(DelDict(delIds), '正在删除 …').then(() => {
+    delMsgLoading(DelCategory(delIds), '正在删除 …').then(() => {
       loading.value = false
       ids.value = []
       names.value = []
@@ -148,23 +76,21 @@ function handleDel(_ids: number[] | DictModel) {
     })
   })
 }
-function handleSelectionChange(selection: DictModel[]) {
+function handleSelectionChange(selection: CategoryModel[]) {
   ids.value = selection.map(item => item.id!)
-  names.value = selection.map(item => item.dictName!)
+  names.value = selection.map(item => item.name!)
   single.value = selection.length !== 1
   multiple.value = !selection.length
 }
 
 function retQuery(): void {
-  queryParams.value = { page: {
-    current: 1,
-    size: 10,
-  } }
+  queryParams.value = { }
   resetForm(queryRef.value)
   getList()
 }
 
 function cancel() {
+  reset()
   visible.value = false
 }
 function handleSubmit() {
@@ -173,12 +99,12 @@ function handleSubmit() {
       if (submitLoading.value)
         return
       submitLoading.value = true
-      const api = isAdd.value ? addDict : PutDict
+      const api = isAdd.value ? addCategory : PutCategory
       const data = {
         id: form.value.id,
-        dictName: form.value.dictName,
-        dictType: form.value.dictType,
-        description: form.value.description,
+        name: form.value.name,
+        parentId: form.value.parentId,
+        sort: form.value.sort,
       }
       api(data).then(() => {
         showMessageSuccess('操作成功')
@@ -193,7 +119,9 @@ function handleSubmit() {
 }
 
 function reset() {
-  form.value = {}
+  form.value = {
+    sort: 0,
+  }
   resetForm(formRef.value)
   submitLoading.value = false
 }
@@ -210,26 +138,13 @@ onMounted(() => {
     <el-form ref="queryEl" :inline="true" :model="queryParams" @submit.prevent>
       <el-form-item>
         <el-input
-          v-model="queryParams.dictName"
+          v-model="queryParams.name "
           placeholder="请输入类别名称查询"
           clearable
           style="width: 200px"
           @keyup.enter="getList"
         />
       </el-form-item>
-
-      <!--
-      <el-form-item>
-        <el-date-picker
-          v-model="queryParams.dateRange"
-          type="datetimerange"
-          range-separator="至"
-          start-placeholder="开始时间"
-          end-placeholder="结束时间"
-          value-format="YYYY-MM-DD HH:mm:ss"
-          size="large"
-        />
-      </el-form-item> -->
 
       <el-form-item>
         <el-button type="primary" :icon="Search" @click="getList">
@@ -238,7 +153,7 @@ onMounted(() => {
         <el-button type="primary" plain :icon="Refresh" @click="retQuery">
           查询重置
         </el-button>
-        <el-button type="success" :icon="CirclePlus" @click="handleAddDict">
+        <el-button type="success" :icon="CirclePlus" @click="handleAddDict()">
           新增
         </el-button>
         <el-button type="danger" :icon="CircleClose" @click="handleDel(ids)">
@@ -260,17 +175,7 @@ onMounted(() => {
 
       <el-table-column prop="id" label="类别编号" align="center" width="90" />
 
-      <el-table-column prop="dictName" label="类别名称" align="center" show-overflow-tooltip />
-
-      <el-table-column prop="dictType" label="类别类型" align="center" min-width="180">
-        <template #default="scope">
-          <el-button link type="primary" @click="linkTo(scope.row)">
-            {{ scope.row.dictType }}
-          </el-button>
-        </template>
-      </el-table-column>
-
-      <el-table-column prop="description" label="描述" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" />
+      <el-table-column prop="name" label="类别名称" align="center" show-overflow-tooltip />
 
       <el-table-column label="创建人" align="center" prop="createdUserName" width="220">
         <template #default="{ row }">
@@ -284,8 +189,11 @@ onMounted(() => {
         </template>
       </el-table-column>
 
-      <el-table-column label="操作" align="center" width="140" fixed="right">
+      <el-table-column label="操作" align="center" width="200" fixed="right">
         <template #default="{ row }">
+          <el-button type="success" size="small" @click="handleAddDict(row)">
+            新增
+          </el-button>
           <el-button type="primary" size="small" @click="handlePut(row)">
             修改
           </el-button>
@@ -295,15 +203,6 @@ onMounted(() => {
         </template>
       </el-table-column>
     </el-table>
-
-    <!-- 分页 -->
-    <Pagination
-      v-show="total > 0"
-      v-model:page="queryParams.page.current"
-      v-model:limit="queryParams.page.size"
-      :total="total"
-      @pagination="getList"
-    />
 
     <el-dialog
       v-model="visible"
@@ -315,23 +214,35 @@ onMounted(() => {
       <el-form ref="formRef" :inline="true" :model="form" :rules="rules" class="large-form" label-width="100">
         <el-row :gutter="20">
           <el-col :span="24">
-            <el-form-item label="类别名称" prop="dictName" style="width: 100%">
-              <el-input v-model="form.dictName" placeholder="请输入类别名称" size="large" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="24">
-            <el-form-item label="类别类型" prop="dictType" style="width: 100%">
-              <el-input v-model="form.dictType" placeholder="请输入类别类型" size="large" />
+            <el-form-item label="父级类别" prop="name" style="width: 100%">
+              <el-cascader
+                v-model="form.parentId"
+                :props="{
+                  label: 'name',
+                  value: 'id',
+                  checkStrictly: true,
+                }"
+                :options="list"
+                size="large"
+                style="width: 100%;"
+                @change="handleCascader"
+              />
             </el-form-item>
           </el-col>
 
           <el-col :span="24">
-            <el-form-item label="描述" prop="description" style="width: 100%">
-              <el-input
-                v-model="form.description"
-                style="width: 240px"
-                type="textarea"
-                placeholder="请输入内容"
+            <el-form-item label="类别名称" prop="name" style="width: 100%">
+              <el-input v-model="form.name" placeholder="请输入类别名称" size="large" />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="24">
+            <el-form-item label="排序" prop="name" style="width: 100%">
+              <el-input-number
+                v-model="form.sort"
+                :min="0"
+                controls-position="right"
+                size="large"
               />
             </el-form-item>
           </el-col>

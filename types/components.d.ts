@@ -13,6 +13,7 @@ declare module 'vue' {
     DictTag: typeof import('./../src/components/DictTag/index.vue')['default']
     DragUploadFile: typeof import('./../src/components/DragUploadFile/DragUploadFile.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
+    ElCascader: typeof import('element-plus/es')['ElCascader']
     ElCol: typeof import('element-plus/es')['ElCol']
     ElConfigProvider: typeof import('element-plus/es')['ElConfigProvider']
     ElDatePicker: typeof import('element-plus/es')['ElDatePicker']

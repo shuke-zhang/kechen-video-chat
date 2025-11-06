@@ -1,11 +1,26 @@
 export interface CategoryModel {
   /**
-   * 分类名称
+   * 主键id
    */
-  name: string
-  id: number
+  id?: number
   /**
-   * 路径 - 用于前端路由
+   * 类别名称
    */
-  path?: string
+  name?: string
+  /**
+   * 父级id
+   */
+  parentId?: number
+  /**
+   * 所属父级名称
+   */
+  parentName?: string
+  /**
+   * 序号
+   */
+  sort?: number
+  /**
+   * 全部父级id这个也需要传递
+   */
+  containParent?: string
 }

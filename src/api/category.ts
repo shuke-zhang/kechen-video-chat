@@ -11,6 +11,16 @@ export function getCategoryList(data?: ListPageQuery<CategoryModel>) {
 }
 
 /**
+ * @description 查询类别树形
+ */
+export function getCategoryTree(data?: CategoryModel) {
+  return request.post<ResponseData<CategoryModel[]>>({
+    url: '/api/category/tree',
+    data,
+  })
+}
+
+/**
  * @description 新增字典类型-键数据
  */
 export function getCategoryInfo(id: number) {

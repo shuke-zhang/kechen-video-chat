@@ -40,7 +40,6 @@ function getList() {
       size: 1000,
       current: 1,
     },
-    categoryId: Number(currentCategoryId.value),
   }).then((res) => {
     videoProjectList.value = res.data.records || []
   }).finally(() => {
