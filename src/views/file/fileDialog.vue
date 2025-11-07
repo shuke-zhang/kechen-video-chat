@@ -10,6 +10,7 @@ import Edit from './edit.vue'
 const props = defineProps<{
   isAdd: boolean
   categoryList: CategoryModel[]
+  currentRow: CategoryModel
 }>()
 const emit = defineEmits<{
   (e: 'success'): void
@@ -33,7 +34,7 @@ const rules: FormRules = {
   fileType: [{ required: true, trigger: 'change', message: '请选择文件方式' }],
   fileExt: [{ required: true, trigger: 'change', message: '请选择文件类型' }],
   fileLink: [{ required: true, trigger: 'blur', message: '请输入文件链接' }],
-  newName: [{ required: true, trigger: 'blur', message: '请输入文件名称' }],
+  name: [{ required: true, trigger: 'blur', message: '请输入文件名称' }],
   fileContent: [{ required: true, trigger: 'blur', message: '请输入文件内容' }],
 }
 
@@ -108,6 +109,12 @@ function reset() {
   resetForm(formRef.value)
   submitLoading.value = false
 }
+watch(() => props.currentRow, (val) => {
+  form.value = toRaw(val)
+}, {
+  immediate: true,
+  deep: true,
+})
 </script>
 
 <template>
@@ -165,7 +172,7 @@ function reset() {
                 v-if="isFileUpload"
                 :limit="1"
                 mode="button"
-                file-types="word"
+                :file-types="['doc', 'docx']"
                 @on-success="handleCoverUrlSuccess"
               />
             </div>
@@ -173,8 +180,8 @@ function reset() {
         </el-col>
 
         <el-col v-if="!isFileUpload" :span="12">
-          <el-form-item label="文件名称" prop="newName" style="width: 100%">
-            <el-input v-model="form.newName" size="large" />
+          <el-form-item label="文件名称" prop="name" style="width: 100%">
+            <el-input v-model="form.name" size="large" />
           </el-form-item>
         </el-col>
 

@@ -204,7 +204,6 @@ onMounted(() => {
       v-loading="loading"
       :data="list"
       row-key="id"
-      default-expand-all
       style="width: 100%"
       @selection-change="handleSelectionChange"
     >

@@ -44,6 +44,7 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     TableGender: typeof import('./../src/components/TableGender/TableGender.vue')['default']
+    UaMarkdown: typeof import('./../src/components/ua-markdown/ua-markdown.vue')['default']
     UploadFile: typeof import('./../src/components/UploadFile/UploadFile.vue')['default']
   }
   export interface ComponentCustomProperties {

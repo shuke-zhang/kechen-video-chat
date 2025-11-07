@@ -7,6 +7,7 @@ import { CircleClose, CirclePlus, Refresh, Search } from '@element-plus/icons-vu
 import { getCategoryTree } from '@/api/category'
 import { DelFile, getFileList } from '@/api/file'
 import FileDialog from './fileDialog.vue'
+import PreviewDialog from './previewDialog.vue'
 
 const total = ref(0)
 const loading = ref(false)
@@ -16,15 +17,25 @@ const single = ref(true)
 const multiple = ref(true)
 const queryRef = useTemplateRef('queryEl')
 const visible = ref(false)
+const previewVisible = ref(false)
+const previewForm = ref<{
+  docUrl: string
+  type: 'word' | 'content'
+  content: string
+}>({
+  docUrl: '',
+  type: 'word',
+  content: '',
+})
 const isAdd = ref(false)
+const httpRel = /^https?:\/\/[^/]+/
 const queryParams = ref<ListPageParamsWrapper<FileModel>>({
   page: {
     current: 1,
     size: 10,
   },
 })
-const form = ref<FileModel>({})
-
+const currentRow = ref<FileModel>({})
 /** 静态日志数据（示例） */
 const list = ref<FileModel[]>([])
 const categoryList = ref<CategoryModel[]>([])
@@ -33,7 +44,12 @@ function getList(): void {
     return
   loading.value = true
   getFileList(queryParams.value).then((res) => {
-    list.value = res.data.records
+    list.value = res.data.records.map((item) => {
+      return {
+        ...item,
+        fileLink: item.fileLink?.replace(httpRel, ''),
+      }
+    })
     total.value = res.data.total
   }).finally(() => {
     loading.value = false
@@ -53,13 +69,13 @@ function handleAddDict() {
 
 function handlePut(row: FileModel) {
   isAdd.value = false
-  form.value = { ...row }
+  currentRow.value = toRaw(row)
   visible.value = true
 }
 
 function handleDel(_ids: number[] | FileModel) {
   const delIds = Array.isArray(_ids) ? _ids : [_ids.id!]
-  const delNames = Array.isArray(_ids) ? names.value : [_ids.newName!]
+  const delNames = Array.isArray(_ids) ? names.value : [_ids.name!]
   confirmWarning(`是否确认删除文件名称为：${delNames.join(', ')} 的数据？`).then(() => {
     // 删除接口
     delMsgLoading(DelFile(delIds), '正在删除 …').then(() => {
@@ -75,7 +91,7 @@ function handleDel(_ids: number[] | FileModel) {
 }
 function handleSelectionChange(selection: FileModel[]) {
   ids.value = selection.map(item => item.id!)
-  names.value = selection.map(item => item.newName!)
+  names.value = selection.map(item => item.name!)
   single.value = selection.length !== 1
   multiple.value = !selection.length
 }
@@ -87,6 +103,15 @@ function retQuery(): void {
   } }
   resetForm(queryRef.value)
   getList()
+}
+
+function handlePreview(row: FileModel) {
+  previewVisible.value = true
+  previewForm.value.type = row.fileLink ? 'word' : 'content'
+  previewForm.value.docUrl = `${__API_URL__}${row.fileLink}` || ''
+
+  previewForm.value.content = row.fileContent || ''
+  console.log(previewForm.value, 'handlePreview')
 }
 
 onMounted(() => {
@@ -102,7 +127,7 @@ onMounted(() => {
     <el-form ref="queryEl" :inline="true" :model="queryParams" @submit.prevent>
       <el-form-item>
         <el-input
-          v-model="queryParams.newName"
+          v-model="queryParams.name"
           placeholder="请输入文件名称查询"
           clearable
           style="width: 200px"
@@ -137,7 +162,7 @@ onMounted(() => {
 
       <el-table-column prop="id" label="文件编号" align="center" width="90" />
 
-      <el-table-column prop="newName" label="文件名" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" />
+      <el-table-column prop="name" label="文件名" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" />
 
       <el-table-column label="文件方式" align="center" width="120">
         <template #default="{ row }">
@@ -165,8 +190,12 @@ onMounted(() => {
         </template>
       </el-table-column>
 
-      <el-table-column label="操作" align="center" width="140" fixed="right" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" width="200" fixed="right" class-name="small-padding fixed-width">
         <template #default="{ row }">
+          <el-button type="success" size="small" @click="handlePreview(row)">
+            预览
+          </el-button>
+
           <el-button type="primary" size="small" @click="handlePut(row)">
             修改
           </el-button>
@@ -186,7 +215,19 @@ onMounted(() => {
       @pagination="getList"
     />
 
-    <FileDialog v-model:visible="visible" :is-add="isAdd" :category-list="categoryList" @success="getList" />
+    <FileDialog
+      v-model:visible="visible"
+      :is-add="isAdd"
+      :category-list="categoryList"
+      :current-row="currentRow"
+      @success="getList"
+    />
+
+    <PreviewDialog
+      v-model:visible="previewVisible"
+      :doc-url="previewForm.docUrl" :type="previewForm.type"
+      :content-text="previewForm.content"
+    />
   </div>
 </template>
 

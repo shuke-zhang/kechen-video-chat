@@ -40,11 +40,11 @@ function handleCreated(editor: IDomEditor) {
     const toolbar = DomEditor.getToolbar(editor)
     if (!toolbar)
       return
-    const curToolbarConfig = toolbar.getConfig()
+    const _curToolbarConfig = toolbar.getConfig()
     const sss = editor.getMenuConfig('fontSize')
     console.log(sss, '字体大小配置')
     // "fontSize" "fontFamily"
-    console.log(curToolbarConfig.toolbarKeys, '当前菜单排序和分组') // 当前菜单排序和分组
+    // console.log(curToolbarConfig.toolbarKeys, '当前菜单排序和分组') // 当前菜单排序和分组
   })
 }
 </script>
