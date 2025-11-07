@@ -362,7 +362,7 @@ onMounted(() => {
                   checkOnClickNode: true,
                   expandTrigger: 'hover',
                 }"
-                :options="categoryList2"
+                :options="categoryList"
                 size="large"
                 style="width: 100%;"
                 @change="handleCascader"

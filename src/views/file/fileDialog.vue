@@ -135,7 +135,7 @@ watch(() => props.currentRow, (val) => {
             <el-cascader
               ref="cascader"
               v-model="form.typeId"
-              :options="categoryList2 as CascaderOption[]"
+              :options="categoryList as CascaderOption[]"
               :props="{
                 label: 'name',
                 value: 'id',
