@@ -5,8 +5,6 @@ import type { CategoryModel } from '@/model/category'
 import type { FileModel } from '@/model/file'
 import { QuestionFilled } from '@element-plus/icons-vue'
 import { addFile, PutFile } from '@/api/file'
-import { categoryList2 } from './const'
-import Edit from './edit.vue'
 
 const props = defineProps<{
   isAdd: boolean
@@ -187,7 +185,12 @@ watch(() => props.currentRow, (val) => {
 
         <el-col v-if="!isFileUpload" :span="24">
           <el-form-item label="文件内容" prop="fileContent" style="width: 100%">
-            <Edit v-model="form.fileContent" />
+            <el-input
+              v-model="form.fileContent"
+              :rows="2"
+              type="textarea"
+              placeholder="请输入文件内容"
+            />
           </el-form-item>
         </el-col>
       </el-row>

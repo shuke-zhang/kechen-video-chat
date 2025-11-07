@@ -114,13 +114,16 @@ function getFilenameFromUrl(url: string) {
         @error="errorHandler"
       />
 
-      <Editor
+      <div v-else>
+        {{ sss }}
+      </div>
+      <!-- <Editor
         v-else
         v-model="sss"
         :default-config="editorConfig"
         mode="default"
         style="height: 400px"
-      />
+      /> -->
     </div>
   </el-dialog>
 </template>
