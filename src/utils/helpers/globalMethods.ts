@@ -1,5 +1,4 @@
 import type { TableColumnCtx } from 'element-plus'
-import type { DictDataCssModel } from '@/model/dict'
 import dayjs from 'dayjs'
 
 /**
@@ -18,6 +17,20 @@ interface K {
  */
 export function formatterTableEmpty<T extends DefaultRow>(row: T, column: TableColumnCtx<T>, cellValue: T[keyof T], _index: number): string {
   return cellValue ? String(cellValue) : '-' // 如果值为空则输出 "-"
+}
+
+/**
+ * @description 格式化数据，为空时输出 - 表格直接使用 ， 不需要插槽
+ * :formatter="formatterTableEmpty"
+ */
+export function formatterTable<T extends DefaultRow>(row: T, column: TableColumnCtx<T>, cellValue: T[keyof T], _index: number, suffix: string): string {
+  return cellValue ? String(`${cellValue}${suffix}`) : '-' // 如果值为空则输出 "-"
+}
+
+export function formatterTableWithSuffix(suffix: string) {
+  return (row: any, column: any, cellValue: any, index: number) => {
+    return formatterTable(row, column, cellValue, index, suffix)
+  }
 }
 
 /**
@@ -68,7 +81,7 @@ export function formatDefaultDate(date: string, format: string = 'YYYY-MM-DD HH:
  * console.log(result); // 输出: "One,4"  // 其中 '4' 不在字典中，返回原值
  */
 export function selectDictLabels(
-  datas: DictDataCssModel[], // 数据字典，包含value和label的对象数组
+  datas: any[], // 数据字典，包含value和label的对象数组
   value: string | string[], // 可以是字符串或字符串数组
   separator: string = ',', // 默认的分隔符
 ): string {
@@ -122,7 +135,7 @@ export function getSelectData(
   options: {
     value?: string
     label?: string
-  }
+  },
 ): string
 export function getSelectData<T extends boolean>(list: K[], value: string | number, isFullObject: T): K
 export function getSelectData<T extends boolean>(
@@ -132,7 +145,7 @@ export function getSelectData<T extends boolean>(
   options: {
     value?: string
     label?: string
-  }
+  },
 ): K
 
 export function getSelectData<T extends boolean>(

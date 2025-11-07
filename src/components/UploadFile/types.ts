@@ -20,9 +20,13 @@ export interface UploadFileResponseModel {
    */
   currentName: string
   /**
-   * 文件路径
+   * 文件路径 - 绝对路径
    */
   accessPath: string
+  /**
+   * 文件路径 - 相对路径
+   */
+  relativePath: string
   /**
    * 描述
    */

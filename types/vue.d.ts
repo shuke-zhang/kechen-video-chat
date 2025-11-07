@@ -1,4 +1,4 @@
-import type { formatDefaultDate, formatterTableEmpty, GetSelectData, selectDictLabels } from '@/utils'
+import type { formatDefaultDate, formatterTableEmpty, formatterTableWithSuffix, GetSelectData, selectDictLabels } from '@/utils'
 
 declare module 'vue' {
   export interface ComponentCustomProperties {
@@ -8,6 +8,12 @@ declare module 'vue' {
      * :formatter="formatterTableEmpty"
      */
     $formatterTableEmpty: formatterTableEmpty
+
+    /**
+     * @description 格式化数据，为空时输出 - 表格直接使用 ， 不需要插槽
+     * :formatter="formatterTableEmpty"
+     */
+    $formatterTableWithSuffix: formatterTableWithSuffix
     /**
      * @description 传入时间 返回格式化后的默认时间 默认为 YYYY-MM-DD hh:mm:ss
      * @param  date 传入日期

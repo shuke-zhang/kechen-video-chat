@@ -47,7 +47,7 @@ function handleCascader(val: CascaderValue) {
   }
 }
 
-function handleAddDict(row?: CategoryModel) {
+function handleAdd(row?: CategoryModel) {
   form.value.parentId = row ? row.id : list.value[list.value.length - 1].id
   form.value.containParent = getNodeFullPath(form.value.parentId || 0, list.value).join(',')
 
@@ -190,7 +190,7 @@ onMounted(() => {
         <el-button type="primary" plain :icon="Refresh" @click="retQuery">
           查询重置
         </el-button>
-        <el-button type="success" :icon="CirclePlus" @click="handleAddDict()">
+        <el-button type="success" :icon="CirclePlus" @click="handleAdd()">
           新增
         </el-button>
         <el-button type="danger" :icon="CircleClose" @click="handleDel(ids)">
@@ -227,7 +227,7 @@ onMounted(() => {
 
       <el-table-column label="操作" align="center" width="200" fixed="right">
         <template #default="{ row }">
-          <el-button type="success" size="small" @click="handleAddDict(row)">
+          <el-button type="success" size="small" @click="handleAdd(row)">
             新增
           </el-button>
           <el-button type="primary" size="small" @click="handlePut(row)">

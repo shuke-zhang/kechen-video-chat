@@ -72,7 +72,7 @@ const props = withDefaults(defineProps<{
   /** 是否在文件角上显示绿色角标 */
   isOccupyCorner?: boolean
 }>(), {
-  action: '/file/upload',
+  action: '/file/system/upload',
   mode: 'list',
   iconSize: '16',
   iconColor: '#000000',

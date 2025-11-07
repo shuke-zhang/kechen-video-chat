@@ -28,7 +28,7 @@ const previewForm = ref<{
   content: '',
 })
 const isAdd = ref(false)
-const httpRel = /^https?:\/\/[^/]+/
+const httpRel = /^https?:\/\/[^/]+\/upload\//
 const queryParams = ref<ListPageParamsWrapper<FileModel>>({
   page: {
     current: 1,
@@ -44,12 +44,7 @@ function getList(): void {
     return
   loading.value = true
   getFileList(queryParams.value).then((res) => {
-    list.value = res.data.records.map((item) => {
-      return {
-        ...item,
-        fileLink: item.fileLink?.replace(httpRel, ''),
-      }
-    })
+    list.value = res.data.records
     total.value = res.data.total
   }).finally(() => {
     loading.value = false
@@ -108,10 +103,10 @@ function retQuery(): void {
 function handlePreview(row: FileModel) {
   previewVisible.value = true
   previewForm.value.type = row.fileLink ? 'word' : 'content'
-  previewForm.value.docUrl = `${__API_URL__}${row.fileLink}` || ''
+  previewForm.value.docUrl = `${__API_URL__}/upload/${row.fileLink}` || ''
+  console.log(previewForm.value.docUrl, '预览')
 
   previewForm.value.content = row.fileContent || ''
-  console.log(previewForm.value, 'handlePreview')
 }
 
 onMounted(() => {
@@ -163,6 +158,8 @@ onMounted(() => {
       <el-table-column prop="id" label="文件编号" align="center" width="90" />
 
       <el-table-column prop="name" label="文件名" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" />
+
+      <el-table-column prop="typeName" label="类名" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" />
 
       <el-table-column label="文件方式" align="center" width="120">
         <template #default="{ row }">

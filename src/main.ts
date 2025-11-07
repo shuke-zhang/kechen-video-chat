@@ -4,7 +4,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import { vTrunc } from './directive'
 import router from './router'
-import { formatDefaultDate, formatterTableEmpty, getSelectData, selectDictLabels } from './utils'
+import { formatDefaultDate, formatterTable, formatterTableEmpty, formatterTableWithSuffix, getSelectData, selectDictLabels } from './utils'
 import './styles/tailwindcss.css'
 import './styles/index.scss'
 import '@/components/icon-font/iconfont'
@@ -12,6 +12,7 @@ import '@/components/icon-font/iconfont'
 const app = createApp(App)
 // 注册全局方法
 app.config.globalProperties.$formatterTableEmpty = formatterTableEmpty
+app.config.globalProperties.$formatterTableWithSuffix = formatterTableWithSuffix
 app.config.globalProperties.$formatDefaultDate = formatDefaultDate
 app.config.globalProperties.$selectDictLabels = selectDictLabels
 app.config.globalProperties.$getSelectData = getSelectData

@@ -23,6 +23,7 @@ export default defineConfig(({ command, mode }) => {
       __PROD__: mode === 'production',
       __APP_TITLE__: `"${env.VITE_APP_TITLE}"`,
       __API_URL__: `"${env.VITE_API_URL}"`,
+      __STATIC_URL__: `"${env.VITE_API_URL}"`,
     },
     resolve: {
       alias: {

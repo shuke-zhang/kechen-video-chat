@@ -46,7 +46,7 @@ function handleCoverUrlSuccess(val: {
   response: ResponseData<UploadFileResponseModel>
 }) {
   const data = val.response.data
-  form.value.fileLink = data.accessPath
+  form.value.fileLink = data.relativePath
   form.value.fileExt = data.fileExtension
   form.value.name = data.originalName
   form.value.newName = data.currentName
@@ -147,12 +147,6 @@ watch(() => props.currentRow, (val) => {
         <el-col :span="12">
           <el-form-item label="文件方式" prop="fileType" style="width: 100%">
             <el-switch v-model="form.fileType" active-text="文件上传" :active-value="0" :inactive-value="1" inactive-text="内容填写" @change="handleSwitch" />
-          </el-form-item>
-        </el-col>
-
-        <el-col :span="12">
-          <el-form-item label="文件类型" prop="fileExt" style="width: 100%">
-            <el-input v-model="form.fileExt" size="large" placeholder="请输入文件类型" />
           </el-form-item>
         </el-col>
 
