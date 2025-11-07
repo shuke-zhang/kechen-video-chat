@@ -172,6 +172,13 @@
     "validateIdCardReg": true,
     "validatePhoneReg": true,
     "ElLoading": true,
-    "useSidebarStore": true
+    "useSidebarStore": true,
+    "blobValidate": true,
+    "formatCurrency": true,
+    "formatterTable": true,
+    "formatterTableWithSuffix": true,
+    "getErrorMessageByStatus": true,
+    "setFavicon": true,
+    "tansParams": true
   }
 }

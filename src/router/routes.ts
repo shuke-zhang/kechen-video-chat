@@ -17,7 +17,16 @@ const routes: RouteRecordRaw[] = [
         },
       },
       {
-        path: 'project/genbid/:id',
+        path: 'project/timesBid/:id',
+        name: 'TimesBid',
+        component: () => import('@/views/project/timesBid.vue'),
+        meta: {
+          title: '生成次数管理',
+          hidden: true,
+        },
+      },
+      {
+        path: 'project/genbid/:timesBidId',
         name: 'Genbid',
         component: () => import('@/views/project/genbid.vue'),
         meta: {

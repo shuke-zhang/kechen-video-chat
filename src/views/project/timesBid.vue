@@ -1,19 +1,20 @@
 <script setup lang="ts">
 import type { CategoryModel } from '@/model/category'
-import type { GenbidModel } from '@/model/genbid'
+import type { TimesBidModel } from '@/model/timesBid'
 import { getCategoryTree } from '@/api/category'
-import { getGenbidList } from '@/api/genbid'
+import { getTimesBidList } from '@/api/timesBid'
 import { download } from '@/utils/request/download'
 
 const route = useRoute()
+const router = useRouter()
 const loading = ref(false)
-const queryParams = ref<ListPageParamsWrapper<GenbidModel>>({
+const queryParams = ref<ListPageParamsWrapper<TimesBidModel>>({
   page: {
-    size: 1000,
+    size: 10000,
     current: 1,
   },
 })
-const currentProjectId = computed(() => route.params.timesBidId as string)
+const currentProjectId = computed(() => route.params.id as string)
 
 const categoryList = ref<CategoryModel[]>([])
 function getCategoryListData() {
@@ -23,7 +24,7 @@ function getCategoryListData() {
 }
 
 /** 静态日志数据（示例） */
-const list = ref<GenbidModel[]>([])
+const list = ref<TimesBidModel[]>([])
 
 function getList(): void {
   if (loading.value)
@@ -31,35 +32,37 @@ function getList(): void {
   loading.value = true
   const data = {
     ...queryParams.value,
-    timesBidId: currentProjectId.value,
-  }
-  getGenbidList(data).then((res) => {
+    projectId: currentProjectId.value,
+  } as TimesBidModel
+  getTimesBidList(data).then((res) => {
     list.value = res.data.records
   }).finally(() => {
     loading.value = false
   })
 }
 
-function handleBatchDownload(row: GenbidModel) {
+function handlePreview(row: TimesBidModel) {
+  router.push({
+    name: 'Genbid',
+    params: {
+      timesBidId: row.id,
+    },
+  })
+}
+
+function handleBatchDownload(row: TimesBidModel) {
   download.get({
-    url: `/upload/${row.fileLink}`,
-    filename: extractDocFilename(row.fileLink || ''),
+    url: `/api/project/downloadZip`,
+    filename: `${Date.now()}.zip`,
+    config: {
+      params: {
+        id: row.id,
+        type: 1,
+      },
+    },
   })
   const url = `${__API_URL__}/api/project/downloadZip`
   console.log(url)
-}
-
-/**
- * 从路径中提取 .doc / .docx 文件名（忽略大小写）
- * 例：d:/file/xxx/施工方案.docx?download=1 -> 施工方案.docx
- */
-function extractDocFilename(path: string): string {
-  if (!path)
-    return ''
-  const withoutHash = String(path).split('#')[0]
-  const withoutQuery = withoutHash.split('?')[0]
-  const match = withoutQuery.match(/[^/\\]+\.docx?$/i)
-  return match ? match[0] : ''
 }
 
 onMounted(() => {
@@ -77,9 +80,9 @@ onMounted(() => {
       row-key="id"
       style="width: 100%"
     >
-      <el-table-column prop="id" label="编号" align="center" />
+      <el-table-column prop="id" label="编号" align="center" width="80" />
 
-      <el-table-column prop="fileLink" label="文件链接" align="center" show-overflow-tooltip />
+      <el-table-column prop="bidId" label="标书ids" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" />
 
       <el-table-column label="创建人" align="center" prop="createdUserName" width="120" show-overflow-tooltip>
         <template #default="{ row }">
@@ -93,10 +96,13 @@ onMounted(() => {
         </template>
       </el-table-column>
 
-      <el-table-column label="操作" align="center" width="120" fixed="right">
+      <el-table-column label="操作" align="center" width="200" fixed="right">
         <template #default="{ row }">
+          <el-button type="success" size="small" @click="handlePreview(row)">
+            查看
+          </el-button>
           <el-button type="warning" size="small" @click="handleBatchDownload(row)">
-            下载
+            批量下载
           </el-button>
         </template>
       </el-table-column>

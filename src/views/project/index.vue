@@ -82,7 +82,7 @@ function handleAdd() {
 
 function handlePreview(row: ProjectModel) {
   router.push({
-    name: 'Genbid',
+    name: 'TimesBid',
     params: {
       id: row.id,
     },
@@ -222,7 +222,7 @@ function randomProjectForm() {
 
 onMounted(() => {
   getList()
-  getCategoryListData()
+  // getCategoryListData()
 })
 </script>
 

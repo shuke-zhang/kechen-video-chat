@@ -1,50 +1,48 @@
 import type { GenbidModel } from '@/model/genbid'
 
 /**
- * @description 分页查询文件-键列表
+ * @description 分页查询生成表-键列表
  */
-export function getGenbidList(params?: GenbidModel) {
-  console.log(params, 'params')
-
-  return request.get<ResponseListData<GenbidModel[]>>({
-    url: '/api/genbid/list',
-    params,
+export function getGenbidList(data?: GenbidModel) {
+  return request.post<ResponseListData<GenbidModel[]>>({
+    url: '/api/genBid/list',
+    data,
   })
 }
 
 /**
- * @description 新增字典类型-键数据
+ * @description 获取项目表详情-键数据
  */
 export function getGenbidInfo(id: number) {
   return request.post({
-    url: `/api/genbid/${id}`,
+    url: `/api/genBid/${id}`,
   })
 }
 
 /**
- * @description 新增文件-键数据
+ * @description 新增生成表-键数据
  */
 export function addGenbid(data: GenbidModel) {
   return request.post({
-    url: '/api/genbid/add',
+    url: '/api/genBid/add',
     data,
   })
 }
 /**
- * @description 修改文件-键数据
+ * @description 修改生成表-键数据
  */
 export function PutGenbid(data: GenbidModel) {
   return request.post({
-    url: '/api/genbid/update',
+    url: '/api/genBid/update',
     data,
   })
 }
 /**
- * @description 删除文件-键数据
+ * @description 删除生成表-键数据
  */
 export function DelGenbid(idList: number[]) {
   return request.delete({
-    url: `/api/genbid/delete`,
+    url: `/api/genBid/delete`,
     data: idList,
   })
 }
