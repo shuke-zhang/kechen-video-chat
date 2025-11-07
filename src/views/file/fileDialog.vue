@@ -5,6 +5,7 @@ import type { CategoryModel } from '@/model/category'
 import type { FileModel } from '@/model/file'
 import { QuestionFilled } from '@element-plus/icons-vue'
 import { addFile, PutFile } from '@/api/file'
+import { categoryList2 } from './const'
 import Edit from './edit.vue'
 
 const props = defineProps<{
@@ -15,6 +16,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'success'): void
 }>()
+const cascaderRef = useTemplateRef('cascader')
 const categoryList = computed(() => props.categoryList)
 const visible = defineModel<boolean>('visible', {
   type: Boolean,
@@ -52,12 +54,13 @@ function handleCoverUrlSuccess(val: {
   form.value.newName = data.currentName
 }
 
-function handleCascader(val: CascaderValue) {
+function handleCascader(val: CascaderValue | null | undefined) {
   if (Array.isArray(val)) {
     console.log(val, 'val')
     form.value.typeId = val[val.length - 1] as number
     form.value.typeName = findNodeById(categoryList.value, form.value.typeId)?.name
   }
+  cascaderRef.value?.togglePopperVisible(false)
 }
 
 function handleSwitch() {
@@ -130,12 +133,15 @@ watch(() => props.currentRow, (val) => {
         <el-col :span="12">
           <el-form-item label="类别名称" prop="typeId" style="width: 100%">
             <el-cascader
+              ref="cascader"
               v-model="form.typeId"
-              :options="categoryList as CascaderOption[]"
+              :options="categoryList2 as CascaderOption[]"
               :props="{
                 label: 'name',
                 value: 'id',
                 checkStrictly: true,
+                expandTrigger: 'hover',
+                checkOnClickNode: true,
               }"
               size="large"
               style="width: 100%;"

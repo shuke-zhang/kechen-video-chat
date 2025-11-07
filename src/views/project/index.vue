@@ -6,6 +6,7 @@ import { CirclePlus, Refresh, Search } from '@element-plus/icons-vue'
 import { getCategoryTree } from '@/api/category'
 import { addProject, getProjectList, PutProject } from '@/api/project'
 import { download } from '@/utils/request/download'
+import { categoryList2 } from '../file/const'
 
 const router = useRouter()
 const loading = ref(false)
@@ -13,6 +14,7 @@ const queryRef = useTemplateRef('queryEl')
 const visible = ref(false)
 const isAdd = ref(false)
 const formRef = ref<InstanceType<typeof ElForm> | null>(null)
+const cascaderRef = useTemplateRef('cascader')
 const submitLoading = ref(false)
 const queryParams = ref<ListPageParamsWrapper<ProjectModel>>({
   page: {
@@ -24,19 +26,19 @@ const form = ref<ProjectModel & {
   times?: string[] | undefined
 }>({
   times: ['2025-11-01', '2025-11-07'],
-  projectDuration: 180,
+  projectDuration: __DEV__ ? 180 : 0,
   genTimes: __DEV__ ? 0 : 10,
   genIds: 0,
   projectName: __DEV__ ? '智慧园区施工项目' : '',
-  typeList: __DEV__ ? ['1'] : [],
+  typeList: [],
   projectDesc: __DEV__ ? '本项目主要包含园区智慧化机电安装、弱电系统布线、消防系统联调等内容。' : '',
   projectAddress: __DEV__ ? '北京市朝阳区智慧产业园一期' : '',
   projectRequire: __DEV__ ? '本工程须严格按照国家施工规范执行，确保安全文明施工，按设计文件要求完成全部施工内容。' : '',
   projectCommit: __DEV__ ? '我单位郑重承诺，严格执行施工计划，保证施工质量、安全文明施工。' : '',
   safeRequire: __DEV__ ? '现场应建立安全责任制度，严格执行安全操作规程，加强安全教育。' : '',
   safeCommit: __DEV__ ? '现场应建立安全责任制度，严格执行安全操作规程，加强安全教育。' : '',
-  qualityRequire: '执行国家质量验收标准，确保项目按图施工，工程质量达到优良标准。',
-  qualityCommit: '我单位承诺，严格按规范施工，确保工程质量达到优良等级。',
+  qualityRequire: __DEV__ ? '执行国家质量验收标准，确保项目按图施工，工程质量达到优良标准。' : '',
+  qualityCommit: __DEV__ ? '我单位承诺，严格按规范施工，确保工程质量达到优良等级。' : '',
 })
 const categoryList = ref<CategoryModel[]>([])
 function getCategoryListData() {
@@ -75,9 +77,13 @@ function getList(): void {
 }
 
 function handleAdd() {
-  randomProjectForm()
+  // randomProjectForm()
   visible.value = true
   isAdd.value = true
+}
+
+function handleCascader() {
+  // cascaderRef.value?.togglePopperVisible(false)
 }
 
 function handlePreview(row: ProjectModel) {
@@ -222,7 +228,7 @@ function randomProjectForm() {
 
 onMounted(() => {
   getList()
-  // getCategoryListData()
+  getCategoryListData()
 })
 </script>
 
@@ -346,16 +352,20 @@ onMounted(() => {
           <el-col :span="24">
             <el-form-item label="项目类别" prop="typeList" style="width: 100%">
               <el-cascader
+                ref="cascader"
                 v-model="form.typeList"
                 :props="{
                   label: 'name',
                   value: 'id',
                   checkStrictly: true,
                   multiple: true,
+                  checkOnClickNode: true,
+                  expandTrigger: 'hover',
                 }"
-                :options="categoryList"
+                :options="categoryList2"
                 size="large"
                 style="width: 100%;"
+                @change="handleCascader"
               />
             </el-form-item>
           </el-col>

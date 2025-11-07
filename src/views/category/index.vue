@@ -5,7 +5,7 @@ import type { CategoryModel } from '@/model/category'
 import { CircleClose, CirclePlus, Refresh, Search } from '@element-plus/icons-vue'
 import { addCategory, DelCategory, getCategoryTree, PutCategory } from '@/api/category'
 
-const cascaderRef = useTemplateRef('cascaderRef')
+const cascaderRef = useTemplateRef('cascader')
 const loading = ref(false)
 const ids = ref<number[]>([])
 const names = ref<string[]>([])
@@ -40,17 +40,17 @@ function getList(): void {
   })
 }
 
-function handleCascader(val: CascaderValue) {
+function handleCascader(val: CascaderValue | null | undefined) {
   if (Array.isArray(val)) {
     form.value.parentId = val[val.length - 1] as number
     form.value.containParent = val.join(',')
   }
+  cascaderRef.value?.togglePopperVisible(false)
 }
 
 function handleAdd(row?: CategoryModel) {
   form.value.parentId = row ? row.id : list.value[list.value.length - 1].id
   form.value.containParent = getNodeFullPath(form.value.parentId || 0, list.value).join(',')
-
   visible.value = true
   isAdd.value = true
 }
@@ -252,13 +252,16 @@ onMounted(() => {
           <el-col :span="24">
             <el-form-item label="父级类别" prop="name" style="width: 100%">
               <el-cascader
-                ref="cascaderRef"
+                ref="cascader"
                 v-model="form.parentId"
                 :props="{
                   label: 'name',
                   value: 'id',
                   checkStrictly: true,
+                  expandTrigger: 'hover',
+                  checkOnClickNode: true,
                 }"
+                ,
                 :options="list"
                 size="large"
                 style="width: 100%;"
