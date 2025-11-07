@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { TopNavValueModel, UserDropdownValueModel } from '@/model/head'
+import { log } from 'node:console'
 
 const router = useRouter()
 
@@ -23,8 +24,10 @@ const dropdownItems: Array<{ label: string, value: UserDropdownValueModel }> = [
 ]
 
 function handleNavClick(value: TopNavValueModel) {
+  console.log(value, 'value')
+
   activeNavItem.value = value
-  router.push(value)
+  router.push(`/${value}`)
 }
 
 function handleCommand(command: UserDropdownValueModel) {
