@@ -39,7 +39,7 @@ const request = new HttpRequest<UserCustomConfig>(
       /**
        * 添加时间戳到 get 请求
        */
-      if (config.method?.toUpperCase() === RequestMethodsEnum.GET) {
+      if (config.method?.toUpperCase() === RequestMethodsEnum.GET && config.joinTime) {
         config.params = { _t: `${Date.now()}`, ...config.params }
       }
 

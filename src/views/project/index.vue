@@ -7,6 +7,7 @@ import { getCategoryTree } from '@/api/category'
 import { addProject, getProjectList, PutProject } from '@/api/project'
 import { download } from '@/utils/request/download'
 
+const router = useRouter()
 const loading = ref(false)
 const queryRef = useTemplateRef('queryEl')
 const visible = ref(false)
@@ -80,7 +81,12 @@ function handleAdd() {
 }
 
 function handlePreview(row: ProjectModel) {
-
+  router.push({
+    name: 'Genbid',
+    params: {
+      id: row.id,
+    },
+  })
 }
 
 function handleBatchDownload(row: ProjectModel) {

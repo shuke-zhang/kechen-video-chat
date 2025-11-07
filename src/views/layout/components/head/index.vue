@@ -41,7 +41,11 @@ function handleCommand(command: UserDropdownValueModel) {
 }
 
 onMounted(() => {
-  activeNavItem.value = currentRoute.value.replace(/^\//, '') as TopNavValueModel
+  let path = currentRoute.value.replace(/^\//, '') as TopNavValueModel
+  if (path.includes('project')) {
+    path = 'project'
+  }
+  activeNavItem.value = path
 })
 </script>
 
