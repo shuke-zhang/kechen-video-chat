@@ -7,6 +7,8 @@ import { CircleClose, CirclePlus, Refresh, Search } from '@element-plus/icons-vu
 import { getCategoryTree } from '@/api/category'
 import { DelFile, getFileList } from '@/api/file'
 import FileDialog from './fileDialog.vue'
+// import { getCategoryTree } from './mock-category'
+// import { DelFile, getFileList } from './mock-file'
 import PreviewDialog from './previewDialog.vue'
 
 const total = ref(0)
@@ -206,8 +208,8 @@ onMounted(() => {
     <!-- 分页 -->
     <Pagination
       v-show="total > 0"
-      v-model:page="queryParams.page.current"
-      v-model:limit="queryParams.page.size"
+      v-model:page-num="queryParams.page.current"
+      v-model:page-size="queryParams.page.size"
       :total="total"
       @pagination="getList"
     />

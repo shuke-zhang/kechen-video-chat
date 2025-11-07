@@ -5,6 +5,7 @@ import type { CategoryModel } from '@/model/category'
 import type { FileModel } from '@/model/file'
 import { QuestionFilled } from '@element-plus/icons-vue'
 import { addFile, PutFile } from '@/api/file'
+import { categoryList2 } from './const'
 
 const props = defineProps<{
   isAdd: boolean
@@ -54,9 +55,13 @@ function handleCoverUrlSuccess(val: {
 
 function handleCascader(val: CascaderValue | null | undefined) {
   if (Array.isArray(val)) {
-    console.log(val, 'val')
     form.value.typeId = val[val.length - 1] as number
-    form.value.typeName = findNodeById(categoryList.value, form.value.typeId)?.name
+    const _name = findNodeById(categoryList.value, form.value.typeId)?.name
+    form.value.typeName = _name
+
+    if (form.value.fileType === 1) {
+      form.value.name = _name
+    }
   }
   cascaderRef.value?.togglePopperVisible(false)
 }
@@ -89,7 +94,6 @@ function handleSubmit() {
         typeId: form.value.typeId,
         typeName: form.value.typeName,
       }
-      console.log(data, '新增数据')
 
       api(data).then(() => {
         showMessageSuccess('操作成功')
@@ -179,7 +183,7 @@ watch(() => props.currentRow, (val) => {
 
         <el-col v-if="!isFileUpload" :span="12">
           <el-form-item label="文件名称" prop="name" style="width: 100%">
-            <el-input v-model="form.name" size="large" />
+            <el-input v-model="form.name" size="large" placeholder="请输入文件名称" />
           </el-form-item>
         </el-col>
 

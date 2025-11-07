@@ -51,7 +51,6 @@ const rules: FormRules = {
   projectDuration: [{ required: true, trigger: 'change', message: '请输入项目工期' }],
   typeList: [{ required: true, trigger: 'change', message: '请输入项目类别' }],
   genTimes: [{ required: true, trigger: 'change', message: '请输入生成次数' }],
-  genIds: [{ required: true, trigger: 'change', message: '请输入生成的ids' }],
   times: [{ required: true, trigger: 'change', message: '请选择计划日期' }],
   projectDesc: [{ required: true, trigger: 'change', message: '请输入工程概况' }],
   projectAddress: [{ required: true, trigger: 'change', message: '请输入项目建设地址' }],
@@ -272,9 +271,7 @@ onMounted(() => {
 
       <el-table-column prop="projectDuration" label="项目工期" align="center" :formatter="$formatterTableWithSuffix('天')" />
 
-      <el-table-column prop="genTimes" label="生词次数" align="center" />
-
-      <el-table-column prop="genIds" label="生成的次数" align="center" :formatter="$formatterTableEmpty" min-width="100" />
+      <el-table-column prop="genIds" label="生成次数" align="center" :formatter="$formatterTableEmpty" min-width="100" />
 
       <el-table-column prop="genIds" label="计划日期" align="center" show-overflow-tooltip>
         <template #default="{ row }">
@@ -374,18 +371,6 @@ onMounted(() => {
             <el-form-item label="生成次数" prop="genTimes" style="width: 100%">
               <el-input-number
                 v-model="form.genTimes"
-                :min="0"
-                style="width: 100%;"
-                controls-position="right"
-                size="large"
-              />
-            </el-form-item>
-          </el-col>
-
-          <el-col :span="12">
-            <el-form-item label="生成的ids" prop="genIds" style="width: 100%">
-              <el-input-number
-                v-model="form.genIds"
                 :min="0"
                 style="width: 100%;"
                 controls-position="right"
