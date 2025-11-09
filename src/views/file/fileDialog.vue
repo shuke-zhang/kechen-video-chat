@@ -143,7 +143,6 @@ watch(() => props.currentRow, (val) => {
               :props="{
                 label: 'name',
                 value: 'id',
-                checkStrictly: true,
                 expandTrigger: 'hover',
                 checkOnClickNode: true,
               }"

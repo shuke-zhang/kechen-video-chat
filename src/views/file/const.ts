@@ -1,6 +1,7 @@
 // mock-category.ts
 
 import type { CascaderOption } from 'element-plus'
+import { markDisabledLevels } from '@/utils'
 
 export const categoryList2: CascaderOption[] = [
   {
@@ -174,3 +175,6 @@ export const categoryList2: CascaderOption[] = [
     ],
   },
 ]
+
+export const categoryList3 = markDisabledLevels(categoryList2, [1, 2], 'children')
+console.log(categoryList3, 'categoryList3')

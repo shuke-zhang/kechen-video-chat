@@ -83,3 +83,74 @@ export function handleTree<T extends Record<string, any>>(
 
   return tree
 }
+// ✅ 自描述的树节点类型，支持任意子节点键名 K（默认可用 'children'）
+export type Node<K extends PropertyKey = 'children'> = {
+  isDisabled?: boolean
+} & {
+  [P in K]?: Node<K>[]
+} & Record<string, unknown>
+
+/**
+ * 不修改原数据，返回新树
+ * @param tree 树
+ * @param disabledLevels 需要禁用的层级，如 [1, 2]
+ * @param childKey 子节点键名，如 'children' | 'nodes'
+ */
+export function markDisabledLevels<K extends PropertyKey>(
+  tree: Node<K>[],
+  disabledLevels: number[],
+  childKey: K,
+): Node<K>[] {
+  const levelSet = new Set<number>(disabledLevels)
+  const walk = (nodes: Node<K>[], depth: number): Node<K>[] => {
+    return nodes.map((n) => {
+      const copy: Node<K> = { ...n }
+      copy.isDisabled = levelSet.has(depth)
+      const kids = copy[childKey]
+      if (Array.isArray(kids) && kids.length > 0) {
+        const next = walk(kids, depth + 1)
+          ; (copy as Record<K, Node<K>[] | undefined>)[childKey] = next
+      }
+      return copy
+    })
+  }
+  return walk(tree, 1)
+}
+
+/**
+ * 就地修改版：直接改传入的 tree
+ */
+export function markDisabledLevelsInPlace<K extends PropertyKey>(
+  tree: Node<K>[],
+  disabledLevels: number[],
+  childKey: K,
+): void {
+  const levelSet = new Set<number>(disabledLevels)
+  const dfs = (nodes: Node<K>[], depth: number): void => {
+    for (const node of nodes) {
+      node.isDisabled = levelSet.has(depth)
+      const kids = node[childKey]
+      if (Array.isArray(kids) && kids.length > 0) {
+        dfs(kids, depth + 1)
+      }
+    }
+  }
+  dfs(tree, 1)
+}
+
+// 🚀 如果你的树就是 { children?: Node[] }，可以用便捷封装
+export type ChildrenNode = Node<'children'>
+
+export function markDisabledLevelsChildren(
+  tree: ChildrenNode[],
+  disabledLevels: number[],
+): ChildrenNode[] {
+  return markDisabledLevels(tree, disabledLevels, 'children')
+}
+
+export function markDisabledLevelsChildrenInPlace(
+  tree: ChildrenNode[],
+  disabledLevels: number[],
+): void {
+  markDisabledLevelsInPlace(tree, disabledLevels, 'children')
+}

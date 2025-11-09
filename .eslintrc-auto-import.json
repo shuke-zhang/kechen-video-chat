@@ -179,6 +179,10 @@
     "formatterTableWithSuffix": true,
     "getErrorMessageByStatus": true,
     "setFavicon": true,
-    "tansParams": true
+    "tansParams": true,
+    "markDisabledLevels": true,
+    "markDisabledLevelsChildren": true,
+    "markDisabledLevelsChildrenInPlace": true,
+    "markDisabledLevelsInPlace": true
   }
 }

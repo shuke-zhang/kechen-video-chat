@@ -6,7 +6,7 @@ import { CirclePlus, Refresh, Search } from '@element-plus/icons-vue'
 import { getCategoryTree } from '@/api/category'
 import { addProject, getProjectList, PutProject } from '@/api/project'
 import { download } from '@/utils/request/download'
-import { categoryList2 } from '../file/const'
+import { categoryList2, categoryList3 } from '../file/const'
 
 const router = useRouter()
 const loading = ref(false)
@@ -271,9 +271,9 @@ onMounted(() => {
 
       <el-table-column prop="projectDuration" label="项目工期" align="center" :formatter="$formatterTableWithSuffix('天')" />
 
-      <el-table-column prop="genIds" label="生成次数" align="center" :formatter="$formatterTableEmpty" min-width="100" />
+      <el-table-column prop="genTimes" label="生成次数" align="center" :formatter="$formatterTableEmpty" min-width="100" />
 
-      <el-table-column prop="genIds" label="计划日期" align="center" show-overflow-tooltip>
+      <el-table-column label="计划日期" align="center" show-overflow-tooltip>
         <template #default="{ row }">
           {{ `${row.projectStartTime} 至 ${row.projectEndTime}` }}
         </template>
@@ -354,10 +354,10 @@ onMounted(() => {
                 :props="{
                   label: 'name',
                   value: 'id',
-                  checkStrictly: true,
                   multiple: true,
-                  checkOnClickNode: true,
                   expandTrigger: 'hover',
+                  checkOnClickNode: true,
+
                 }"
                 :options="categoryList"
                 size="large"
