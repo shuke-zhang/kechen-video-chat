@@ -76,6 +76,8 @@ function handleSwitch() {
 }
 
 function handleSubmit() {
+  console.log(form.value, '内容')
+
   formRef.value?.validate((valid) => {
     if (valid) {
       if (submitLoading.value)
@@ -154,7 +156,7 @@ watch(() => props.currentRow, (val) => {
 
         <el-col :span="12">
           <el-form-item label="文件方式" prop="fileType" style="width: 100%">
-            <el-switch v-model="form.fileType" active-text="文件上传" :active-value="0" :inactive-value="1" inactive-text="内容填写" @change="handleSwitch" />
+            <el-switch v-model="form.fileType" active-text="内容填写" :inactive-value="0" inactive-text="文件上传" :active-value="1" @change="handleSwitch" />
           </el-form-item>
         </el-col>
 
