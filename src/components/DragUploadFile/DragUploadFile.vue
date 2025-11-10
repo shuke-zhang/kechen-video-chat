@@ -45,7 +45,7 @@ const isSingle = computed(() => {
 })
 
 const finalUploadUrl = computed(() => {
-  const base = import.meta.env.VITE_API_URL || ''
+  const base = window.webConfig.webApiBaseUrl || import.meta.env.VITE_API_URL || ''
   const act = props.action || ''
   return props.uploadUrl ?? `${base}${act}`
 })

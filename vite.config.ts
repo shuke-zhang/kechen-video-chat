@@ -36,7 +36,7 @@ export default defineConfig(({ command, mode }) => {
           additionalData: `
           @use "@/styles/global.scss" as global;
           @use '@/styles/variables.scss' as vars;
-          @use "@/styles/element/index.scss" as *;
+          @use "@/styles/element/index.scss" as elVas;
 
           `,
           api: 'modern',

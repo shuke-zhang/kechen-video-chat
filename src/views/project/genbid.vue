@@ -45,7 +45,7 @@ function handleBatchDownload(row: GenbidModel) {
     url: `/upload/${row.fileLink}`,
     filename: extractDocFilename(row.fileLink || ''),
   })
-  const url = `${__API_URL__}/api/project/downloadZip`
+  const url = `${window.webConfig.webApiBaseUrl || __API_URL__}/api/project/downloadZip`
   console.log(url)
 }
 

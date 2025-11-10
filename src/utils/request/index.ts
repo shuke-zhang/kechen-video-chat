@@ -6,10 +6,9 @@ import { getSystemErrorMessage, HttpRequest, RequestMethodsEnum } from '@shuke~/
 import axios from 'axios'
 
 const cancelMap = new Map<string, Canceler>()
-
 const request = new HttpRequest<UserCustomConfig>(
   {
-    baseURL: import.meta.env.VITE_API_URL,
+    baseURL: window.webConfig.webApiBaseUrl,
     timeout: 20 * 1000,
     withToken: true,
     showErrorMsg: true,

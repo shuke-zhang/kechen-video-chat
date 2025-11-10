@@ -105,7 +105,7 @@ function retQuery(): void {
 function handlePreview(row: FileModel) {
   previewVisible.value = true
   previewForm.value.type = row.fileLink ? 'word' : 'content'
-  previewForm.value.docUrl = `${__API_URL__}/upload/${row.fileLink}` || ''
+  previewForm.value.docUrl = `${window.webConfig.webApiBaseUrl || __API_URL__}/upload/${row.fileLink}` || ''
   console.log(previewForm.value.docUrl, '预览')
 
   previewForm.value.content = row.fileContent || ''

@@ -61,7 +61,7 @@ function handleBatchDownload(row: TimesBidModel) {
       },
     },
   })
-  const url = `${__API_URL__}/api/project/downloadZip`
+  const url = `${window.webConfig.webApiBaseUrl || __API_URL__}/api/project/downloadZip`
   console.log(url)
 }
 

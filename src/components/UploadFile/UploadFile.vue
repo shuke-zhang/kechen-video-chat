@@ -185,7 +185,7 @@ const isSingle = computed(() => {
 })
 
 const finalUploadUrl = computed(() => {
-  const base = import.meta.env.VITE_API_URL || ''
+  const base = window.webConfig.webApiBaseUrl || import.meta.env.VITE_API_URL || ''
   const act = props.action || ''
   return props.uploadUrl ?? `${base}${act}`
 })
@@ -437,7 +437,7 @@ async function handleSuccess(response: ResponseData<UploadFileResponseModel>, up
     if (Array.isArray(fileData.value)) {
       const target = fileData.value.find(f => f.uid === uploadFile.uid)
       if (target) {
-        target.url = `${__API_URL__}${publicUrl}`
+        target.url = `${window.webConfig.webApiBaseUrl || __API_URL__}${publicUrl}`
         target.status = 'success'
       }
       else {

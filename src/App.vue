@@ -16,6 +16,7 @@ window.addEventListener('beforeunload', () => {
 window.addEventListener('pagehide', () => {
   // console.log('Tab 被卸载（关闭/刷新/跳转）')
 })
+console.log(window.webConfig, 'window')
 </script>
 
 <template>
