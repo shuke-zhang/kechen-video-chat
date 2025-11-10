@@ -8,6 +8,8 @@ export type UserDropdownValueModel = 'put' | 'logout'
  * 头部nav菜单项值类型
  * -  project : 项目
  * -  category : 类别
- * -  file : 工单
+ * -  file : 文件
+ * -  predict : 预测
+ * -  qualification : 资审
  */
-export type TopNavValueModel = 'project' | 'category' | 'file'
+export type TopNavValueModel = 'project' | 'category' | 'file' | 'predict' | 'qualification'

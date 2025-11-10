@@ -15,6 +15,8 @@ const topNavList: {
   { label: '项目', value: 'project' },
   { label: '类别', value: 'category' },
   { label: '文件', value: 'file' },
+  { label: '预测', value: 'predict' },
+  { label: '资审', value: 'qualification' },
 ]
 
 const activeNavItem = ref<TopNavValueModel | null>(null)
