@@ -357,7 +357,6 @@ onMounted(() => {
                   multiple: true,
                   expandTrigger: 'hover',
                   checkOnClickNode: true,
-
                 }"
                 :options="categoryList"
                 size="large"
@@ -426,7 +425,7 @@ onMounted(() => {
             </el-form-item>
           </el-col>
 
-          <el-col :span="24">
+          <!-- <el-col :span="24">
             <el-form-item label="工期承诺" prop="projectCommit" style="width: 100%">
               <el-input
                 v-model="form.projectCommit"
@@ -435,7 +434,7 @@ onMounted(() => {
                 placeholder="请输入工期承诺"
               />
             </el-form-item>
-          </el-col>
+          </el-col> -->
 
           <el-col :span="24">
             <el-form-item label="安全要求" prop="safeRequire" style="width: 100%">
@@ -448,7 +447,7 @@ onMounted(() => {
             </el-form-item>
           </el-col>
 
-          <el-col :span="24">
+          <!-- <el-col :span="24">
             <el-form-item label="安全承诺" prop="safeCommit" style="width: 100%">
               <el-input
                 v-model="form.safeCommit"
@@ -457,7 +456,7 @@ onMounted(() => {
                 placeholder="请输入安全承诺"
               />
             </el-form-item>
-          </el-col>
+          </el-col> -->
 
           <el-col :span="24">
             <el-form-item label="质量要求" prop="qualityRequire" style="width: 100%">
@@ -470,7 +469,7 @@ onMounted(() => {
             </el-form-item>
           </el-col>
 
-          <el-col :span="24">
+          <!-- <el-col :span="24">
             <el-form-item label="质量承诺" prop="qualityCommit" style="width: 100%">
               <el-input
                 v-model="form.qualityCommit"
@@ -479,7 +478,7 @@ onMounted(() => {
                 placeholder="请输入安质量承诺"
               />
             </el-form-item>
-          </el-col>
+          </el-col> -->
         </el-row>
       </el-form>
 
