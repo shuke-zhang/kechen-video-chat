@@ -41,3 +41,19 @@ export function delMsgLoading<T>(
     loadingMsg?.close()
   })
 }
+
+/**
+ * withLoadingMessage
+ * @param promiseOrThunk 可传：已创建的 Promise 或 返回 Promise 的函数
+ * @param loadingText 加载提示文案
+ */
+export function withLoadingMessage<T>(
+  promiseOrThunk: Promise<T> | Thunk<T>,
+  loadingText: string,
+): Promise<T> {
+  const loadingMsg = ElLoading.service({ text: loadingText, background: 'rgba(0, 0, 0, 0.7)' })
+  const p = typeof promiseOrThunk === 'function' ? (promiseOrThunk as Thunk<T>)() : (promiseOrThunk as Promise<T>)
+  return p.finally(() => {
+    loadingMsg?.close()
+  })
+}

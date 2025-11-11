@@ -35,6 +35,7 @@ declare module 'vue' {
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
     ElUpload: typeof import('element-plus/es')['ElUpload']
     IconFont: typeof import('./../src/components/icon-font/icon-font.vue')['default']
+    ImportFile: typeof import('./../src/components/importFile/importFile.vue')['default']
     KcTable: typeof import('./../src/components/KcTable/KcTable.vue')['default']
     MarqueeNotice: typeof import('./../src/components/MarqueeNotice/MarqueeNotice.vue')['default']
     Pagination: typeof import('./../src/components/Pagination/Pagination.vue')['default']

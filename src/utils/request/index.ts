@@ -9,7 +9,7 @@ const cancelMap = new Map<string, Canceler>()
 const request = new HttpRequest<UserCustomConfig>(
   {
     baseURL: window.webConfig.webApiBaseUrl,
-    timeout: 20 * 1000,
+    timeout: 10 * 60 * 1000,
     withToken: true,
     showErrorMsg: true,
     joinTime: true,
@@ -19,6 +19,8 @@ const request = new HttpRequest<UserCustomConfig>(
   {
     // 请求拦截器
     request(config) {
+      console.log(config, 'config')
+
       /**
        * token
        */
@@ -53,6 +55,7 @@ const request = new HttpRequest<UserCustomConfig>(
     async response(_response) {
       cancelMap.delete(generateKey(_response.config))
       const config = _response.config as HttpRequestConfig<UserCustomConfig>
+      console.log('响应拦截器', _response)
 
       // 返回原生响应
       if (config.getResponse) {

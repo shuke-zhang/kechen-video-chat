@@ -142,8 +142,10 @@ function handleSubmit() {
       }
       console.log(data)
 
-      api(data).then(() => {
-        showMessageSuccess('操作成功')
+      api(data).then((res) => {
+        console.log(res, 'project操作成功')
+
+        showMessageSuccess(res.msg || '操作成功')
         visible.value = false
         reset()
         getList()
@@ -355,8 +357,11 @@ onMounted(() => {
                   label: 'name',
                   value: 'id',
                   multiple: true,
+                  checkOnClickNode: true, // 关键：点整行即可勾选/取消
                   expandTrigger: 'hover',
-                  checkOnClickNode: true,
+                  // ↓ 如果也想点“父级”就能选中，务必再加这行
+                  // checkStrictly: true,
+                  // （只勾选叶子：checkOnClickLeaf: true，默认就是 true）
                 }"
                 :options="categoryList"
                 size="large"
