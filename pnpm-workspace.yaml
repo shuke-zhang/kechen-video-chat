@@ -1,3 +1,4 @@
 onlyBuiltDependencies:
   - '@vue-office/docx'
   - vue-demi
+# https://github.com/501351981/vue-office/issues/438
