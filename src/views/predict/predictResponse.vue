@@ -4,6 +4,7 @@ import { Histogram, Refresh, Search } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import { formatPrice } from '@/utils'
 import Chart from './chart.vue'
 
 const route = useRoute()
@@ -78,69 +79,6 @@ function retQuery(): void {
 }
 function handleChart() {
   chartVisible.value = true
-}
-
-/**
- * 价格格式化
- * @param input 待格式化的数值或字符串
- * @param options 配置项
- * @param options.decimals 小数位（默认 2）
- * @param options.thousand 是否启用千分位分隔（默认 true）
- * @param options.trimZeros 是否去除小数尾随 0（默认 true）
- * @param options.unit 单位或货币符号（示例：'¥'、'元'、'USD'；默认空）
- * @param options.unitPosition 单位位置 'prefix' | 'suffix'（默认 'prefix' 对符号更友好）
- * @param options.negativeParen 负数是否用括号表示（默认 false，示例：(1,234.56)）
- * @param options.locale 使用 Intl 时的本地化语言标记（如 'zh-CN'；默认空表示手动格式化）
- * @returns 格式化后的字符串
- */
-function formatPrice(
-  input: number | string | null | undefined,
-  options: {
-    decimals?: number
-    thousand?: boolean
-    trimZeros?: boolean
-    unit?: string
-    unitPosition?: 'prefix' | 'suffix'
-    negativeParen?: boolean
-    locale?: string
-  } = {},
-): string {
-  const {
-    decimals = 2,
-    thousand = true,
-    trimZeros = true,
-    unit = '',
-    unitPosition = 'prefix',
-    negativeParen = false,
-    locale,
-  } = options
-  if (input === null)
-    return '--'
-  if (input === undefined)
-    return '--'
-  const num = typeof input === 'string' ? Number(input) : input
-  if (!Number.isFinite(num))
-    return '--'
-  const isNeg = num < 0
-  const abs = Math.abs(num)
-  if (locale && unit && /^[A-Z]{3}$/i.test(unit)) {
-    const nf = new Intl.NumberFormat(locale, { style: 'currency', currency: unit, minimumFractionDigits: decimals, maximumFractionDigits: decimals })
-    const out = nf.format(num)
-    return out
-  }
-  const fixed = abs.toFixed(decimals)
-  const [intPartRaw, decPartRaw] = fixed.split('.')
-  const intPart = thousand ? intPartRaw.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : intPartRaw
-  const decPart = decimals > 0 ? decPartRaw : ''
-  const decShown = trimZeros ? decPart.replace(/0+$/, '') : decPart
-  const dot = decShown.length > 0 ? '.' : ''
-  const core = intPart + (decimals > 0 ? dot + decShown.padEnd(trimZeros ? decShown.length : decimals, '0') : '')
-  const withSign = isNeg ? (negativeParen ? `(${core})` : `-${core}`) : core
-  if (!unit)
-    return withSign
-  if (unitPosition === 'suffix')
-    return `${withSign}${unit}`
-  return `${unit}${withSign}`
 }
 
 onMounted(() => {
