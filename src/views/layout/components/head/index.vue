@@ -26,7 +26,6 @@ const dropdownItems: Array<{ label: string, value: UserDropdownValueModel }> = [
 
 function handleNavClick(value: TopNavValueModel) {
   console.log(value, 'value')
-
   activeNavItem.value = value
   router.push(`/${value}`)
 }
@@ -44,12 +43,29 @@ function handleCommand(command: UserDropdownValueModel) {
   }
 }
 
+function resolveTopNav(routePath: unknown): TopNavValueModel {
+  const raw = typeof routePath === 'string' ? routePath : ''
+  const cleaned = raw.replace(/^\/+/, '')
+  const lower = cleaned.toLowerCase()
+  const noQuery = lower.split('?')[0].split('#')[0]
+  const seg0 = noQuery.split('/')[0] || ''
+  if (seg0.startsWith('project'))
+    return 'project'
+  if (seg0.startsWith('predict'))
+    return 'predict'
+  if (noQuery.includes('project'))
+    return 'project'
+  if (noQuery.includes('predict'))
+    return 'predict'
+  return seg0 as TopNavValueModel
+}
+
+function syncActive() {
+  activeNavItem.value = resolveTopNav(currentRoute.value)
+}
+
 onMounted(() => {
-  let path = currentRoute.value.replace(/^\//, '') as TopNavValueModel
-  if (path.includes('project')) {
-    path = 'project'
-  }
-  activeNavItem.value = path
+  syncActive()
 })
 </script>
 

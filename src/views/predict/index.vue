@@ -7,6 +7,7 @@ import ImportFile from '@/components/importFile/importFile.vue'
 import { withLoadingMessage } from '@/utils'
 import PredictDialog from './predictDialog.vue'
 
+const router = useRouter()
 const loading = ref(false)
 const names = ref<string[]>([])
 const single = ref(true)
@@ -50,6 +51,7 @@ function handlePredict(row: importPredictModel) {
 }
 
 function handleHistory() {
+  router.push('/predict/history')
 }
 
 function handleSelectionChange(selection: importPredictModel[]) {
