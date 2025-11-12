@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ElForm, FormRules } from 'element-plus'
-import type { AddPredictResponseData, importPredictModel, PredictModel } from '@/model/predict'
+import type { AddPredictResponse, AddPredictResponseData, importPredictModel, PredictModel } from '@/model/predict'
 import { addPredict } from '@/api/predict'
 
 const props = defineProps<{
@@ -68,15 +68,20 @@ function handleSubmit() {
       }).then((res) => {
         visible.value = false
         emit('success')
-        reset()
         const data = res.data.resultData.map((item) => {
           return {
             ...item,
             originalName: form.value.projectName,
           }
         })
+        const predictResponse: AddPredictResponse<AddPredictResponseData> = {
+          resultData: data,
+          x: res.data.x,
+          y: res.data.y,
+        }
+        reset()
         confirmSuccess('操作成功！是否跳转到结果页面？').then(() => {
-          openResponseTabWithData(data)
+          openResponseTabWithData(predictResponse)
         })
       }).finally(() => {
         submitLoading.value = false
@@ -91,7 +96,7 @@ function reset() {
   submitLoading.value = false
 }
 
-function openResponseTabWithData(data: AddPredictResponseData[]) {
+function openResponseTabWithData(data: AddPredictResponse<AddPredictResponseData>) {
   const key = `predict:response:${Date.now()}:${Math.random().toString(36).slice(2)}`
   localStorage.setItem(key, JSON.stringify(data))
   // 先解析出完整 href，避免 hash/history 基础路径差异
