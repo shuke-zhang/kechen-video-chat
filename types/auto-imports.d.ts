@@ -49,6 +49,7 @@ declare global {
   const findNodeById: typeof import('../src/utils/helpers/lodash-fn')['findNodeById']
   const formatCurrency: typeof import('../src/utils/helpers/common')['formatCurrency']
   const formatDefaultDate: typeof import('../src/utils/helpers/globalMethods')['formatDefaultDate']
+  const formatPrice: typeof import('../src/utils/helpers/function')['formatPrice']
   const formatterTable: typeof import('../src/utils/helpers/globalMethods')['formatterTable']
   const formatterTableEmpty: typeof import('../src/utils/helpers/globalMethods')['formatterTableEmpty']
   const formatterTableWithSuffix: typeof import('../src/utils/helpers/globalMethods')['formatterTableWithSuffix']

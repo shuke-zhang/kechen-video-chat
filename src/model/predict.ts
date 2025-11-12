@@ -36,7 +36,7 @@ export interface PredictModel {
   /** 其他家单价 - 结束值（number） */
   otherEnd?: number
 
-  /** 其他家单价 - 迭代值 / 步长（number） */
+  /** 其他家单价 - 区间单价 - 迭代值 / 步长（number） */
   otherStep?: number
 
   /** 删除标志（int32；0=未删，1=已删等，具体以后端约定为准） */

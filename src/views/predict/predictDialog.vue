@@ -11,6 +11,12 @@ const emit = defineEmits<{
   (e: 'success'): void
 }>()
 const router = useRouter()
+/**
+ * 是否是单次
+ * - true 预测时只需要传入其他家开始单价 - 并且不需要跳转只需要展示后端返回的预测的F值数字即可
+ * - false 预测三个值都需要去哪不传入 - 并且预测成功后跳转到echarts页面
+ */
+const isSingle = ref(true)
 const visible = defineModel<boolean>('visible', {
   type: Boolean,
   required: true,
@@ -21,8 +27,8 @@ const form = ref<PredictModel>({
   companionCount: __DEV__ ? 300 : 0,
   companionUnitPrice: __DEV__ ? 3.64 : 0,
   otherStart: __DEV__ ? 1.02 : 0,
-  otherStep: __DEV__ ? 0.05 : 0,
-  otherEnd: __DEV__ ? 3.02 : 0,
+  otherStep: __DEV__ ? 0.05 : isSingle.value ? undefined : 0,
+  otherEnd: __DEV__ ? 3.02 : isSingle.value ? undefined : 0,
 })
 const formRef = ref<InstanceType<typeof ElForm> | null>(null)
 const submitLoading = ref(false)
@@ -65,24 +71,34 @@ function handleSubmit() {
 
       addPredict({
         ...form.value,
+        otherStep: isSingle.value ? undefined : form.value.otherStep,
+        otherEnd: isSingle.value ? undefined : form.value.otherEnd,
       }).then((res) => {
-        visible.value = false
-        emit('success')
-        const data = res.data.resultData.map((item) => {
-          return {
-            ...item,
-            originalName: form.value.projectName,
+        if (!isSingle.value) {
+          console.log('多选')
+          const data = res.data.resultData.map((item) => {
+            return {
+              ...item,
+              originalName: form.value.projectName,
+            }
+          })
+          const predictResponse: AddPredictResponse<AddPredictResponseData> = {
+            resultData: data,
+            x: res.data.x,
+            y: res.data.y,
           }
-        })
-        const predictResponse: AddPredictResponse<AddPredictResponseData> = {
-          resultData: data,
-          x: res.data.x,
-          y: res.data.y,
+          confirmSuccess('操作成功！是否跳转到结果页面？').then(() => {
+            openResponseTabWithData(predictResponse)
+          })
+        }
+        else {
+          console.log('单选哦是')
+          // 单选模式 这儿的resultData直接为对象
+          showMessageSuccess(`操作成功！预测的F值为 ${res.data.resultData}`)
         }
         reset()
-        confirmSuccess('操作成功！是否跳转到结果页面？').then(() => {
-          openResponseTabWithData(predictResponse)
-        })
+        visible.value = false
+        emit('success')
       }).finally(() => {
         submitLoading.value = false
       })
@@ -91,7 +107,17 @@ function handleSubmit() {
 }
 
 function reset() {
-  form.value = { }
+  form.value
+    = {
+      totalCount: __DEV__ ? 800 : 0,
+      capPrice: __DEV__ ? 7.02 : 0,
+      companionCount: __DEV__ ? 300 : 0,
+      companionUnitPrice: __DEV__ ? 3.64 : 0,
+      otherStart: __DEV__ ? 1.02 : 0,
+      otherStep: __DEV__ ? 0.05 : isSingle.value ? 0 : undefined,
+      otherEnd: __DEV__ ? 3.02 : isSingle.value ? 0 : undefined,
+
+    }
   resetForm(formRef.value)
   submitLoading.value = false
 }
@@ -213,20 +239,17 @@ onMounted(() => {
           </el-form-item>
         </el-col>
 
-        <!-- <el-col :span="12">
+        <el-col :span="12">
           <el-form-item
-            label="其他家数"
-            prop="otherCount"
+            label="单价模式"
           >
-            <el-input-number
-              v-model="form.otherCount"
-              :min="0"
-              :step="1"
-              size="large"
-              style="width: 100%;"
+            <el-switch
+              v-model="isSingle"
+              active-text="固定单价"
+              inactive-text="区间单价"
             />
           </el-form-item>
-        </el-col> -->
+        </el-col>
 
         <el-col :span="12">
           <el-form-item
@@ -244,7 +267,7 @@ onMounted(() => {
           </el-form-item>
         </el-col>
 
-        <el-col :span="12">
+        <el-col v-if="!isSingle" :span="12">
           <el-form-item
             label="其他家区间单价"
             prop="otherStep"
@@ -260,7 +283,7 @@ onMounted(() => {
           </el-form-item>
         </el-col>
 
-        <el-col :span="12">
+        <el-col v-if="!isSingle" :span="12">
           <el-form-item
             label="其他家结束单价"
             prop="otherEnd"

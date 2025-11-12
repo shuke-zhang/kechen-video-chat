@@ -9,7 +9,7 @@ const cancelMap = new Map<string, Canceler>()
 const request = new HttpRequest<UserCustomConfig>(
   {
     baseURL: window.webConfig.webApiBaseUrl,
-    timeout: 10 * 60 * 1000,
+    timeout: 30 * 60 * 1000,
     withToken: true,
     showErrorMsg: true,
     joinTime: true,
