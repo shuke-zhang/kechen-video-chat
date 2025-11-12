@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import type { IEditorConfig } from '@wangeditor-next/editor'
 import type { PropType } from 'vue'
 import VueOfficeDocx from '@vue-office/docx'
-import { Editor } from '@wangeditor-next/editor-for-vue'
 import { saveAs } from 'file-saver'
 import '@vue-office/docx/lib/index.css'
 // props
@@ -31,9 +29,6 @@ const visible = defineModel<boolean>('visible', {
   type: Boolean,
   required: true,
 })
-const editorConfig: Partial<IEditorConfig> = {
-  readOnly: true,
-}
 
 // 关闭
 function cancel() {
