@@ -34,6 +34,7 @@
     "axios": "^1.10.0",
     "chokidar": "^4.0.3",
     "dayjs": "^1.11.13",
+    "echarts": "^6.0.0",
     "ejs": "^3.1.10",
     "element-plus": "^2.10.5",
     "extendable-media-recorder": "^9.2.29",

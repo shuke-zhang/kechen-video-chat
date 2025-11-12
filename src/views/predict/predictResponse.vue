@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import type { AddPredictResponse, AddPredictResponseData } from '@/model/predict'
-import { Refresh, Search } from '@element-plus/icons-vue'
+import { Histogram, Refresh, Search } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import Chart from './chart.vue'
 
 const route = useRoute()
 const loading = ref(false)
+const chartVisible = ref(false)
 const key = String(route.query.key ?? '')
 const predictResponse = ref<AddPredictResponse<AddPredictResponseData>>({
   resultData: [],
@@ -33,6 +35,14 @@ const clientPage = computed(() => {
   const start = (queryParams.value.page.current - 1) * queryParams.value.page.size
   const end = start + queryParams.value.page.size
   return { rows: filtered.slice(start, end), total: filtered.length }
+})
+
+const chartData = computed(() => {
+  return {
+    x: predictResponse.value.x,
+    y: predictResponse.value.y,
+    data: predictResponse.value.resultData.map(it => it.resultData || ''),
+  }
 })
 
 function safeParse(s: string | null) {
@@ -65,6 +75,9 @@ function retQuery(): void {
     },
   }
   resetForm(queryRef.value)
+}
+function handleChart() {
+  chartVisible.value = true
 }
 
 /**
@@ -193,6 +206,10 @@ onBeforeUnmount(() => {
         <el-button type="primary" plain :icon="Refresh" @click="retQuery">
           查询重置
         </el-button>
+
+        <el-button type="success" plain :icon="Histogram" @click="handleChart">
+          图标展示
+        </el-button>
       </el-form-item>
     </el-form>
 
@@ -228,5 +245,7 @@ onBeforeUnmount(() => {
       :total="clientPage.total"
       @pagination="() => {}"
     />
+
+    <Chart v-model:visible="chartVisible" :chart-data="chartData" />
   </div>
 </template>
