@@ -102,6 +102,21 @@ function openResponseTabWithData(data: AddPredictResponseData[]) {
     ElMessage.error('浏览器拦截了新标签页，请允许弹出窗口')
   }
 }
+
+function removeAllPredictKeys(): void {
+  const keys: string[] = []
+  for (let i = 0; i < localStorage.length; i += 1) {
+    const k = localStorage.key(i)
+    if (!k)
+      continue
+    if (k.startsWith('predict:response:'))
+      keys.push(k)
+  }
+  for (const k of keys) {
+    localStorage.removeItem(k)
+  }
+}
+
 watch(() => props.currentRow, (val) => {
   form.value.code = val.code
   form.value.bqName = val.name
@@ -115,6 +130,10 @@ watch(() => props.currentProjectName, (val) => {
 }, {
   immediate: true,
   deep: true,
+})
+
+onMounted(() => {
+  removeAllPredictKeys()
 })
 </script>
 

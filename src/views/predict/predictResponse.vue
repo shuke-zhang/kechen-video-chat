@@ -28,15 +28,31 @@ onMounted(() => {
     ElMessage.error('缺少数据 key')
     return
   }
-  const raw = localStorage.getItem(key)
-  console.log(key, 'key')
-  console.log(raw, 'raw')
 
-  const obj = safeParse(raw)
-  if (!obj) {
+  // 1) 优先用 sessionStorage（刷新后也能读到）
+  let raw = sessionStorage.getItem(key)
+
+  // 2) session 没有则尝试 local，并迁移到 session（同时删除 local）
+  if (raw == null) {
+    raw = localStorage.getItem(key)
+    if (raw != null) {
+      sessionStorage.setItem(key, raw)
+      localStorage.removeItem(key)
+    }
+  }
+
+  if (raw == null) {
     ElMessage.error('数据不存在或已被清理')
     return
   }
+
+  // 3) 只解析一次
+  const obj = safeParse(raw)
+  if (obj == null) {
+    ElMessage.error('数据格式错误')
+    return
+  }
+
   data.value = obj
 })
 
