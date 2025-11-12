@@ -175,6 +175,7 @@ declare global {
   const watchEffect: typeof import('vue')['watchEffect']
   const watchPostEffect: typeof import('vue')['watchPostEffect']
   const watchSyncEffect: typeof import('vue')['watchSyncEffect']
+  const withLoadingMessage: typeof import('../src/utils/ui/fun')['withLoadingMessage']
 }
 // for type re-export
 declare global {

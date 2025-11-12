@@ -183,6 +183,7 @@
     "markDisabledLevels": true,
     "markDisabledLevelsChildren": true,
     "markDisabledLevelsChildrenInPlace": true,
-    "markDisabledLevelsInPlace": true
+    "markDisabledLevelsInPlace": true,
+    "withLoadingMessage": true
   }
 }

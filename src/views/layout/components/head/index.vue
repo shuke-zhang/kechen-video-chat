@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { TopNavValueModel, UserDropdownValueModel } from '@/model/head'
-import { log } from 'node:console'
 
 const router = useRouter()
 

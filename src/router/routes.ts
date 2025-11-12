@@ -65,6 +65,17 @@ const routes: RouteRecordRaw[] = [
         },
       },
       {
+        path: 'predict/response',
+        name: 'PredictResponse',
+        component: () => import('@/views/predict/predictResponse.vue'),
+        meta: {
+          title: '预测结果',
+          showLeftMenu: false,
+          isShowHead: false,
+          hidden: true,
+        },
+      },
+      {
         path: 'qualification',
         name: 'Qualification',
         component: () => import('@/views/qualification/index.vue'),
