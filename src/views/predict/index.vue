@@ -37,6 +37,9 @@ function handleImport($event: UploadRequestOptions) {
   withLoadingMessage(importPredictFile($event), '正在导入...').then((res) => {
     importFileList.value = res.data.list
     currentProjectName.value = res.data.originalName
+
+    setSession('importFileList', res.data.list)
+    setSession('currentProjectName', res.data.originalName)
     console.log('导入成功')
   })
 }
@@ -71,6 +74,8 @@ function retQuery(): void {
 }
 
 onMounted(() => {
+  importFileList.value = getSession<importPredictModel[]>('importFileList', [])!
+  currentProjectName.value = getSession<string>('currentProjectName', '')!
 })
 </script>
 

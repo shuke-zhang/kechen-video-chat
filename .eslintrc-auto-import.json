@@ -185,6 +185,9 @@
     "markDisabledLevelsChildrenInPlace": true,
     "markDisabledLevelsInPlace": true,
     "withLoadingMessage": true,
-    "formatPrice": true
+    "formatPrice": true,
+    "getSession": true,
+    "removeSession": true,
+    "setSession": true
   }
 }
