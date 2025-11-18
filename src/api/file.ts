@@ -11,7 +11,7 @@ export function getFileList(data?: ListPageQuery<FileModel>) {
 }
 
 /**
- * @description 新增字典类型-键数据
+ * @description 查询文件信息-键数据
  */
 export function getCategoryInfo(id: number) {
   return request.post({

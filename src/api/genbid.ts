@@ -11,7 +11,7 @@ export function getGenbidList(data?: GenbidModel) {
 }
 
 /**
- * @description 获取项目表详情-键数据
+ * @description 获取生成表详情-键数据
  */
 export function getGenbidInfo(id: number) {
   return request.post({
