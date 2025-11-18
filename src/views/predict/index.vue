@@ -150,5 +150,19 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
+:deep(.el-table th) {
+  height: 30px !important;
+  padding: 0 !important;
+}
 
+/* 表体行高度 */
+:deep(.el-table .el-table__row) {
+  height: 30px !important;
+}
+
+/* 单元格的内边距也要改，不然撑高 */
+:deep(.el-table__cell) {
+  line-height: 35px !important;
+  padding: 0 !important;
+}
 </style>

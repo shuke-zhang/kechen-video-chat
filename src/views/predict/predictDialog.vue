@@ -92,9 +92,9 @@ function handleSubmit() {
           })
         }
         else {
-          console.log('单选哦是')
           // 单选模式 这儿的resultData直接为对象
-          showMessageSuccess(`操作成功！预测的F值为 ${res.data.resultData}`)
+          // showMessageSuccess( `操作成功！预测的F值为 ${res.data.resultData}` )
+          confirmSuccess(`操作成功！预测的F值为 ${res.data.resultData}`)
         }
         reset()
         visible.value = false
