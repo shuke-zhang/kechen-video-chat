@@ -6,10 +6,10 @@
 export type UserDropdownValueModel = 'put' | 'logout'
 /**
  * 头部nav菜单项值类型
- * -  project : 项目
- * -  category : 类别
- * -  file : 文件
- * -  predict : 预测
- * -  qualification : 资审
+ * -  Project : 项目
+ * -  Category : 类别
+ * -  File : 文件
+ * -  Predict : 预测
+ * -  Qualification : 资审
  */
-export type TopNavValueModel = 'project' | 'category' | 'file' | 'predict' | 'qualification'
+export type TopNavValueModel = 'Project' | 'Category' | 'File' | 'Predict' | 'Qualification'

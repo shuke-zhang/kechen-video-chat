@@ -4,7 +4,7 @@
 
 <template>
   <div class="app-container">
-    资审111
+    政策法规
   </div>
 </template>
 

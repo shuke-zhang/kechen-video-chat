@@ -4,7 +4,7 @@
 
 <template>
   <div class="app-container">
-    资审111
+    公司信息
   </div>
 </template>
 
