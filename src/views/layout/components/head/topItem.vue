@@ -16,6 +16,10 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  subItem: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const router = useRouter()
@@ -56,6 +60,7 @@ function handleClick(path: string) {
       :key="child.path"
       :item="child"
       :base-path="fullPath"
+      :sub-item="true"
     />
   </el-sub-menu>
 
@@ -65,7 +70,7 @@ function handleClick(path: string) {
     :index="fullPath"
     @click="handleClick(fullPath)"
   >
-    <span class="h-full text-[20px] flex-center">{{ item.meta?.title }}</span>
+    <span class="h-full text-[20px] flex-center" :class="{ 'text-[16px]!': subItem }">{{ item.meta?.title }}</span>
   </el-menu-item>
 </template>
 

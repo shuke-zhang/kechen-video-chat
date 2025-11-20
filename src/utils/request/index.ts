@@ -90,10 +90,13 @@ const request = new HttpRequest<UserCustomConfig>(
       return handleError(msg, responseData.code !== 401 && config?.showErrorMsg)
     },
     responseError(error: any) {
-      console.log('错误')
+      console.log('错误', error)
 
       const config = error?.config as HttpRequestConfig<UserCustomConfig>
-
+      if (error.code === 'ECONNABORTED' && error.message.includes('timeout')) {
+        showMessageError('请求超时，请稍后重试')
+        return undefined //
+      }
       const err = error?.errMsg || error?.msg || error?.message || ''
 
       return handleError(err, config?.showErrorMsg)

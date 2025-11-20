@@ -116,7 +116,7 @@ const routes: RouteRecordRaw[] = [
           {
             path: 'staff',
             name: 'Staff',
-            component: () => import('@/views/qualification/staff.vue'),
+            component: () => import('@/views/qualification/employee.vue'),
             meta: {
               title: '员工管理',
               topNavCurrent: 'Qualification',

@@ -1,4 +1,5 @@
 export * from './common'
+export * from './const'
 export * from './error'
 export * from './function'
 export * from './globalMethods'

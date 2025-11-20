@@ -20,7 +20,7 @@ export function getCompanyInfo(id: number) {
 }
 
 /**
- * @description 分页查询公司信息表-键列表
+ * @description 查询公司信息
  */
 export function getCompanySelectOne() {
   return request.get<ResponseData<CompanyModel>>({
