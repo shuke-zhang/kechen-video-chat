@@ -1,5 +1,5 @@
 import type { UploadRequestOptions } from 'element-plus'
-import type { AddPredictResponse, AddPredictResponseData, ImportFileResponseData, importPredictModel, PredictModel } from '@/model/predict'
+import type { AddPredictResponseData, ImportFileResponseData, importPredictModel, PredictModel } from '@/model/predict'
 
 /**
  * @description 导入
@@ -39,7 +39,7 @@ export function getPredictInfo(id: number) {
  * @description 新增预测-键数据
  */
 export function addPredict(data: PredictModel) {
-  return request.post<ResponseData<AddPredictResponse<AddPredictResponseData>>>({
+  return request.post<ResponseData<AddPredictResponseData[]>>({
     url: '/api/predict/add',
     data,
   })

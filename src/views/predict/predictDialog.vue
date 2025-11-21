@@ -4,11 +4,11 @@ import type { AddPredictResponse, AddPredictResponseData, importPredictModel, Pr
 import { addPredict } from '@/api/predict'
 
 const props = defineProps<{
-  currentRow: importPredictModel
+  projectList: Array<importPredictModel>
   currentProjectName: string
 }>()
 const emit = defineEmits<{
-  (e: 'success'): void
+  (e: 'success', list: AddPredictResponseData[]): void
 }>()
 const router = useRouter()
 /**
@@ -23,12 +23,9 @@ const visible = defineModel<boolean>('visible', {
 })
 const form = ref<PredictModel>({
   totalCount: __DEV__ ? 800 : 0,
-  capPrice: __DEV__ ? 7.02 : 0,
   companionCount: __DEV__ ? 300 : 0,
-  companionUnitPrice: __DEV__ ? 3.64 : 0,
-  otherStart: __DEV__ ? 1.02 : 0,
-  otherStep: __DEV__ ? 0.05 : isSingle.value ? undefined : 0,
-  otherEnd: __DEV__ ? 3.02 : isSingle.value ? undefined : 0,
+  companionUnitRate: __DEV__ ? 3.64 : 0,
+  otherRate: __DEV__ ? 1.02 : 0,
 })
 const formRef = ref<InstanceType<typeof ElForm> | null>(null)
 const submitLoading = ref(false)
@@ -38,13 +35,10 @@ const rules: FormRules = {
     { required: true, message: '请输入总数', trigger: 'change' },
     { validator: validateTotalGtCompanion, trigger: 'change' },
   ],
-  capPrice: [{ required: true, trigger: 'change', message: '请输入拦标价' }],
   companionCount: [{ required: true, trigger: 'change', message: '请输入陪标家数' }],
-  companionUnitPrice: [{ required: true, trigger: 'change', message: '请输入陪标单价' }],
+  companionUnitRate: [{ required: true, trigger: 'change', message: '请输入陪标系数' }],
   otherCount: [{ required: true, trigger: 'change', message: '请输入其他数' }],
-  otherStart: [{ required: true, trigger: 'change', message: '请输入其他家开始单价' }],
-  otherEnd: [{ required: true, trigger: 'change', message: '请输入其他家结束单价' }],
-  otherStep: [{ required: true, trigger: 'change', message: '请输入其他家区间单价' }],
+  otherRate: [{ required: true, trigger: 'change', message: '请输入其他家系数' }],
 }
 
 function validateTotalGtCompanion(_: any, val: any, cb: (err?: Error) => void) {
@@ -71,34 +65,10 @@ function handleSubmit() {
 
       addPredict({
         ...form.value,
-        otherStep: isSingle.value ? undefined : form.value.otherStep,
-        otherEnd: isSingle.value ? undefined : form.value.otherEnd,
       }).then((res) => {
-        if (!isSingle.value) {
-          console.log('多选')
-          const data = res.data.resultData.map((item) => {
-            return {
-              ...item,
-              originalName: form.value.projectName,
-            }
-          })
-          const predictResponse: AddPredictResponse<AddPredictResponseData> = {
-            resultData: data,
-            x: res.data.x,
-            y: res.data.y,
-          }
-          confirmSuccess('操作成功！是否跳转到结果页面？').then(() => {
-            openResponseTabWithData(predictResponse)
-          })
-        }
-        else {
-          // 单选模式 这儿的resultData直接为对象
-          // showMessageSuccess( `操作成功！预测的F值为 ${res.data.resultData}` )
-          confirmSuccess(`操作成功！预测的F值为 ${res.data.resultData}`)
-        }
         reset()
         visible.value = false
-        emit('success')
+        emit('success', res.data)
       }).finally(() => {
         submitLoading.value = false
       })
@@ -122,7 +92,7 @@ function reset() {
   submitLoading.value = false
 }
 
-function openResponseTabWithData(data: AddPredictResponse<AddPredictResponseData>) {
+function _openResponseTabWithData(data: AddPredictResponse<AddPredictResponseData>) {
   const key = `predict:response:${Date.now()}:${Math.random().toString(36).slice(2)}`
   localStorage.setItem(key, JSON.stringify(data))
   // 先解析出完整 href，避免 hash/history 基础路径差异
@@ -148,9 +118,8 @@ function removeAllPredictKeys(): void {
   }
 }
 
-watch(() => props.currentRow, (val) => {
-  form.value.code = val.code
-  form.value.bqName = val.name
+watch(() => props.projectList, (val) => {
+  form.value.projectList = val
 }, {
   immediate: true,
   deep: true,
@@ -195,21 +164,6 @@ onMounted(() => {
 
         <el-col :span="12">
           <el-form-item
-            label="拦标价"
-            prop="capPrice"
-          >
-            <el-input-number
-              v-model="form.capPrice"
-              :min="1"
-              :step="1"
-              size="large"
-              style="width: 100%;"
-            />
-          </el-form-item>
-        </el-col>
-
-        <el-col :span="12">
-          <el-form-item
             label="陪标家数"
             prop="companionCount"
           >
@@ -225,11 +179,11 @@ onMounted(() => {
 
         <el-col :span="12">
           <el-form-item
-            label="陪标单价"
-            prop="companionUnitPrice"
+            label="陪标系数"
+            prop="companionUnitRate"
           >
             <el-input-number
-              v-model="form.companionUnitPrice"
+              v-model="form.companionUnitRate"
               :min="0"
               :step="0.01"
               size="large"
@@ -241,55 +195,11 @@ onMounted(() => {
 
         <el-col :span="12">
           <el-form-item
-            label="单价模式"
-          >
-            <el-switch
-              v-model="isSingle"
-              active-text="固定单价"
-              inactive-text="区间单价"
-            />
-          </el-form-item>
-        </el-col>
-
-        <el-col :span="12">
-          <el-form-item
-            label="其他家开始单价"
-            prop="otherStart"
+            label="其他家开始系数"
+            prop="otherRate"
           >
             <el-input-number
-              v-model="form.otherStart"
-              :min="0"
-              :step="0.01"
-              size="large"
-              style="width: 100%;"
-              controls-position="right"
-            />
-          </el-form-item>
-        </el-col>
-
-        <el-col v-if="!isSingle" :span="12">
-          <el-form-item
-            label="其他家区间单价"
-            prop="otherStep"
-          >
-            <el-input-number
-              v-model="form.otherStep"
-              :min="0"
-              :step="0.01"
-              size="large"
-              style="width: 100%;"
-              controls-position="right"
-            />
-          </el-form-item>
-        </el-col>
-
-        <el-col v-if="!isSingle" :span="12">
-          <el-form-item
-            label="其他家结束单价"
-            prop="otherEnd"
-          >
-            <el-input-number
-              v-model="form.otherEnd"
+              v-model="form.otherRate"
               :min="0"
               :step="0.01"
               size="large"

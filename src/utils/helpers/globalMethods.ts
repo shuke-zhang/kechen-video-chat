@@ -20,6 +20,52 @@ export function formatterTableEmpty<T extends DefaultRow>(row: T, column: TableC
 }
 
 /**
+ * 表格专用：格式化价格（保留原值、不四舍五入）
+ * 使用方式：:formatter="formatterTablePrice"
+ */
+export function formatterTablePrice<T extends Record<string, any>>(
+  row: T,
+  column: TableColumnCtx<T>,
+  cellValue: T[keyof T],
+  _index: number,
+): string {
+  // 1. 处理空值 -> ￥0.00
+  if (cellValue === null || cellValue === undefined || cellValue === '') {
+    return '￥0.00'
+  }
+
+  let raw = String(cellValue).trim()
+
+  // 空 / 无效 → ￥0.00
+  if (!raw || !/^-?\d+(?:\.\d+)?$/.test(raw)) {
+    return '￥0.00'
+  }
+
+  const isNegative = raw.startsWith('-')
+
+  // 3. 去掉负号处理绝对值
+  if (isNegative)
+    raw = raw.slice(1)
+
+  // 4. 拆分整数与小数，但不四舍五入
+  const [intRaw, decRaw = ''] = raw.split('.')
+
+  // 5. 加千分位
+  const intPart = intRaw.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+
+  // 6. 保留传入小数，不四舍五入；不足补 0（至少两位）
+  const decPart = decRaw.padEnd(2, '0')
+
+  const finalNum = `${intPart}.${decPart}`
+
+  // 7. 负号加回
+  const signed = isNegative ? `-${finalNum}` : finalNum
+
+  // 8. 默认添加中文货币符号
+  return `￥${signed}`
+}
+
+/**
  * @description 格式化数据，为空时输出 - 表格直接使用 ， 不需要插槽
  * :formatter="formatterTableEmpty"
  */

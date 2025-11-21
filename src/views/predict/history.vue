@@ -1,9 +1,9 @@
 <script setup lang="ts">
+// /api/predict/list
 import type { ElForm } from 'element-plus'
 import type { PredictModel } from '@/model/predict'
 import { Back, Refresh, Search } from '@element-plus/icons-vue'
 import { getPredictList } from '@/api/predict'
-import { formatPrice } from '@/utils'
 
 const router = useRouter()
 const list = ref<PredictModel[]>([])
@@ -97,39 +97,21 @@ onMounted(() => {
 
       <el-table-column prop="projectName" label="项目名称" align="center" show-overflow-tooltip />
 
-      <el-table-column prop="totalCount" label="总数" align="center" show-overflow-tooltip />
+      <el-table-column prop="bqName" label="名称" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" min-width="120" />
 
-      <el-table-column prop="bqName" label="名称" align="center" show-overflow-tooltip />
+      <el-table-column prop="otherRate" label="其他家系数" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" width="100" />
 
-      <el-table-column prop="capPrice" label="拦标价" align="center" show-overflow-tooltip />
+      <el-table-column prop="total" label="总数" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" />
 
-      <el-table-column prop="companionCount" label="陪标家数" align="center" show-overflow-tooltip />
+      <el-table-column prop="otherCount" label="其他数" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" />
 
-      <el-table-column prop="companionUnitPrice" label="陪标单价" align="center" show-overflow-tooltip />
+      <el-table-column prop="companionCount" label="陪标家数" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" />
 
-      <el-table-column prop="otherStart" label="其他家单价" align="center" min-width="200">
+      <el-table-column prop="resultValue" label="F值" align="center" :formatter="$formatterTableEmpty" min-width="160">
         <template #default="{ row }">
-          <span>
-            {{ formatPrice(row.otherStep, { unit: '¥' }) }}~{{ formatPrice(row.otherEnd, { unit: '¥' }) }}
-          </span>
+          <span class="text-[20px] text-green-500">{{ row.resultValue }}</span>
         </template>
       </el-table-column>
-
-      <el-table-column prop="otherStep" label="其他家区间单价" align="center" min-width="140">
-        <template #default="{ row }">
-          {{ formatPrice(row.otherStep, { unit: '¥' }) }}
-        </template>
-      </el-table-column>
-
-      <!-- <el-table-column prop="otherCount" label="其他数" align="center" show-overflow-tooltip /> -->
-
-      <!-- <el-table-column label="操作" align="center" width="200" fixed="right">
-        <template #default="{ row }">
-          <el-button type="success" size="small" @click="handlePredict(row)">
-            预测
-          </el-button>
-        </template>
-      </el-table-column> -->
     </el-table>
 
     <Pagination

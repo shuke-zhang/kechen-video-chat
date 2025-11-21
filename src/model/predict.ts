@@ -27,11 +27,17 @@ export interface PredictModel {
   /** 陪标单价（number） */
   companionUnitPrice?: number
 
+  /** 陪标系数 */
+  companionUnitRate?: number
+
   /** 其他数（int32） */
   otherCount?: number
 
   /** 其他家单价 - 开始值（number） */
   otherStart?: number
+
+  /** 其他家系数 */
+  otherRate?: number
 
   /** 其他家单价 - 结束值（number） */
   otherEnd?: number
@@ -53,6 +59,11 @@ export interface PredictModel {
 
   /** 更新时间（ISO 日期时间字符串） */
   updatedTime?: string
+
+  /**
+   * 预测时传递给后端
+   */
+  projectList?: importPredictModel[]
 }
 
 export interface ImportFileResponseData<T> {
@@ -63,7 +74,7 @@ export interface ImportFileResponseData<T> {
   /**
    * 列表
    */
-  list: T[]
+  tree: T[]
   /**
    * 原始文件名
    */
@@ -75,8 +86,26 @@ export interface importPredictModel {
   code?: string
   /** 名称，示例："加气混凝土砌块墙" */
   name?: string
+  /**
+   * 项目特征
+   */
+  feature?: string
+  /**
+   * 综合单价
+   */
+  rate?: string
+  /**
+   * 综合总价
+   */
+  total?: string
+  /**
+   * 拦标价
+   */
+  topUnitPrice?: string
+
   /** 父级 ID（后端返回为字符串，保持一致），示例："4" */
   parentId?: string
+  children?: importPredictModel[]
 }
 
 export interface AddPredictResponse<T> {
@@ -93,24 +122,54 @@ export interface AddPredictResponse<T> {
    */
   resultData: T[]
 }
+/**
+ * 预测结果模型
+ */
 export interface AddPredictResponseData {
 
   id?: number
+  /**
+   * 编码
+   */
+  code?: string
   /**
    * 名称
    */
   bqName?: string
   /**
-   * 价格一
+   * 拦标价
+   */
+  capPrice?: string
+  /**
+   * 陪标单价
+   */
+  companionUnitPrice?: string
+  /**
+   * 陪标系数
+   */
+  companionUnitRate?: string
+  /**
+   * 其他家价格
    */
   otherPrice?: string
-  projectId?: number
   /**
-   * 项目名-后端不返回-由前端打开预测弹窗时就跟随者传递
+   * 其他家系数
    */
-  originalName?: string
+  otherRate?: string
   /**
-   * 结果值
+   * 总数
    */
-  resultData?: string
+  total?: string
+  /**
+   * 其他数
+   */
+  otherCount?: number
+  /**
+   * 陪标家数
+   */
+  companionCount?: number
+  /**
+   * 结果
+   */
+  resultValue?: string
 }

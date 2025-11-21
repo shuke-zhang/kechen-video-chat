@@ -1,20 +1,23 @@
 <script setup lang="ts">
 import type { ElForm, UploadRequestOptions } from 'element-plus'
-import type { importPredictModel } from '@/model/predict'
+import type { AddPredictResponseData, importPredictModel } from '@/model/predict'
 import { Refresh, Search, Upload } from '@element-plus/icons-vue'
 import { importPredictFile } from '@/api/predict'
 import ImportFile from '@/components/importFile/importFile.vue'
 import { withLoadingMessage } from '@/utils'
 import PredictDialog from './predictDialog.vue'
+import PredictResDialog from './predictResDialog.vue'
 
 const router = useRouter()
 const loading = ref(false)
+const ids = ref<string[]>([])
 const names = ref<string[]>([])
 const single = ref(true)
 const multiple = ref(true)
 const queryRef = useTemplateRef('queryEl')
 const predictVisible = ref(false)
-const currentRow = ref<importPredictModel>({})
+const predictResVisible = ref(false)
+const projectList = ref<importPredictModel[]>([])
 const currentProjectName = ref('')
 const queryParams = ref<ListPageParamsWrapper<importPredictModel>>({
   page: {
@@ -23,6 +26,7 @@ const queryParams = ref<ListPageParamsWrapper<importPredictModel>>({
   },
 })
 const importFileList = ref<importPredictModel[]>([])
+const predictResList = ref<AddPredictResponseData[]>([])
 
 const clientPage = computed(() => {
   const k = String(queryParams.value.name || '').trim().toLowerCase()
@@ -35,10 +39,9 @@ const clientPage = computed(() => {
 
 function handleImport($event: UploadRequestOptions) {
   withLoadingMessage(importPredictFile($event), '正在导入...').then((res) => {
-    importFileList.value = res.data.list
+    importFileList.value = res.data.tree
     currentProjectName.value = res.data.originalName
-
-    setSession('importFileList', res.data.list)
+    setSession('importFileList', res.data.tree)
     setSession('currentProjectName', res.data.originalName)
     console.log('导入成功')
   })
@@ -48,9 +51,18 @@ function handleImportSuccess() {
   console.log('导入成功')
 }
 
-function handlePredict(row: importPredictModel) {
+function handlePredict() {
+  // currentRow.value = row
+
   predictVisible.value = true
-  currentRow.value = row
+}
+
+/**
+ * 预测结果回调
+ */
+function handlePredictSuccess(list: AddPredictResponseData[]) {
+  predictResVisible.value = true
+  predictResList.value = list
 }
 
 function handleHistory() {
@@ -58,7 +70,16 @@ function handleHistory() {
 }
 
 function handleSelectionChange(selection: importPredictModel[]) {
+  ids.value = selection.map(item => item.code!)
   names.value = selection.map(item => item.name!)
+  projectList.value = selection.map((item) => {
+    return {
+      ...item,
+      bqName: item.name || '',
+      totalPrice: item.rate,
+      capPrice: item.topUnitPrice,
+    }
+  }).filter(it => !!it.bqName)
   single.value = selection.length !== 1
   multiple.value = !selection.length
 }
@@ -108,6 +129,10 @@ onMounted(() => {
           </template>
         </importFile>
 
+        <el-button type="success" :disabled="ids.length <= 0" @click="handlePredict">
+          预测
+        </el-button>
+
         <el-button type="info" @click="handleHistory">
           历史记录
         </el-button>
@@ -117,24 +142,32 @@ onMounted(() => {
     <!-- 表格 -->
     <el-table
       v-loading="loading"
+      :tree-props="{
+        checkStrictly: false,
+        children: 'children',
+      }"
       :data="clientPage.rows"
-      row-key="id"
+      row-key="code"
       style="width: 100%"
       @selection-change="handleSelectionChange"
     >
       <el-table-column type="selection" width="55" />
 
-      <el-table-column prop="code" label="编号" align="center" />
-
-      <el-table-column prop="name" label="名称" align="center" />
-
-      <el-table-column label="操作" align="center" width="200" fixed="right">
+      <el-table-column label="编号" align="center" width="160">
         <template #default="{ row }">
-          <el-button type="success" size="small" @click="handlePredict(row)">
-            预测
-          </el-button>
+          <span>{{ row.children && row.children.length > 0 ? row.code : row.code }}</span>
         </template>
       </el-table-column>
+
+      <el-table-column prop="name" label="名称" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" />
+
+      <el-table-column prop="feature" label="项目特征" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" />
+
+      <el-table-column prop="rate" label="综合单价" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" />
+
+      <el-table-column prop="total" label="综合总价" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" />
+
+      <el-table-column prop="topUnitPrice" label="拦标价" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" />
     </el-table>
 
     <Pagination
@@ -145,7 +178,16 @@ onMounted(() => {
       @pagination="() => {}"
     />
 
-    <PredictDialog v-model:visible="predictVisible" :current-row="currentRow" :current-project-name="currentProjectName" />
+    <PredictDialog
+      v-model:visible="predictVisible"
+      :project-list="projectList"
+      :current-project-name="currentProjectName"
+      @success="handlePredictSuccess"
+    />
+
+    <PredictResDialog
+      v-model:visible="predictResVisible" :list="predictResList"
+    />
   </div>
 </template>
 
