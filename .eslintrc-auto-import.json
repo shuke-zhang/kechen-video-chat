@@ -190,6 +190,7 @@
     "removeSession": true,
     "setSession": true,
     "EDUCATION_LIST": true,
-    "PROFESSIONAL_TITLE_LIST": true
+    "PROFESSIONAL_TITLE_LIST": true,
+    "formatterTablePrice": true
   }
 }

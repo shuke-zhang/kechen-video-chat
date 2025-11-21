@@ -54,6 +54,7 @@ declare global {
   const formatPrice: typeof import('../src/utils/helpers/function')['formatPrice']
   const formatterTable: typeof import('../src/utils/helpers/globalMethods')['formatterTable']
   const formatterTableEmpty: typeof import('../src/utils/helpers/globalMethods')['formatterTableEmpty']
+  const formatterTablePrice: typeof import('../src/utils/helpers/globalMethods')['formatterTablePrice']
   const formatterTableWithSuffix: typeof import('../src/utils/helpers/globalMethods')['formatterTableWithSuffix']
   const generateKey: typeof import('../src/utils/request/index')['generateKey']
   const getActivePinia: typeof import('pinia')['getActivePinia']
