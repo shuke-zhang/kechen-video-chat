@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ElForm, FormRules } from 'element-plus'
-import type { AddPredictResponse, AddPredictResponseData, importPredictModel, PredictModel } from '@/model/predict'
+import type { AddPredictResponse, AddPredictResponseData, importPredictModel, opponentListModel, PredictModel } from '@/model/predict'
 import { addPredict } from '@/api/predict'
 
 const props = defineProps<{
@@ -11,12 +11,7 @@ const emit = defineEmits<{
   (e: 'success', list: AddPredictResponseData[]): void
 }>()
 const router = useRouter()
-/**
- * 是否是单次
- * - true 预测时只需要传入其他家开始单价 - 并且不需要跳转只需要展示后端返回的预测的F值数字即可
- * - false 预测三个值都需要去哪不传入 - 并且预测成功后跳转到echarts页面
- */
-const isSingle = ref(true)
+
 const visible = defineModel<boolean>('visible', {
   type: Boolean,
   required: true,
@@ -26,6 +21,14 @@ const form = ref<PredictModel>({
   companionCount: __DEV__ ? 300 : 0,
   companionUnitRate: __DEV__ ? 3.64 : 0,
   otherRate: __DEV__ ? 1.02 : 0,
+  opponentList: [
+    {
+      name: '对手1',
+      opponentNumber: 0,
+      upValue: 0,
+      downValue: 0,
+    },
+  ],
 })
 const formRef = ref<InstanceType<typeof ElForm> | null>(null)
 const submitLoading = ref(false)
@@ -84,8 +87,8 @@ function reset() {
       companionCount: __DEV__ ? 300 : 0,
       companionUnitPrice: __DEV__ ? 3.64 : 0,
       otherStart: __DEV__ ? 1.02 : 0,
-      otherStep: __DEV__ ? 0.05 : isSingle.value ? 0 : undefined,
-      otherEnd: __DEV__ ? 3.02 : isSingle.value ? 0 : undefined,
+      otherStep: __DEV__ ? 0.05 : 0,
+      otherEnd: __DEV__ ? 3.02 : 0,
 
     }
   resetForm(formRef.value)
@@ -132,6 +135,28 @@ watch(() => props.currentProjectName, (val) => {
   deep: true,
 })
 
+function handleOpponentListAdd() {
+  form.value.opponentList?.push({
+    name: `对手${form.value.opponentList.length + 1}`,
+    opponentNumber: 0,
+    upValue: 0,
+    downValue: 0,
+  })
+}
+
+function handleOpponentListDel(item: opponentListModel) {
+  const index = form.value.opponentList!.indexOf(item)!
+  if (index !== -1) {
+    form.value.opponentList?.splice(index, 1)
+    form.value.opponentList = form.value.opponentList?.map((item, index) => {
+      return {
+        ...item,
+        name: `对手${index + 1}`,
+      }
+    })
+  }
+}
+
 onMounted(() => {
   removeAllPredictKeys()
 })
@@ -141,11 +166,11 @@ onMounted(() => {
   <el-dialog
     v-model="visible"
     title="预测"
-    width="800"
+    width="1000"
     :close-on-click-modal="false"
     @close="cancel"
   >
-    <el-form ref="formRef" :inline="true" :model="form" :rules="rules" class="large-form" label-width="130">
+    <el-form ref="formRef" :inline="true" :model="form" :rules="rules" class="large-form" label-width="100">
       <el-row :gutter="20">
         <el-col :span="12">
           <el-form-item
@@ -195,7 +220,7 @@ onMounted(() => {
 
         <el-col :span="12">
           <el-form-item
-            label="其他家开始系数"
+            label="其他家系数"
             prop="otherRate"
           >
             <el-input-number
@@ -208,6 +233,91 @@ onMounted(() => {
             />
           </el-form-item>
         </el-col>
+
+        <template v-for="(item, index) in form.opponentList" :key="item.name">
+          <el-col :span="3">
+            <el-form-item label-position="right" :label="`${item.name}：`" />
+          </el-col>
+          <el-col :span="6">
+            <el-form-item
+              label="陪标数量"
+              label-width="80"
+              :prop="`opponentList.${index}.opponentNumber`"
+              :rules="[
+                {
+                  required: true,
+                  message: '陪标数量不能为空',
+                  trigger: 'blur',
+                },
+              ]"
+            >
+              <el-input-number
+                v-model="item.opponentNumber"
+                :min="0"
+                :step="0.01"
+                size="large"
+                style="width: 100%;"
+                controls-position="right"
+              />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="6">
+            <el-form-item
+              label="上浮值"
+              label-width="80"
+              :prop="`opponentList.${index}.upValue`"
+              :rules="[
+                {
+                  required: true,
+                  message: '上浮值不能为空',
+                  trigger: 'blur',
+                },
+              ]"
+            >
+              <el-input-number
+                v-model="item.upValue"
+                :min="0"
+                :step="0.01"
+                size="large"
+                style="width: 100%;"
+                controls-position="right"
+              />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="6">
+            <el-form-item
+              label="下浮值"
+              label-width="80"
+              :prop="`opponentList.${index}.downValue`"
+              :rules="[
+                {
+                  required: true,
+                  message: '下浮值不能为空',
+                  trigger: 'blur',
+                },
+              ]"
+            >
+              <el-input-number
+                v-model="item.downValue"
+                :min="0"
+                :step="0.01"
+                size="large"
+                style="width: 100%;"
+                controls-position="right"
+              />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="3">
+            <el-form-item>
+              <el-button type="danger" plain class="h-full flex items-end" @click="handleOpponentListDel(item)">
+                删除
+              </el-button>
+            </el-form-item>
+          </el-col>
+        </template>
       </el-row>
     </el-form>
 
@@ -216,6 +326,11 @@ onMounted(() => {
         <el-button @click="cancel">
           取 消
         </el-button>
+
+        <el-button @click="handleOpponentListAdd">
+          新 增
+        </el-button>
+
         <el-button type="primary" :loading="submitLoading" @click="handleSubmit">
           提 交
         </el-button>

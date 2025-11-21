@@ -64,6 +64,11 @@ export interface PredictModel {
    * 预测时传递给后端
    */
   projectList?: importPredictModel[]
+
+  /**
+   * 对手信息
+   */
+  opponentList?: opponentListModel[]
 }
 
 export interface ImportFileResponseData<T> {
@@ -172,4 +177,28 @@ export interface AddPredictResponseData {
    * 结果
    */
   resultValue?: string
+}
+
+/**
+ * 对手信息
+ */
+export interface opponentListModel {
+  /**
+   * 名臣
+   * - 对手1
+   * - 对手2
+   */
+  name?: string
+  /**
+   * 陪标数量
+   */
+  opponentNumber?: number
+  /**
+   * 上浮
+   */
+  upValue?: number
+  /**
+   * 下浮
+   */
+  downValue?: number
 }
