@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ElForm, FormRules } from 'element-plus'
-import type { AddPredictResponse, AddPredictResponseData, importPredictModel, opponentListModel, PredictModel } from '@/model/predict'
+import type { ElForm } from 'element-plus'
+import type { AddPredictResponse, AddPredictResponseData, importPredictModel, OpponentListModel, PredictModel } from '@/model/predict'
 import { addPredict } from '@/api/predict'
 
 const props = defineProps<{
@@ -17,41 +17,22 @@ const visible = defineModel<boolean>('visible', {
   required: true,
 })
 const form = ref<PredictModel>({
-  totalCount: __DEV__ ? 800 : 0,
-  companionCount: __DEV__ ? 300 : 0,
-  companionUnitRate: __DEV__ ? 3.64 : 0,
-  otherRate: __DEV__ ? 1.02 : 0,
+  companionProject: {
+    opponentNumber: __DEV__ ? 1 : 0,
+    upValue: __DEV__ ? 20 : 0,
+    downValue: __DEV__ ? 10 : 0,
+  },
   opponentList: [
     {
       name: '对手1',
-      opponentNumber: 0,
-      upValue: 0,
-      downValue: 0,
+      opponentNumber: __DEV__ ? 10 : 0,
+      downValue: __DEV__ ? 10 : 0,
+      upValue: __DEV__ ? 30 : 0,
     },
   ],
 })
 const formRef = ref<InstanceType<typeof ElForm> | null>(null)
 const submitLoading = ref(false)
-
-const rules: FormRules = {
-  totalCount: [
-    { required: true, message: '请输入总数', trigger: 'change' },
-    { validator: validateTotalGtCompanion, trigger: 'change' },
-  ],
-  companionCount: [{ required: true, trigger: 'change', message: '请输入陪标家数' }],
-  companionUnitRate: [{ required: true, trigger: 'change', message: '请输入陪标系数' }],
-  otherCount: [{ required: true, trigger: 'change', message: '请输入其他数' }],
-  otherRate: [{ required: true, trigger: 'change', message: '请输入其他家系数' }],
-}
-
-function validateTotalGtCompanion(_: any, val: any, cb: (err?: Error) => void) {
-  if (typeof val !== 'number' || Number.isNaN(val))
-    return cb(new Error('请输入数字'))
-  const cc = Number(form.value.companionCount ?? 0)
-  if (val <= cc)
-    return cb(new Error('总数必须大于陪标家数'))
-  cb()
-}
 
 function cancel() {
   visible.value = false
@@ -65,10 +46,22 @@ function handleSubmit() {
       if (submitLoading.value)
         return
       submitLoading.value = true
-
-      addPredict({
+      const data: PredictModel = {
         ...form.value,
-      }).then((res) => {
+        companionProject: {
+          ...form.value.companionProject,
+          upValue: (form.value.companionProject?.upValue ?? 0) / 100,
+          downValue: (form.value.companionProject?.downValue ?? 0) / 100,
+        },
+        opponentList: form.value.opponentList?.map((it) => {
+          return {
+            ...it,
+            upValue: (it.upValue ?? 0) / 100,
+            downValue: (it.downValue ?? 0) / 100,
+          }
+        }),
+      }
+      addPredict(data).then((res) => {
         reset()
         visible.value = false
         emit('success', res.data)
@@ -80,17 +73,21 @@ function handleSubmit() {
 }
 
 function reset() {
-  form.value
-    = {
-      totalCount: __DEV__ ? 800 : 0,
-      capPrice: __DEV__ ? 7.02 : 0,
-      companionCount: __DEV__ ? 300 : 0,
-      companionUnitPrice: __DEV__ ? 3.64 : 0,
-      otherStart: __DEV__ ? 1.02 : 0,
-      otherStep: __DEV__ ? 0.05 : 0,
-      otherEnd: __DEV__ ? 3.02 : 0,
-
-    }
+  form.value = {
+    companionProject: {
+      opponentNumber: __DEV__ ? 1 : 0,
+      upValue: __DEV__ ? 10 : 0,
+      downValue: __DEV__ ? 20 : 0,
+    },
+    opponentList: [
+      {
+        name: '对手1',
+        opponentNumber: __DEV__ ? 10 : 0,
+        upValue: __DEV__ ? 10 : 0,
+        downValue: __DEV__ ? 30 : 0,
+      },
+    ],
+  }
   resetForm(formRef.value)
   submitLoading.value = false
 }
@@ -121,30 +118,16 @@ function removeAllPredictKeys(): void {
   }
 }
 
-watch(() => props.projectList, (val) => {
-  form.value.projectList = val
-}, {
-  immediate: true,
-  deep: true,
-})
-
-watch(() => props.currentProjectName, (val) => {
-  form.value.projectName = val
-}, {
-  immediate: true,
-  deep: true,
-})
-
 function handleOpponentListAdd() {
   form.value.opponentList?.push({
     name: `对手${form.value.opponentList.length + 1}`,
-    opponentNumber: 0,
-    upValue: 0,
-    downValue: 0,
+    opponentNumber: __DEV__ ? (form.value.opponentList.length + 1) * 10 : 0,
+    upValue: __DEV__ ? 30 : 0,
+    downValue: __DEV__ ? 10 : 0,
   })
 }
 
-function handleOpponentListDel(item: opponentListModel) {
+function handleOpponentListDel(item: OpponentListModel) {
   const index = form.value.opponentList!.indexOf(item)!
   if (index !== -1) {
     form.value.opponentList?.splice(index, 1)
@@ -157,6 +140,11 @@ function handleOpponentListDel(item: opponentListModel) {
   }
 }
 
+watchEffect(() => {
+  form.value.projectList = props.projectList
+  form.value.projectName = props.currentProjectName
+})
+
 onMounted(() => {
   removeAllPredictKeys()
 })
@@ -166,49 +154,51 @@ onMounted(() => {
   <el-dialog
     v-model="visible"
     title="预测"
-    width="1000"
+    width="1100"
     :close-on-click-modal="false"
     @close="cancel"
   >
-    <el-form ref="formRef" :inline="true" :model="form" :rules="rules" class="large-form" label-width="100">
+    <el-form ref="formRef" :inline="true" :model="form" class="large-form" label-width="80">
       <el-row :gutter="20">
-        <el-col :span="12">
-          <el-form-item
-            label="总数"
-            prop="totalCount"
-          >
-            <el-input-number
-              v-model="form.totalCount"
-              :min="1"
-              :step="1"
-              size="large"
-              style="width: 100%;"
-            />
-          </el-form-item>
+        <el-col :span="2">
+          <el-form-item label-position="right" label="自家的：" />
         </el-col>
 
-        <el-col :span="12">
+        <el-col :span="7">
           <el-form-item
-            label="陪标家数"
-            prop="companionCount"
+            label="陪标数量"
+            :rules="[
+              {
+                required: true,
+                message: '陪标数量不能为空',
+                trigger: 'blur',
+              },
+            ]"
           >
             <el-input-number
-              v-model="form.companionCount"
+              v-model="form.companionProject!.opponentNumber"
               :min="0"
               :step="1"
               size="large"
               style="width: 100%;"
+              controls-position="right"
             />
           </el-form-item>
         </el-col>
 
-        <el-col :span="12">
+        <el-col :span="6">
           <el-form-item
-            label="陪标系数"
-            prop="companionUnitRate"
+            label="上浮值"
+            :rules="[
+              {
+                required: true,
+                message: '上浮值不能为空',
+                trigger: 'blur',
+              },
+            ]"
           >
             <el-input-number
-              v-model="form.companionUnitRate"
+              v-model="form.companionProject!.upValue"
               :min="0"
               :step="0.01"
               size="large"
@@ -218,27 +208,42 @@ onMounted(() => {
           </el-form-item>
         </el-col>
 
-        <el-col :span="12">
+        <el-col :span="6">
           <el-form-item
-            label="其他家系数"
-            prop="otherRate"
+            label="下浮值"
+            :rules="[
+              {
+                required: true,
+                message: '下浮值不能为空',
+                trigger: 'blur',
+              },
+            ]"
           >
             <el-input-number
-              v-model="form.otherRate"
+              v-model="form.companionProject!.downValue"
               :min="0"
               :step="0.01"
               size="large"
               style="width: 100%;"
               controls-position="right"
             />
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="3">
+          <el-form-item>
+            <el-button type="success" plain class="h-full flex items-end" @click="handleOpponentListAdd">
+              新增对手
+            </el-button>
           </el-form-item>
         </el-col>
 
         <template v-for="(item, index) in form.opponentList" :key="item.name">
-          <el-col :span="3">
+          <el-col :span="2">
             <el-form-item label-position="right" :label="`${item.name}：`" />
           </el-col>
-          <el-col :span="6">
+
+          <el-col :span="7">
             <el-form-item
               label="陪标数量"
               label-width="80"
@@ -254,7 +259,7 @@ onMounted(() => {
               <el-input-number
                 v-model="item.opponentNumber"
                 :min="0"
-                :step="0.01"
+                :step="1"
                 size="large"
                 style="width: 100%;"
                 controls-position="right"
@@ -325,10 +330,6 @@ onMounted(() => {
       <div class="dialog-footer">
         <el-button @click="cancel">
           取 消
-        </el-button>
-
-        <el-button @click="handleOpponentListAdd">
-          新 增
         </el-button>
 
         <el-button type="primary" :loading="submitLoading" @click="handleSubmit">

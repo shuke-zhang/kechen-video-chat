@@ -53,6 +53,9 @@ function handleImportSuccess() {
 
 function handlePredict() {
   // currentRow.value = row
+  currentProjectName.value = getSession<string>('currentProjectName', '')!
+  console.log('预测', currentProjectName.value)
+  console.log('预测2', projectList.value)
 
   predictVisible.value = true
 }

@@ -12,39 +12,6 @@ export interface PredictModel {
   /** 项目名称 - originalName */
   projectName?: string
 
-  /** 清单名称（可为空）列表name */
-  bqName?: string
-
-  /** 拦标价 / 控制价 / 最高限价（金额，number） */
-  capPrice?: number
-
-  /** 总数（int32） */
-  totalCount?: number
-
-  /** 陪标家数 / 陪标数据（int32） */
-  companionCount?: number
-
-  /** 陪标单价（number） */
-  companionUnitPrice?: number
-
-  /** 陪标系数 */
-  companionUnitRate?: number
-
-  /** 其他数（int32） */
-  otherCount?: number
-
-  /** 其他家单价 - 开始值（number） */
-  otherStart?: number
-
-  /** 其他家系数 */
-  otherRate?: number
-
-  /** 其他家单价 - 结束值（number） */
-  otherEnd?: number
-
-  /** 其他家单价 - 区间单价 - 迭代值 / 步长（number） */
-  otherStep?: number
-
   /** 删除标志（int32；0=未删，1=已删等，具体以后端约定为准） */
   delFlag?: number
 
@@ -64,11 +31,15 @@ export interface PredictModel {
    * 预测时传递给后端
    */
   projectList?: importPredictModel[]
+  /**
+   * 自己的信息
+   */
+  companionProject?: CompanionProjectModel
 
   /**
    * 对手信息
    */
-  opponentList?: opponentListModel[]
+  opponentList?: OpponentListModel[]
 }
 
 export interface ImportFileResponseData<T> {
@@ -182,7 +153,7 @@ export interface AddPredictResponseData {
 /**
  * 对手信息
  */
-export interface opponentListModel {
+export interface OpponentListModel {
   /**
    * 名臣
    * - 对手1
@@ -202,3 +173,8 @@ export interface opponentListModel {
    */
   downValue?: number
 }
+
+/**
+ * 自家信息
+ */
+export interface CompanionProjectModel extends OpponentListModel { }

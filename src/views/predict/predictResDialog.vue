@@ -36,19 +36,11 @@ function cancel() {
 
       <el-table-column prop="capPrice" label="拦标价" align="center" show-overflow-tooltip :formatter="$formatterTablePrice" />
 
-      <el-table-column prop="companionUnitPrice" label="陪标单价" align="center" show-overflow-tooltip :formatter="$formatterTablePrice" />
-
-      <el-table-column prop="companionUnitRate" label="陪标系数" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" />
-
-      <el-table-column prop="otherPrice" label="其他家价格" align="center" show-overflow-tooltip :formatter="$formatterTablePrice" width="100" />
-
-      <el-table-column prop="otherRate" label="其他家系数" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" width="100" />
-
       <el-table-column prop="total" label="总数" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" />
 
-      <el-table-column prop="otherCount" label="其他数" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" />
+      <el-table-column prop="companionUnitRate" label="陪标比率" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" />
 
-      <el-table-column prop="companionCount" label="陪标家数" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" />
+      <el-table-column prop="otherRateStr" label="其他家比率" align="center" show-overflow-tooltip />
 
       <el-table-column prop="resultValue" label="F值" align="center" :formatter="$formatterTableEmpty" min-width="160">
         <template #default="{ row }">
