@@ -26,7 +26,6 @@ export interface PredictModel {
 
   /** 更新时间（ISO 日期时间字符串） */
   updatedTime?: string
-
   /**
    * 预测时传递给后端
    */
@@ -155,7 +154,7 @@ export interface AddPredictResponseData {
  */
 export interface OpponentListModel {
   /**
-   * 名臣
+   *
    * - 对手1
    * - 对手2
    */
@@ -165,11 +164,17 @@ export interface OpponentListModel {
    */
   opponentNumber?: number
   /**
-   * 上浮
+   * 上浮还是下浮
+   * - 0-上浮
+   * - 1-下浮
+   */
+  floatValue?: number
+  /**
+   * 上浮-结束值
    */
   upValue?: number
   /**
-   * 下浮
+   * 下浮-开始值
    */
   downValue?: number
 }

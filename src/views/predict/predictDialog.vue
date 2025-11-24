@@ -18,16 +18,17 @@ const visible = defineModel<boolean>('visible', {
 })
 const form = ref<PredictModel>({
   companionProject: {
-    opponentNumber: __DEV__ ? 1 : 0,
-    upValue: __DEV__ ? 20 : 0,
-    downValue: __DEV__ ? 10 : 0,
+    floatValue: 0,
+    opponentNumber: 200,
+    upValue: 30,
+    downValue: 30,
   },
   opponentList: [
     {
       name: '对手1',
-      opponentNumber: __DEV__ ? 10 : 0,
-      downValue: __DEV__ ? 10 : 0,
-      upValue: __DEV__ ? 30 : 0,
+      opponentNumber: 200,
+      downValue: 30,
+      upValue: 30,
     },
   ],
 })
@@ -36,6 +37,7 @@ const submitLoading = ref(false)
 
 function cancel() {
   visible.value = false
+  reset()
 }
 
 function handleSubmit() {
@@ -75,16 +77,17 @@ function handleSubmit() {
 function reset() {
   form.value = {
     companionProject: {
-      opponentNumber: __DEV__ ? 1 : 0,
-      upValue: __DEV__ ? 10 : 0,
-      downValue: __DEV__ ? 20 : 0,
+      floatValue: 0,
+      opponentNumber: 200,
+      upValue: 30,
+      downValue: 30,
     },
     opponentList: [
       {
         name: '对手1',
-        opponentNumber: __DEV__ ? 10 : 0,
-        upValue: __DEV__ ? 10 : 0,
-        downValue: __DEV__ ? 30 : 0,
+        opponentNumber: 200,
+        upValue: 30,
+        downValue: 30,
       },
     ],
   }
@@ -120,8 +123,9 @@ function removeAllPredictKeys(): void {
 
 function handleOpponentListAdd() {
   form.value.opponentList?.push({
+    floatValue: 0,
     name: `对手${form.value.opponentList.length + 1}`,
-    opponentNumber: __DEV__ ? (form.value.opponentList.length + 1) * 10 : 0,
+    opponentNumber: 200,
     upValue: __DEV__ ? 30 : 0,
     downValue: __DEV__ ? 10 : 0,
   })
@@ -154,7 +158,7 @@ onMounted(() => {
   <el-dialog
     v-model="visible"
     title="预测"
-    width="1100"
+    width="1200"
     :close-on-click-modal="false"
     @close="cancel"
   >
@@ -164,7 +168,20 @@ onMounted(() => {
           <el-form-item label-position="right" label="自家的：" />
         </el-col>
 
-        <el-col :span="7">
+        <el-col :span="4">
+          <el-form-item>
+            <el-switch
+              v-model="form.companionProject!.floatValue"
+              size="large"
+              active-text="下浮"
+              :active-value="1"
+              :inactive-value="0"
+              inactive-text="上浮"
+            />
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="5">
           <el-form-item
             label="陪标数量"
             :rules="[
@@ -186,35 +203,13 @@ onMounted(() => {
           </el-form-item>
         </el-col>
 
-        <el-col :span="6">
+        <el-col :span="5">
           <el-form-item
-            label="上浮值"
+            label="起始值"
             :rules="[
               {
                 required: true,
-                message: '上浮值不能为空',
-                trigger: 'blur',
-              },
-            ]"
-          >
-            <el-input-number
-              v-model="form.companionProject!.upValue"
-              :min="0"
-              :step="0.01"
-              size="large"
-              style="width: 100%;"
-              controls-position="right"
-            />
-          </el-form-item>
-        </el-col>
-
-        <el-col :span="6">
-          <el-form-item
-            label="下浮值"
-            :rules="[
-              {
-                required: true,
-                message: '下浮值不能为空',
+                message: '起始值不能为空',
                 trigger: 'blur',
               },
             ]"
@@ -222,7 +217,39 @@ onMounted(() => {
             <el-input-number
               v-model="form.companionProject!.downValue"
               :min="0"
-              :step="0.01"
+              :step="1"
+              size="large"
+              style="width: 100%;"
+              controls-position="right"
+            />
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="5">
+          <el-form-item
+            prop="companionProject.upValue"
+            label="结束值"
+            :rules="[
+              { required: true, message: '结束值不能为空', trigger: 'blur' },
+              {
+                validator: (_, value, callback) => {
+                  if (value < form.companionProject!.downValue!) {
+                    console.log(value, form.companionProject!.downValue, '自家');
+
+                    callback(new Error('结束值不能小于起始值'))
+                  }
+                  else {
+                    callback()
+                  }
+                },
+                trigger: 'blur',
+              },
+            ]"
+          >
+            <el-input-number
+              v-model="form.companionProject!.upValue"
+              :min="0"
+              :step="1"
               size="large"
               style="width: 100%;"
               controls-position="right"
@@ -243,7 +270,20 @@ onMounted(() => {
             <el-form-item label-position="right" :label="`${item.name}：`" />
           </el-col>
 
-          <el-col :span="7">
+          <el-col :span="4">
+            <el-form-item>
+              <el-switch
+                v-model="item.floatValue"
+                size="large"
+                active-text="下浮"
+                :active-value="1"
+                :inactive-value="0"
+                inactive-text="上浮"
+              />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="5">
             <el-form-item
               label="陪标数量"
               label-width="80"
@@ -267,39 +307,15 @@ onMounted(() => {
             </el-form-item>
           </el-col>
 
-          <el-col :span="6">
+          <el-col :span="5">
             <el-form-item
-              label="上浮值"
-              label-width="80"
-              :prop="`opponentList.${index}.upValue`"
-              :rules="[
-                {
-                  required: true,
-                  message: '上浮值不能为空',
-                  trigger: 'blur',
-                },
-              ]"
-            >
-              <el-input-number
-                v-model="item.upValue"
-                :min="0"
-                :step="0.01"
-                size="large"
-                style="width: 100%;"
-                controls-position="right"
-              />
-            </el-form-item>
-          </el-col>
-
-          <el-col :span="6">
-            <el-form-item
-              label="下浮值"
+              label="起始值"
               label-width="80"
               :prop="`opponentList.${index}.downValue`"
               :rules="[
                 {
                   required: true,
-                  message: '下浮值不能为空',
+                  message: '起始值不能为空',
                   trigger: 'blur',
                 },
               ]"
@@ -307,7 +323,38 @@ onMounted(() => {
               <el-input-number
                 v-model="item.downValue"
                 :min="0"
-                :step="0.01"
+                :step="1"
+                size="large"
+                style="width: 100%;"
+                controls-position="right"
+              />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="5">
+            <el-form-item
+              label="结束值"
+              label-width="80"
+              :prop="`opponentList.${index}.upValue`"
+              :rules="[
+                { required: true, message: '结束值不能为空', trigger: 'blur' },
+                {
+                  validator: (_, value, callback) => {
+                    if (value < item.downValue!) {
+                      callback(new Error('结束值不能小于起始值'))
+                    }
+                    else {
+                      callback()
+                    }
+                  },
+                  trigger: ['blur', 'change'],
+                },
+              ]"
+            >
+              <el-input-number
+                v-model="item.upValue"
+                :min="0"
+                :step="1"
                 size="large"
                 style="width: 100%;"
                 controls-position="right"
