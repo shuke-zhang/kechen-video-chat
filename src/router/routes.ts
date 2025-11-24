@@ -71,18 +71,7 @@ const routes: RouteRecordRaw[] = [
           hidden: true,
         },
       },
-      {
-        path: 'predict/response',
-        name: 'PredictResponse',
-        component: () => import('@/views/predict/predictResponse.vue'),
-        meta: {
-          title: '预测结果',
-          topNavCurrent: 'PredictResponse',
-          showLeftMenu: false,
-          isShowHead: false,
-          hidden: true,
-        },
-      },
+
       {
         path: 'predict/history',
         name: 'PredictHistory',

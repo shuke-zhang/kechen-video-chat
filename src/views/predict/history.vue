@@ -1,19 +1,18 @@
 <script setup lang="ts">
 // /api/predict/list
 import type { ElForm } from 'element-plus'
-import type { PredictModel } from '@/model/predict'
+import type { AddPredictResponseData } from '@/model/predict'
 import { Back, Refresh, Search } from '@element-plus/icons-vue'
 import { getPredictList } from '@/api/predict'
 
 const router = useRouter()
-const list = ref<PredictModel[]>([])
+const list = ref<AddPredictResponseData[]>([])
 const loading = ref(false)
 const total = ref(0)
-const names = ref<string[]>([])
 const single = ref(true)
 const multiple = ref(true)
 const queryRef = useTemplateRef('queryEl')
-const queryParams = ref<ListPageParamsWrapper<PredictModel>>({
+const queryParams = ref<ListPageParamsWrapper<AddPredictResponseData>>({
   page: {
     size: 10,
     current: 1,
@@ -31,8 +30,7 @@ function getList() {
   })
 }
 
-function handleSelectionChange(selection: PredictModel[]) {
-  names.value = selection.map(item => item.bqName!)
+function handleSelectionChange(selection: AddPredictResponseData[]) {
   single.value = selection.length !== 1
   multiple.value = !selection.length
 }
@@ -95,17 +93,19 @@ onMounted(() => {
 
       <el-table-column prop="id" label="编号" align="center" />
 
+      <el-table-column prop="code" label="项目编码" align="center" show-overflow-tooltip />
+
       <el-table-column prop="projectName" label="项目名称" align="center" show-overflow-tooltip />
 
       <el-table-column prop="bqName" label="名称" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" min-width="120" />
 
-      <el-table-column prop="otherRate" label="其他家系数" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" width="100" />
+      <el-table-column prop="capPrice" label="拦标价" align="center" show-overflow-tooltip :formatter="$formatterTablePrice" />
 
       <el-table-column prop="total" label="总数" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" />
 
-      <el-table-column prop="otherCount" label="其他数" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" />
+      <el-table-column prop="companionUnitRate" label="陪标比率" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" />
 
-      <el-table-column prop="companionCount" label="陪标家数" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" />
+      <el-table-column prop="otherRateStr" label="其他家比率" align="center" min-width="100" show-overflow-tooltip :formatter="$formatterTableEmpty" />
 
       <el-table-column prop="resultValue" label="F值" align="center" :formatter="$formatterTableEmpty" min-width="160">
         <template #default="{ row }">
