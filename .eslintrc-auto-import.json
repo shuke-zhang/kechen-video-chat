@@ -172,6 +172,25 @@
     "validateIdCardReg": true,
     "validatePhoneReg": true,
     "ElLoading": true,
-    "useSidebarStore": true
+    "useSidebarStore": true,
+    "EDUCATION_LIST": true,
+    "PROFESSIONAL_TITLE_LIST": true,
+    "blobValidate": true,
+    "formatCurrency": true,
+    "formatPrice": true,
+    "formatterTable": true,
+    "formatterTablePrice": true,
+    "formatterTableWithSuffix": true,
+    "getErrorMessageByStatus": true,
+    "getSession": true,
+    "markDisabledLevels": true,
+    "markDisabledLevelsChildren": true,
+    "markDisabledLevelsChildrenInPlace": true,
+    "markDisabledLevelsInPlace": true,
+    "removeSession": true,
+    "setFavicon": true,
+    "setSession": true,
+    "tansParams": true,
+    "withLoadingMessage": true
   }
 }
