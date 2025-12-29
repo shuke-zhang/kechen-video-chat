@@ -1,6 +1,6 @@
 export interface VideoProjectModel {
   /** 分类 ID；用于对项目进行分组，例如 0 表示未分组 */
-  categoryId?: string
+  categoryId?: number
   /** 封面图片地址；建议使用绝对 URL */
   coverUrl?: string
   /** 创建时间（ISO 字符串） */

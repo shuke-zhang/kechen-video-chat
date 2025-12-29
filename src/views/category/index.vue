@@ -20,7 +20,6 @@ const editFormRef = useTemplateRef('editFormEl')
 const visible = ref(false)
 const isAdd = ref(true)
 const submitLoading = ref(false)
-const ids = ref<number[]>([])
 const names = ref<string[]>([])
 const route = useRoute()
 const categoryId = computed<string>(() => {
@@ -43,7 +42,7 @@ function getList() {
       size: 1000,
       current: 1,
     },
-    categoryId: categoryId.value,
+    categoryId: Number(categoryId.value),
   }).then((res) => {
     videoProjectList.value = res.data.records || []
   }).finally(() => {
@@ -52,7 +51,7 @@ function getList() {
 }
 
 function handleAddProject() {
-  editForm.value.categoryId = currentCategoryId.value
+  editForm.value.categoryId = Number(currentCategoryId.value)
   visible.value = true
   isAdd.value = true
 }
@@ -110,6 +109,7 @@ function reset() {
 
 onMounted(() => {
   getList()
+  console.log(categoryList, 'categoryList')
 })
 </script>
 
@@ -196,12 +196,14 @@ onMounted(() => {
             size="18px"
             name="edit"
             color="#64748B"
+            hover-style="#64748B"
             @click="handleEdit(item)"
           />
           <icon-font
             size="18px"
             name="delete"
             color="red"
+            hover-style="#B91C1C"
             @click="handleDelete(item)"
           />
         </div>
@@ -247,8 +249,9 @@ onMounted(() => {
                 </span>
               </template>
               <div class="flex w-full flex-1 justify-between items-center">
-                <el-input v-model="editForm.coverUrl" placeholder="请输入封面地址" size="large" style="width: 220px; height: 40px;" />
                 <UploadFile :limit="1" mode="button" @on-success="handleCoverUrlSuccess" />
+
+                <el-input v-model="editForm.coverUrl" placeholder="请输入封面地址" size="large" style="width: 240px; height: 40px;" disabled />
               </div>
             </el-form-item>
           </el-col>
