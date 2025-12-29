@@ -74,6 +74,8 @@ export const useUserStore = defineStore('user', () => {
       }
     })
 
+    console.log(list, 'list')
+
     categoryList.value = list
     setCache('CATEGORY_LIST', list)
   }

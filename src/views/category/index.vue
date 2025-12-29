@@ -22,7 +22,11 @@ const isAdd = ref(true)
 const submitLoading = ref(false)
 const ids = ref<number[]>([])
 const names = ref<string[]>([])
-
+const route = useRoute()
+const categoryId = computed<string>(() => {
+  return route.params.id as string
+})
+const projectListEmpty = computed(() => videoProjectList.value.length === 0)
 const rules: FormRules = {
   categoryId: [{ required: true, trigger: 'change', message: '请选择项目分类' }],
   projectName: [{ required: true, trigger: 'blur', message: '请输入项目名称' }],
@@ -39,6 +43,7 @@ function getList() {
       size: 1000,
       current: 1,
     },
+    categoryId: categoryId.value,
   }).then((res) => {
     videoProjectList.value = res.data.records || []
   }).finally(() => {
@@ -47,7 +52,7 @@ function getList() {
 }
 
 function handleAddProject() {
-  editForm.value.categoryId = Number(currentCategoryId.value)
+  editForm.value.categoryId = currentCategoryId.value
   visible.value = true
   isAdd.value = true
 }
@@ -109,10 +114,21 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="category-page max-w-7xl mx-auto px-6 py-10">
+  <div class="category-page p-[16px] mx-auto  ">
     <div
       v-loading="loading"
-      class="grid gap-[16px] [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))] "
+      class="
+    project-grid
+    grid
+    gap-[10px]
+    auto-rows-[260px]
+    min-h-[260px]
+
+  "
+      :class="{
+        '[grid-template-columns:260px]': projectListEmpty,
+        '[grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]': !projectListEmpty,
+      }"
       element-loading-text="加载中..."
     >
       <div
@@ -241,7 +257,6 @@ onMounted(() => {
             <el-form-item label="项目描述" prop="projectDesc" style="width: 100%">
               <el-input
                 v-model="editForm.projectDesc"
-                style="width: 240px"
                 type="textarea"
                 placeholder="请输入项目描述"
               />
