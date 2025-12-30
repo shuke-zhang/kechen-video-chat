@@ -191,6 +191,7 @@
     "setFavicon": true,
     "setSession": true,
     "tansParams": true,
-    "withLoadingMessage": true
+    "withLoadingMessage": true,
+    "getFileFromClipboard": true
   }
 }

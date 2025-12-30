@@ -55,6 +55,7 @@ declare global {
   const getCurrentInstance: typeof import('vue')['getCurrentInstance']
   const getCurrentNodeTree: typeof import('../src/utils/helpers/lodash-fn')['getCurrentNodeTree']
   const getCurrentScope: typeof import('vue')['getCurrentScope']
+  const getFileFromClipboard: typeof import('../src/utils/helpers/clipboard')['getFileFromClipboard']
   const getSelectData: typeof import('../src/utils/helpers/globalMethods')['getSelectData']
   const getTreeFlatList: typeof import('../src/utils/helpers/lodash-fn')['getTreeFlatList']
   const h: typeof import('vue')['h']
