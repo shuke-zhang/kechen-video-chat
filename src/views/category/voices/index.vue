@@ -4,7 +4,7 @@
 
 <template>
   <div class="app-container">
-    视频
+    音色
   </div>
 </template>
 

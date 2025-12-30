@@ -4,7 +4,7 @@
 
 <template>
   <div class="app-container">
-    视频
+    项目详情
   </div>
 </template>
 

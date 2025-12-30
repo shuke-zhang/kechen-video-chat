@@ -42,7 +42,6 @@ const settingMenu = computed(() => {
   const list = routes.find(r => r.name === 'layout')?.children ?? []
   const res = list.find(it => it.name === 'settings')?.children ?? []
   const settingRes = res.filter(el => !el.meta?.hidden)
-  console.log(settingRes, 'settingRes')
 
   return settingRes
 })
@@ -66,11 +65,13 @@ function handleNavClick(value: TopNavValueModel) {
     return
 
   activeNavItem.value = value
+
   if (value.includes('category')) {
     const id = String(value).replace(/^\/?category\//, '')
-    currentRoute.value = 'category'
+
     isActiveCategory.value = true
     router.push({ path: `/category/${id}` })
+
     return
   }
   isActiveCategory.value = false
@@ -125,7 +126,10 @@ onMounted(() => {
     activeNavItem.value = 'settings'
   }
   else {
-    activeNavItem.value = String(route.path).replace(/^\/+/, '') as TopNavValueModel
+    activeNavItem.value = String(route.path).replace(
+      /^(\/[^/]+)\/.*\/([^/]+)$/,
+      '$1/$2',
+    ) as TopNavValueModel
   }
 })
 </script>

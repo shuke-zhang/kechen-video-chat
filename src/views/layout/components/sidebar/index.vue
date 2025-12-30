@@ -1,18 +1,11 @@
 <script setup lang="ts">
 import type { MenuItemRegistered } from 'element-plus'
+import router from '@/router'
 
 const sidebarStore = useSidebarStore()
-const sidebars = [
-  {
-    label: '公共',
-    value: 'public',
-  },
-  {
-    label: '个人',
-    value: 'private',
-  },
-]
-const activeKey = ref('public')
+const route = useRoute()
+const sidebars = computed(() => sidebarStore.currentSidebars)
+
 function hasTitle(title: string) {
   if (title.length > 5) {
     return title
@@ -24,18 +17,11 @@ function hasTitle(title: string) {
 
 function handleMenuItemClick(item: MenuItemRegistered) {
   sidebarStore.setCurrentSidebarItem(item)
+  if (sidebarStore.categorySidebars.map(it => it.value,
+  ).includes(item.index)) {
+    router.push({ path: `/category/project/${item.index}/${route.params.id}` })
+  }
 }
-// 统一用 el-menu 的 select 事件
-
-// 可选：首次挂载时主动触发一次（如果你需要立刻加载“公共”内容）
-onMounted(() => {
-  const item = {
-    index: 'public',
-    indexPath: ['public'],
-    active: true,
-  } as MenuItemRegistered
-  handleMenuItemClick(item)
-})
 </script>
 
 <template>
@@ -46,7 +32,7 @@ onMounted(() => {
         :unique-opened="true"
         :collapse-transition="false"
         mode="vertical"
-        :default-active="activeKey"
+        :default-active="sidebars[0].value"
         class=""
         style="background-color: #1c1e23;"
       >

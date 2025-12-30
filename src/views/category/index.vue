@@ -9,6 +9,7 @@ import { addVideoProject, DelVideoProject, getVideoProjectList, PutVideoProject 
 const sidebarStore = useSidebarStore()
 
 const router = useRouter()
+
 const { categoryList } = useUserStore()
 const currentCategoryId = computed(() => {
   const raw = router.currentRoute.value.params.id
@@ -104,7 +105,7 @@ function handleDelete(_ids: number[] | VideoProjectModel) {
 }
 
 function handleProjectDetail(item: VideoProjectModel) {
-
+  router.push({ path: `/category/project/video/${item.categoryId}` })
 }
 
 function reset() {
@@ -116,9 +117,6 @@ function reset() {
 onMounted(() => {
   getList()
   console.log(categoryList, 'categoryList')
-})
-watch(() => sidebarStore.currentSidebarItem, () => {
-  console.log(sidebarStore.currentSidebarItem, 'currentSidebarItem')
 })
 </script>
 
