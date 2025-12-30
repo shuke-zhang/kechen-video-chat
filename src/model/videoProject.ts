@@ -15,8 +15,19 @@ export interface VideoProjectModel {
   projectDesc?: string
   /** 项目主键 ID */
   id?: number
+  /**
+   * 0-公共
+   * 1-个人
+   */
+  publishStatus?: publishStatus
   /** 项目名称 */
   projectName?: string
   /** 最近更新时间（ISO 字符串） */
   updatedTime?: string
 }
+
+/**
+ * 0-公共
+ * 1-个人
+ */
+export type publishStatus = 0 | 1

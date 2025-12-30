@@ -3,6 +3,14 @@ import type { MenuItemRegistered } from 'element-plus'
 export const useSidebarStore = defineStore('sidebar', () => {
   const route = useRoute()
   const currentSidebarItem = ref<MenuItemRegistered | null>(null)
+  const currentPublicStatus = computed(() => {
+    console.log('测试', currentSidebarItem.value)
+    if (!currentSidebarItem.value) {
+      return 0 // 执行时机的问题直接取公共第一个
+    }
+
+    return currentSidebarItem.value?.index === 'public' ? 0 : 1
+  })
   const publicSidebars = [
     {
       label: '公共',
@@ -29,9 +37,6 @@ export const useSidebarStore = defineStore('sidebar', () => {
   ]
   const currentSidebars = ref(publicSidebars)
   const isShowSidebar = ref(!!route.meta?.showLeftMenu)
-  function setIsShowSidebar(value: boolean) {
-    isShowSidebar.value = value
-  }
 
   /**
    * 设置侧边栏
@@ -59,12 +64,7 @@ export const useSidebarStore = defineStore('sidebar', () => {
     isShowSidebar,
     currentSidebarItem,
     currentSidebars,
-    setIsShowSidebar,
+    currentPublicStatus,
     setCurrentSidebarItem,
   }
-}, {
-  persist: {
-    key: 'SIDEBAR',
-    storage: localStorage,
-  },
 })

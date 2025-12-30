@@ -40,12 +40,15 @@ function getList() {
   if (loading.value)
     return
   loading.value = true
+  console.log(sidebarStore.currentSidebarItem, '测试')
+
   getVideoProjectList({
     page: {
       size: 1000,
       current: 1,
     },
     categoryId: Number(categoryId.value),
+    publishStatus: sidebarStore.currentPublicStatus,
   }).then((res) => {
     videoProjectList.value = res.data.records || []
   }).finally(() => {
@@ -79,7 +82,8 @@ function handleSubmit() {
         return
       submitLoading.value = true
       const api = isAdd.value ? addVideoProject : PutVideoProject
-      api(editForm.value).then(() => {
+
+      api({ ...editForm.value, publishStatus: sidebarStore.currentPublicStatus }).then(() => {
         visible.value = false
         showMessageSuccess(isAdd.value ? '新增成功' : '编辑成功')
         reset()
@@ -114,8 +118,16 @@ function reset() {
   submitLoading.value = false
 }
 
-onMounted(() => {
+watch(() => sidebarStore.currentSidebarItem, () => {
+  console.log('切换')
   getList()
+}, {
+  deep: true,
+  immediate: true,
+})
+
+onMounted(() => {
+  // getList()
   console.log(categoryList, 'categoryList')
 })
 </script>

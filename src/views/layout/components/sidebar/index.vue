@@ -17,11 +17,24 @@ function hasTitle(title: string) {
 
 function handleMenuItemClick(item: MenuItemRegistered) {
   sidebarStore.setCurrentSidebarItem(item)
+  console.log(item, 'item123456')
   if (sidebarStore.categorySidebars.map(it => it.value,
   ).includes(item.index)) {
     router.push({ path: `/category/project/${item.index}/${route.params.id}` })
   }
 }
+
+// 统一用 el-menu 的 select 事件
+
+// 可选：首次挂载时主动触发一次（如果你需要立刻加载“公共”内容）
+onMounted(() => {
+  const item = {
+    index: sidebars.value[0].value,
+    indexPath: [sidebars.value[0].value],
+    active: true,
+  } as MenuItemRegistered
+  handleMenuItemClick(item)
+})
 </script>
 
 <template>
