@@ -1,15 +1,5 @@
 <!-- src/components/DocsLayout.vue -->
 <script setup lang="ts">
-import type { MenuItemRegistered } from 'element-plus'
-import type { PropType } from 'vue'
-
-const props = defineProps({
-  currentSidebarItem: {
-    type: Object as PropType<MenuItemRegistered | null>,
-    required: false,
-    default: null,
-  },
-})
 </script>
 
 <template>
@@ -17,7 +7,7 @@ const props = defineProps({
   <section class="app-main">
     <router-view v-slot="{ Component, route }">
       <transition name="fade-transform" mode="out-in">
-        <component :is="Component" :key="route.path" :current-sidebar-item="props.currentSidebarItem" />
+        <component :is="Component" :key="route.path" />
       </transition>
     </router-view>
   </section>

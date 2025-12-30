@@ -3,7 +3,7 @@
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    name: 'home',
+    name: 'layout',
     component: () => import('@/views/layout/index.vue'),
     redirect: '/home',
     children: [
@@ -44,35 +44,6 @@ const routes: RouteRecordRaw[] = [
         meta: {
           title: '患者',
           showLeftMenu: true,
-          hidden: true,
-        },
-      },
-      {
-        path: 'settings',
-        name: 'settings',
-        component: () => import('@/views/settings/index.vue'),
-        meta: {
-          title: '设置',
-          showLeftMenu: false,
-          hidden: true,
-        },
-      },
-      {
-        path: 'dict',
-        name: 'Dict',
-        component: () => import('@/views/settings/dict/index.vue'),
-        meta: {
-          title: '字典管理',
-          hidden: true,
-        },
-      },
-      {
-        path: 'dict/data/:dictType',
-        name: 'DictData',
-        component: () => import('@/views/settings/dict/data.vue'),
-        // props: true, // 自动注册为props
-        meta: {
-          title: '字典数据',
           hidden: true,
         },
       },
@@ -126,25 +97,37 @@ const routes: RouteRecordRaw[] = [
         },
       },
       {
-        path: 'dict',
-        name: 'Dict',
-        component: () => import('@/views/settings/dict/index.vue'),
+        path: '/settings',
+        name: 'settings',
         meta: {
-          title: '字典管理',
+          title: '设置',
           showLeftMenu: false,
           hidden: true,
         },
+        children: [
+          {
+            path: '/settings/dict',
+            name: 'Dict',
+            component: () => import('@/views/settings/dict/index.vue'),
+            meta: {
+              title: '字典管理',
+              hidden: false,
+            },
+          },
+          {
+            path: '/settings/dict/data/:dictType',
+            name: 'DictData',
+            component: () => import('@/views/settings/dict/data.vue'),
+            // props: true, // 自动注册为props
+            meta: {
+              title: '字典数据',
+              hidden: true,
+            },
+          },
+
+        ],
       },
-      {
-        path: 'dict/data/:dictType',
-        name: 'DictData',
-        component: () => import('@/views/settings/dict/data.vue'),
-        meta: {
-          title: '字典数据',
-          showLeftMenu: false,
-          hidden: true,
-        },
-      },
+
     ],
   },
   {

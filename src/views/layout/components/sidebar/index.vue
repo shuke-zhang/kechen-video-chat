@@ -1,13 +1,8 @@
 <script setup lang="ts">
 import type { MenuItemRegistered } from 'element-plus'
-import { sidebarVideo } from './video'
 
-const emit = defineEmits<{
-  (e: 'menu-item-click', item: MenuItemRegistered): void
-}>()
-const route = useRoute()
-const isActiveCategory = ref(false)
-const publicSidebars = [
+const sidebarStore = useSidebarStore()
+const sidebars = [
   {
     label: '公共',
     value: 'public',
@@ -17,8 +12,7 @@ const publicSidebars = [
     value: 'private',
   },
 ]
-const sidebars = computed(() => isActiveCategory.value ? sidebarVideo : publicSidebars)
-const activeKey = ref('')
+const activeKey = ref('public')
 function hasTitle(title: string) {
   if (title.length > 5) {
     return title
@@ -29,32 +23,19 @@ function hasTitle(title: string) {
 }
 
 function handleMenuItemClick(item: MenuItemRegistered) {
-  // TODO 点击侧边栏菜单项的逻辑
-  emit('menu-item-click', item)
+  sidebarStore.setCurrentSidebarItem(item)
 }
 // 统一用 el-menu 的 select 事件
 
 // 可选：首次挂载时主动触发一次（如果你需要立刻加载“公共”内容）
 onMounted(() => {
-
-  // 获取当前页面路由中是否包含了category
+  const item = {
+    index: 'public',
+    indexPath: ['public'],
+    active: true,
+  } as MenuItemRegistered
+  handleMenuItemClick(item)
 })
-// 监听路由变化
-watch(
-  () => route.fullPath,
-  (newPath) => {
-    console.log(route, '路由')
-    const item = {
-      index: newPath.includes('category') ? sidebarVideo[0].label : publicSidebars[0].label,
-      indexPath: [newPath.includes('category') ? sidebarVideo[0].value : publicSidebars[0].value],
-      active: true,
-    } as MenuItemRegistered
-    handleMenuItemClick(item)
-    isActiveCategory.value = newPath.includes('category')
-    activeKey.value = newPath.includes('category') ? sidebarVideo[0].value : publicSidebars[0].value
-  },
-  { immediate: true },
-)
 </script>
 
 <template>

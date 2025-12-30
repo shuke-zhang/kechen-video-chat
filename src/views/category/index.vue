@@ -6,6 +6,8 @@ import { QuestionFilled } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import { addVideoProject, DelVideoProject, getVideoProjectList, PutVideoProject } from '@/api/videoProject'
 
+const sidebarStore = useSidebarStore()
+
 const router = useRouter()
 const { categoryList } = useUserStore()
 const currentCategoryId = computed(() => {
@@ -101,6 +103,10 @@ function handleDelete(_ids: number[] | VideoProjectModel) {
   })
 }
 
+function handleProjectDetail(item: VideoProjectModel) {
+
+}
+
 function reset() {
   editForm.value = {}
   resetForm(editFormRef.value)
@@ -111,10 +117,13 @@ onMounted(() => {
   getList()
   console.log(categoryList, 'categoryList')
 })
+watch(() => sidebarStore.currentSidebarItem, () => {
+  console.log(sidebarStore.currentSidebarItem, 'currentSidebarItem')
+})
 </script>
 
 <template>
-  <div class="category-page p-[16px] mx-auto  ">
+  <div class=" p-[16px] ">
     <div
       v-loading="loading"
       class="
@@ -166,6 +175,7 @@ onMounted(() => {
         v-for="(item, index) in videoProjectList"
         :key="index"
         class="group bg-white rounded-2xl shadow hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer border border-slate-100 flex flex-col"
+        @click="handleProjectDetail(item)"
       >
         <!-- 封面图 -->
         <div class="relative w-full h-[120px] overflow-hidden">

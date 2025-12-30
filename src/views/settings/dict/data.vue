@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { ElForm, FormRules } from 'element-plus'
 import type { DictDataModel } from '@/model/dict'
-import { CircleClose, CirclePlus, Refresh, Search } from '@element-plus/icons-vue'
+import { Back, CircleClose, CirclePlus, Refresh, Search } from '@element-plus/icons-vue'
 import { addDictData, DelDictData, getDictDataList, PutDictData } from '@/api/dict'
 
+const router = useRouter()
 const loading = ref(false)
 const queryRef = useTemplateRef('queryEl')
 const route = useRoute()
@@ -188,6 +189,10 @@ onMounted(() => {
         </el-button>
         <el-button type="danger" :disabled="ids.length <= 0" :icon="CircleClose" @click="handleDel(ids)">
           删除
+        </el-button>
+
+        <el-button :icon="Back" @click="router.back()">
+          返回
         </el-button>
       </el-form-item>
     </el-form>

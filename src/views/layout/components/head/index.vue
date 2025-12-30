@@ -2,11 +2,13 @@
 import type { ElDropdown } from 'element-plus'
 import type { TopNavValueModel, UserDropdownValueModel } from '@/model/head'
 import type { SettingDropdownValueModel } from '@/model/setting'
+import routes from '@/router/routes'
 
 const UserStore = useUserStore()
 const { userName, isLoggedIn } = storeToRefs(UserStore)
 
 const router = useRouter()
+const route = useRoute()
 const isActiveCategory = ref(false)
 
 const currentRoute = ref(router.currentRoute.value.path)
@@ -36,12 +38,21 @@ const topNavList = computed(() => {
   return list
 })
 
+const settingMenu = computed(() => {
+  const list = routes.find(r => r.name === 'layout')?.children ?? []
+  const res = list.find(it => it.name === 'settings')?.children ?? []
+  const settingRes = res.filter(el => !el.meta?.hidden)
+  console.log(settingRes, 'settingRes')
+
+  return settingRes
+})
+
 const dropdownItems: Array<{ label: string, value: UserDropdownValueModel }> = [
   { label: '修改', value: 'put' },
   { label: '退出', value: 'logout' },
 ]
 
-const settingDropdownItems: Array<{ label: string, value: SettingDropdownValueModel }> = [
+const _settingDropdownItems: Array<{ label: string, value: SettingDropdownValueModel }> = [
   { label: '模型配置', value: 'modelSettings' },
   { label: '音色配置', value: 'voiceSettings' },
   { label: '个人设置', value: 'userProfile' },
@@ -56,9 +67,9 @@ function handleNavClick(value: TopNavValueModel) {
 
   activeNavItem.value = value
   if (value.includes('category')) {
+    const id = String(value).replace(/^\/?category\//, '')
     currentRoute.value = 'category'
     isActiveCategory.value = true
-    const id = String(value).replace(/^\/?category\//, '')
     router.push({ path: `/category/${id}` })
     return
   }
@@ -85,7 +96,8 @@ function handleCommand(command: UserDropdownValueModel) {
  */
 function handleSettingCommand(command: SettingDropdownValueModel) {
   activeNavItem.value = 'settings'
-  router.push(`/${command}`)
+  const path = settingMenu.value.find(el => el.name === command)?.path || ''
+  router.push(path)
   currentRoute.value = command
 }
 
@@ -109,14 +121,11 @@ function insertArrayAfterIndex<T>(oldArr: T[], newArr: T[], num = 0): T[] {
 onMounted(() => {
   // 获取用户信息
 
-  if (settingDropdownItems.some(item => item.value === currentRoute.value) || currentRoute.value === 'user/profile') {
+  if (route.fullPath.includes('settings')) {
     activeNavItem.value = 'settings'
   }
-  // if (currentRoute.value.includes('category')) {
-  //   activeNavItem.value = 'category'
-  // }
   else {
-    activeNavItem.value = currentRoute.value as TopNavValueModel
+    activeNavItem.value = String(route.path).replace(/^\/+/, '') as TopNavValueModel
   }
 })
 </script>
@@ -152,12 +161,12 @@ onMounted(() => {
                 <template #dropdown>
                   <el-dropdown-menu>
                     <el-dropdown-item
-                      v-for="el in settingDropdownItems"
-                      :key="el.value"
-                      :command="el.value"
-                      :class="{ 'is-active-item': currentRoute === el.value }"
+                      v-for="el in settingMenu"
+                      :key="el.name"
+                      :command="el.name as string"
+                      :class="{ 'is-active-item': currentRoute === el.name }"
                     >
-                      {{ el.label }}
+                      {{ el.meta?.title }}
                     </el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
