@@ -437,7 +437,7 @@ async function handleSuccess(response: ResponseData<UploadFileResponseModel>, up
     if (Array.isArray(fileData.value)) {
       const target = fileData.value.find(f => f.uid === uploadFile.uid)
       if (target) {
-        target.url = `${__API_URL__}${publicUrl}`
+        target.url = `${publicUrl}`
         target.status = 'success'
       }
       else {

@@ -5,17 +5,25 @@ export interface VideoModel {
   /**
    * 视频地址
    */
-  address?: string
+  videoUrl?: string
+  /**
+   * 项目
+   */
+  projectId?: number
 
   /**
-   * 备注信息
+   * 视频文本
    */
-  comment?: string
-
+  videoText?: string
+  /**
+   * 是否公开
+   * 0不公开，1公开
+   */
+  publishStatus?: number
   /**
    * 视频封面链接
    */
-  coverLink?: string
+  coverUrl?: string
 
   /**
    * 创建时间 (ISO 时间字符串)
@@ -51,7 +59,7 @@ export interface VideoModel {
   /**
    * 视频名称
    */
-  name?: string
+  videoName?: string
 
   /**
    * 更新时间 (ISO 时间字符串)
@@ -63,7 +71,7 @@ export interface VideoModel {
    * 视频时长
    * @example
    */
-  videoLength?: string
+  duration?: string
 
   /**
    * 视频类型 id

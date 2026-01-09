@@ -192,6 +192,7 @@
     "setSession": true,
     "tansParams": true,
     "withLoadingMessage": true,
-    "getFileFromClipboard": true
+    "getFileFromClipboard": true,
+    "useCategoryStore": true
   }
 }

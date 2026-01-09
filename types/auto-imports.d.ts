@@ -139,6 +139,7 @@ declare global {
   const useAttrs: typeof import('vue')['useAttrs']
   const useBasicLayout: typeof import('../src/hooks/useBasicLayout')['useBasicLayout']
   const useCallWithMessageLoading: typeof import('../src/hooks/useMessageLoading')['useCallWithMessageLoading']
+  const useCategoryStore: typeof import('../src/stores/modules/category/index')['useCategoryStore']
   const useChat: typeof import('../src/hooks/useChat')['useChat']
   const useChatStore: typeof import('../src/stores/modules/chat/index')['useChatStore']
   const useCounterStore: typeof import('../src/stores/counter')['useCounterStore']

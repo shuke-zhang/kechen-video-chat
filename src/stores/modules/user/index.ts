@@ -1,17 +1,16 @@
-import type { CategoryModel } from '@/model/category'
 import type { UserModel } from '@/model/user'
 import { defineStore } from 'pinia'
-import { getCategoryList } from '@/api/category'
 import { getUserInfo as _getUserInfo, loginApi } from '@/api/login'
 import { removeCacheToken, setCacheToken } from '@/utils/cache'
+import { useCategoryStore } from '../category'
 
 const SUPER_ADMIN = 'admin'
 
 export const useUserStore = defineStore('user', () => {
   const router = useRouter()
   const route = useRoute()
+  const { getCategory, categoryList } = useCategoryStore()
   const localUser = ref<UserModel | null>(getCache<UserModel>('USER_INFO')?.value || null)
-  const categoryList = ref<CategoryModel[]>(getCache<CategoryModel[]>('CATEGORY_LIST')?.value || [])
   const userInfo = ref<UserModel | null>(localUser.value || null)
   const userName = ref<UserModel['name'] | null>(localUser?.value ? localUser?.value.name : null)
   const roles = ref<string[]>([])
@@ -22,11 +21,11 @@ export const useUserStore = defineStore('user', () => {
   return {
     userInfo,
     userName,
-    categoryList,
     roles,
     permissions,
     avater,
     isLoggedIn,
+    categoryList,
     login,
     logout,
     getInfo,
@@ -43,6 +42,7 @@ export const useUserStore = defineStore('user', () => {
     setCache('IS_LOGGED_IN', true)
     await getInfo()
     await getCategory()
+    console.log(categoryList, 'categoryList')
   }
   function logout() {
     resetAllState()
@@ -59,25 +59,6 @@ export const useUserStore = defineStore('user', () => {
     userInfo.value = res.data
     setCache('IS_LOGGED_IN', true)
     setCache('USER_INFO', res.data)
-  }
-  async function getCategory() {
-    const res = await getCategoryList({
-      page: {
-        current: 1,
-        size: 1000,
-      },
-    })
-    const list = res.data.records.map((item) => {
-      return {
-        ...item,
-        path: `/category/${item.id}`,
-      }
-    })
-
-    console.log(list, 'list')
-
-    categoryList.value = list
-    setCache('CATEGORY_LIST', list)
   }
 
   function resetAllState() {

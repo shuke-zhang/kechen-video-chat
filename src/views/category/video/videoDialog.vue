@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import type { ElForm } from 'element-plus'
+import type { ElForm, UploadFile, UploadFiles } from 'element-plus'
 import type DragUploadFile from '@/components/DragUploadFile/DragUploadFile.vue'
+import type { UploadFileResponseModel } from '@/components/UploadFile/types'
 import type { UploadRow } from '@/model/upload'
 import type { VideoModel } from '@/model/video'
 import type { VideoCategoryModel } from '@/model/videoCategory'
 import { addVideo, PutVideo } from '@/api/video'
+import { useCategoryStore } from '@/stores'
 
 const props = defineProps({
   isAdd: {
@@ -21,9 +23,12 @@ const props = defineProps({
 
 const emit = defineEmits(['success'])
 
+const category = useCategoryStore()
+
 const visible = defineModel({ type: Boolean, required: false })
 const submitLoading = ref(false)
 const form = ref<VideoModel>({
+  publishStatus: 0,
 })
 const DragUploadFileRef = ref<InstanceType<typeof DragUploadFile> | null>(null)
 const formRef = ref<InstanceType<typeof ElForm> | null>(null)
@@ -31,24 +36,20 @@ const formRef = ref<InstanceType<typeof ElForm> | null>(null)
 const uploadFile = ref<UploadRow | null>(null)
 
 const rules = {
-  name: [{ required: true, trigger: 'blur', message: '请输入视频名称' }],
-  videoType: [{ required: true, trigger: 'blur', message: '请输入视频分类' }],
-  address: [{ required: true, trigger: 'blur', message: '请输入视频链接地址' }],
-  comment: [{ required: true, trigger: 'blur', message: '请输入视频简介' }],
-  coverLink: [{ required: true, trigger: 'blur', message: '请上传视频封面' }],
+  videoName: [{ required: true, trigger: 'blur', message: '请输入视频名称' }],
+  videoUrl: [{ required: true, trigger: 'blur', message: '请输入视频链接地址' }],
+  publishStatus: [{ required: true, trigger: 'blur', message: '请选择是否公开' }],
+  videoText: [{ required: true, trigger: 'blur', message: '请输入视频文本' }],
+  coverUrl: [{ required: true, trigger: 'blur', message: '请上传视频封面' }],
 }
 function handleUploadSuccess(file: UploadRow) {
-  console.log(file, 'file-success')
-
   if (file.status !== 'success')
     return
-  form.value.address = file.response?.data.accessPath
-  form.value.videoLength = String(file.response?.data.duration) || '0'
-  form.value.fileType = file.response?.data.fileExtension
+  form.value.videoUrl = file.response?.data.accessPath
 }
 
 function copyAddress() {
-  const url = form.value.address
+  const url = form.value.videoUrl
   if (!url) {
     ElMessage.warning('视频地址为空，无法复制')
     return
@@ -76,7 +77,10 @@ function cancelConfirm() {
 }
 
 function reset() {
-  form.value = {}
+  form.value = {
+    publishStatus: 0,
+
+  }
   resetForm(formRef.value)
   submitLoading.value = false
   uploadFile.value = null
@@ -107,15 +111,27 @@ function submit() {
   })
 }
 
+function uploadFileSuccess({ response}: { response: ResponseData<UploadFileResponseModel>, uploadFile: UploadFile, uploadFiles: UploadFiles }) {
+  form.value.coverUrl = response.data.accessPath
+}
+
 watch(() => props.data, (newVal) => {
   if (newVal) {
     form.value = { ...newVal } as any
+
     console.log(form.value, 'form.value')
   }
 })
-watch(() => visible.value, () => {
+watch(() => visible.value, (val) => {
   // 重置
   uploadFile.value = null
+  if (val) {
+    form.value.projectId = category.currentProjectId
+  }
+})
+
+onMounted(() => {
+  console.log(category.categoryList, 'category.categoryList')
 })
 </script>
 
@@ -139,59 +155,64 @@ watch(() => visible.value, () => {
       <el-row :gutter="20">
         <!-- 视频名称 -->
         <el-col :span="12">
-          <el-form-item label="视频名称" prop="name" style="width: 100%">
-            <el-input v-model="form.name" clearable placeholder="请输入视频名称" size="large" />
+          <el-form-item label="视频名称" prop="videoName" style="width: 100%">
+            <el-input v-model="form.videoName" clearable placeholder="请输入视频名称" size="large" />
           </el-form-item>
         </el-col>
 
-        <!-- 视频分类 -->
         <el-col :span="12">
-          <el-form-item label="视频分类" prop="videoType" style="width: 100%">
-            <el-tree-select
-              v-model="form.videoType"
-              :data="videoTree"
-              :render-after-expand="false"
-              :props="{
-                label: 'name',
-                value: 'id',
-                children: 'children',
-              }"
-              style="width: 240px"
+          <el-form-item label="项目" prop="projectId" style="width: 100%">
+            <el-select v-model="form.projectId" placeholder="请选择项目">
+              <el-option
+                v-for="item in category.categoryList"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+              />
+            </el-select>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="8">
+          <el-form-item label="是否公开" prop="publishStatus" style="width: 100%">
+            <el-switch
+              v-model="form.publishStatus"
+              class="mb-2"
+              active-text="公开"
+              :active-value="1"
+              inactive-text="不公开"
+              :inactive-value="0"
             />
           </el-form-item>
         </el-col>
-      </el-row>
 
-      <el-row :gutter="20">
         <!-- 视频链接地址 -->
-        <el-col :span="24">
-          <el-form-item label="视频地址" prop="address" style="width: 100%">
-            <el-input v-model="form.address" clearable placeholder="请输入视频链接地址或上传视频自动获取地址" size="large" />
+        <el-col :span="16">
+          <el-form-item label="视频地址" prop="videoUrl" style="width: 100%">
+            <el-input v-model="form.videoUrl" clearable placeholder="请输入视频链接地址或上传视频自动获取地址" size="large" />
           </el-form-item>
         </el-col>
-      </el-row>
 
-      <el-row :gutter="20">
-        <!-- 视频简介 -->
+        <!-- 视频文本 -->
         <el-col :span="24">
-          <el-form-item label="视频简介" prop="comment" style="width: 100%">
+          <el-form-item label="视频文本" prop="videoText" style="width: 100%">
             <el-input
-              v-model="form.comment"
+              v-model="form.videoText"
               type="textarea"
               :rows="4"
               clearable
-              placeholder="请输入视频简介"
+              placeholder="请输入视频文本"
             />
           </el-form-item>
         </el-col>
         <!-- 上传封面 -->
         <el-col :span="8">
-          <el-form-item label="视频封面" prop="coverLink" style="width: 100%">
+          <el-form-item label="视频封面" prop="coverUrl" style="width: 100%">
             <UploadFile
-              v-model:uploaded-files="form.coverLink"
               :limit="1"
               file-types="image"
               :show-file-list="false"
+              @on-success="uploadFileSuccess"
             />
             <div class="text-[10px] text-red-300">
               请尽量上传比例为2:1的封面图

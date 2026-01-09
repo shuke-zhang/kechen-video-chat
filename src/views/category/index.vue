@@ -5,9 +5,10 @@ import type { VideoProjectModel } from '@/model/videoProject'
 import { QuestionFilled } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import { addVideoProject, DelVideoProject, getVideoProjectList, PutVideoProject } from '@/api/videoProject'
+import { useCategoryStore } from '@/stores'
 
 const sidebarStore = useSidebarStore()
-
+const category = useCategoryStore()
 const router = useRouter()
 
 const { categoryList } = useUserStore()
@@ -109,6 +110,7 @@ function handleDelete(_ids: number[] | VideoProjectModel) {
 }
 
 function handleProjectDetail(item: VideoProjectModel) {
+  category.currentProjectId = item.categoryId
   router.push({ path: `/category/project/video/${item.categoryId}` })
 }
 
