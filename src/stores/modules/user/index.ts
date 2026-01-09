@@ -9,7 +9,8 @@ const SUPER_ADMIN = 'admin'
 export const useUserStore = defineStore('user', () => {
   const router = useRouter()
   const route = useRoute()
-  const { getCategory, categoryList } = useCategoryStore()
+  const categoryStore = useCategoryStore()
+  const categoryList = computed(() => categoryStore.categoryList)
   const localUser = ref<UserModel | null>(getCache<UserModel>('USER_INFO')?.value || null)
   const userInfo = ref<UserModel | null>(localUser.value || null)
   const userName = ref<UserModel['name'] | null>(localUser?.value ? localUser?.value.name : null)
@@ -41,7 +42,7 @@ export const useUserStore = defineStore('user', () => {
     setCacheToken(res.data)
     setCache('IS_LOGGED_IN', true)
     await getInfo()
-    await getCategory()
+    await categoryStore.getCategory()
     console.log(categoryList, 'categoryList')
   }
   function logout() {

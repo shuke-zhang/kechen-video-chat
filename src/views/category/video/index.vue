@@ -173,22 +173,6 @@ onMounted(() => {
         </el-form-item>
 
         <el-form-item style="margin-bottom: 0;">
-          <el-tree-select
-            v-model="queryParams.videoType"
-            :data="videoTree"
-            placeholder="请选择视频分类"
-            :render-after-expand="false"
-            :props="{
-              label: 'name',
-              value: 'id',
-              children: 'children',
-            }"
-            style="width: 240px"
-            @change="getList"
-          />
-        </el-form-item>
-
-        <el-form-item style="margin-bottom: 0;">
           <el-button type="primary" :icon="Search" @click="getList">
             查询
           </el-button>
@@ -251,6 +235,9 @@ onMounted(() => {
                 <div class="text-sm font-semibold line-clamp-1">
                   {{ it.videoName }}
                 </div>
+                <el-tag :type="it.publishStatus ? 'danger' : 'success'" size="small" class="ml-[4px]">
+                  {{ it.publishStatus ? '不公开' : '公开' }}
+                </el-tag>
               </div>
 
               <el-tooltip
