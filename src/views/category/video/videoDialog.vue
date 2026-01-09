@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ElForm, UploadFile, UploadFiles } from 'element-plus'
+import type { ElForm, UploadFile, UploadFiles, UploadUserFile } from 'element-plus'
 import type DragUploadFile from '@/components/DragUploadFile/DragUploadFile.vue'
 import type { UploadFileResponseModel } from '@/components/UploadFile/types'
 import type { UploadRow } from '@/model/upload'
@@ -14,7 +14,7 @@ const props = defineProps({
     required: true,
   },
   data: {
-    type: Object,
+    type: Object as PropType<VideoModel>,
   },
   videoTree: {
     type: Array as PropType<VideoCategoryModel[]>,
@@ -22,7 +22,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['success'])
-
+const file = ref<UploadUserFile[]>([])
 const category = useCategoryStore()
 
 const visible = defineModel({ type: Boolean, required: false })
@@ -84,6 +84,7 @@ function reset() {
   resetForm(formRef.value)
   submitLoading.value = false
   uploadFile.value = null
+  file.value = []
 }
 
 function submit() {
@@ -113,6 +114,7 @@ function submit() {
 
 function uploadFileSuccess({ response}: { response: ResponseData<UploadFileResponseModel>, uploadFile: UploadFile, uploadFiles: UploadFiles }) {
   form.value.coverUrl = response.data.accessPath
+  console.log(file.value, 'flie1111')
 }
 
 watch(() => props.data, (newVal) => {
@@ -127,6 +129,10 @@ watch(() => visible.value, (val) => {
   uploadFile.value = null
   if (val) {
     form.value.projectId = category.currentProjectId
+    file.value.push({
+      name: props.data?.coverUrl || '',
+      url: props.data?.coverUrl,
+    })
   }
 })
 
@@ -209,6 +215,7 @@ onMounted(() => {
         <el-col :span="8">
           <el-form-item label="视频封面" prop="coverUrl" style="width: 100%">
             <UploadFile
+              v-model:file-data="file"
               :limit="1"
               file-types="image"
               :show-file-list="false"
