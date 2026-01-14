@@ -25,7 +25,7 @@ export interface UploadFileResponseModel {
   /**
    * 原本的文件名
    */
-  original_name: string
+  original_name?: string
   /**
    * 封面图
    */
@@ -33,24 +33,27 @@ export interface UploadFileResponseModel {
   /**
    * 地址
    */
-  accessPath: string
+  accessPath?: string
 
   // wang
   /**
    * 当前文件名
    */
-  currentName: string
+  currentName?: string
   /**
    * 描述
    */
-  duration: string
+  duration?: string
   /**
    * 文件类型
    */
-  fileExtension: string
+  fileExtension?: string
 
   /**
    * 原始文件名
    */
-  originalName: string
+  originalName?: string
+}
+
+export type UploadFileResponseBaseModel = UploadFileResponseModel & {
 }

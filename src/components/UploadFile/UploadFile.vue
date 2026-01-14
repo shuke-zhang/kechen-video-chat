@@ -99,7 +99,7 @@ const emit = defineEmits<{
   (e: 'success', row: UploadRow): void
   (e: 'error', row: UploadRow): void
   (e: 'onBeforeRemove', payload: { uploadFile: UploadFile, uploadFiles: UploadFiles }): void
-  (e: 'onSuccess', payload: { response: ResponseData<UploadFileResponseModel>, uploadFile: UploadFile, uploadFiles: UploadFiles }): void
+  (e: 'onSuccess', payload: { response: ResponseData<any>, uploadFile: UploadFile, uploadFiles: UploadFiles }): void
   (e: 'onError', payload: { error: Error, uploadFile: UploadFile, uploadFiles: UploadFiles }): void
   (e: 'onProgress', payload: { evt: UploadProgressEvent, uploadFile: UploadFile, uploadFiles: UploadFiles }): void
   (e: 'onRemove', payload: { uploadFile: UploadFile, uploadFiles: UploadFiles }): void
@@ -464,6 +464,8 @@ function handleError(_error: Error, uploadFile: UploadFile, uploadFiles: UploadF
 }
 
 function handleProgress(_evt: UploadProgressEvent, _uploadFile: UploadFile, _uploadFiles: UploadFiles) {
+  // console.log(_evt, '进度')
+
   emit('onProgress', { evt: _evt, uploadFile: _uploadFile, uploadFiles: _uploadFiles })
 }
 
@@ -602,6 +604,8 @@ async function doUpload({ file, onProgress, onSuccess, onError }: UploadRequestO
         }
       },
     })
+    console.log(res, 'res')
+
     const data = res.data
     if (data?.code && data.code !== 0) {
       throw new Error(data?.msg || '上传失败')
@@ -668,7 +672,7 @@ defineExpose({
       :before-remove="beforeRemove"
       :on-success="handleSuccess"
       :on-error="handleError"
-      :on-progress="mode !== 'button' ? handleProgress : undefined"
+      :on-progress=" handleProgress "
       :on-preview="mode !== 'button' ? handlePictureCardPreview : undefined"
       :on-remove="handleRemove"
       :on-exceed="onExceed"
@@ -705,9 +709,11 @@ defineExpose({
         </el-icon>
       </div>
 
-      <el-button v-if="isFileBtn" type="primary">
-        选择文件
-      </el-button>
+      <slot name="button">
+        <el-button v-if="isFileBtn" type="primary">
+          选择文件
+        </el-button>
+      </slot>
     </el-upload>
 
     <el-dialog v-model="dialogVisible" append-to-body width="520px">
