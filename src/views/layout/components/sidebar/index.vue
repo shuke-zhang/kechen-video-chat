@@ -21,6 +21,7 @@ function handleMenuItemClick(item: MenuItemRegistered) {
   if (sidebarStore.categorySidebars.map(it => it.value,
   ).includes(item.index)) {
     router.push({ path: `/category/project/${item.index}/${route.params.id}` })
+    sidebarStore.defaultActiveMenu = item.index
   }
 }
 
@@ -28,12 +29,14 @@ function handleMenuItemClick(item: MenuItemRegistered) {
 
 // 可选：首次挂载时主动触发一次（如果你需要立刻加载“公共”内容）
 onMounted(() => {
-  const item = {
-    index: sidebars.value[0].value,
-    indexPath: [sidebars.value[0].value],
-    active: true,
-  } as MenuItemRegistered
-  handleMenuItemClick(item)
+  if (!sidebarStore.defaultActiveMenu) {
+    const item = {
+      index: sidebars.value[0].value,
+      indexPath: [sidebars.value[0].value],
+      active: true,
+    } as MenuItemRegistered
+    handleMenuItemClick(item)
+  }
 })
 </script>
 
@@ -45,7 +48,7 @@ onMounted(() => {
         :unique-opened="true"
         :collapse-transition="false"
         mode="vertical"
-        :default-active="sidebars[0].value"
+        :default-active="sidebarStore.defaultActiveMenu"
         class=""
         style="background-color: #1c1e23;"
       >

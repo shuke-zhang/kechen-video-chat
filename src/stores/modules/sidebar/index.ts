@@ -36,6 +36,7 @@ export const useSidebarStore = defineStore('sidebar', () => {
     },
   ]
   const currentSidebars = ref(publicSidebars)
+  const defaultActiveMenu = ref(publicSidebars[0].value)
   const isShowSidebar = ref(!!route.meta?.showLeftMenu)
 
   /**
@@ -47,7 +48,6 @@ export const useSidebarStore = defineStore('sidebar', () => {
 
   watch(() => route.path, () => {
     currentSidebars.value = route.path.includes('category/project') ? categorySidebars : publicSidebars
-
     if (route.path.includes('category')) {
       isShowSidebar.value = true
       return
@@ -64,7 +64,13 @@ export const useSidebarStore = defineStore('sidebar', () => {
     isShowSidebar,
     currentSidebarItem,
     currentSidebars,
+    defaultActiveMenu,
     currentPublicStatus,
     setCurrentSidebarItem,
   }
+}, {
+  persist: {
+    key: 'SIDEBAR',
+    storage: localStorage,
+  },
 })
