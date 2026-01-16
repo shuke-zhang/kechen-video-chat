@@ -71,6 +71,7 @@ export const useUserStore = defineStore('user', () => {
     removeCache('IS_LOGGED_IN')
     removeCache('USER_INFO')
     removeCache('CATEGORY_LIST')
+    localStorage.clear()
   }
 
   function hasPermission(requiredPermission: string): boolean {

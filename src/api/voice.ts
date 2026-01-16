@@ -1,5 +1,5 @@
 import type { AxiosProgressEvent } from 'axios'
-import type { uploadAudioResponse, VoiceModel } from '@/model/voice'
+import type { uploadAudioResponse, VoiceArgsModel, VoiceModel } from '@/model/voice'
 
 /**
  * @description 分页查询音色列表
@@ -57,6 +57,22 @@ export function uploadAudio(formData: FormData) {
     data: formData,
     headers: {
       'Content-Type': 'multipart/form-data',
+    },
+  })
+}
+
+/**
+ * @description 修改音色参数
+ */
+export function putVoiceArgs(data: {
+  testAudio: string
+  args: VoiceArgsModel
+}) {
+  return request.post({
+    url: `/api/projectVoice/voiceArgs`,
+    data: {
+      testAudio: data.testAudio,
+      voiceArgs: JSON.stringify(data.args),
     },
   })
 }

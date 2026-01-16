@@ -13,6 +13,7 @@ export interface VoiceModel {
   projectId?: number
   /**
    * 所属的系统音色
+   * 0-系统音色
    */
   systemVoice?: number
   /**
@@ -34,6 +35,8 @@ export interface VoiceModel {
   voiceName?: string
   /**
    * 音色状态
+   * 0-系统
+   * 1-个人 新增时只需要传递个人
    */
   voiceStatus?: number
   /**

@@ -20,7 +20,7 @@ export function useDict(...args: string[]) {
     args.forEach((dictType) => {
       res.value[dictType] = []
       const dicts = dictStore.getDict(dictType)
-      if (dicts) {
+      if (dicts && dicts.length > 0) {
         res.value[dictType] = dicts
       }
       else {
@@ -28,7 +28,7 @@ export function useDict(...args: string[]) {
           // 筛选出数据键值已经停用的数据
           if (!response.data)
             return
-          const data = response.data.filter(el => el.status === '0')
+          const data = response.data.filter(el => el.status === 0)
 
           const list = data.map((el) => {
             return {

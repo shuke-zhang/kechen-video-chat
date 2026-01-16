@@ -1,11 +1,10 @@
 <!-- userDialog.vue -->
 <script setup lang="ts">
-import type { AxiosProgressEvent } from 'axios'
 import type { ElForm, FormRules, UploadRequestOptions } from 'element-plus'
 import type { DictDataCssModel } from '@/model/dict'
-import type { VoiceModel } from '@/model/voice'
+import type { VoiceArgsModel, VoiceModel } from '@/model/voice'
 import { CircleCheck } from '@element-plus/icons-vue'
-import { addVoice, putVoice, uploadAudio } from '@/api/voice'
+import { addVoice, getVoiceList, putVoice, putVoiceArgs, uploadAudio } from '@/api/voice'
 
 const props = defineProps({
   isAdd: { type: Boolean, required: true },
@@ -16,6 +15,8 @@ const props = defineProps({
   },
 })
 const emit = defineEmits(['success'])
+const { age_voice_type } = useDict('age_voice_type')
+
 const uploadRef = useTemplateRef('uploadRef')
 const category = useCategoryStore()
 /**
@@ -24,7 +25,8 @@ const category = useCategoryStore()
  */
 const voiceType = ref('1')
 console.log(category, 'category')
-
+const systemVoiceLoading = ref(false)
+const systemVoiceList = ref<VoiceModel[]>([])
 const visible = defineModel({ type: Boolean, required: false })
 const uploadPercent = ref(0)
 const submitLoading = ref(false)
@@ -40,13 +42,8 @@ const form = ref<VoiceModel>({
 const isLocalVoice = computed(() => voiceType.value === '1')
 const rules: FormRules = {
   voiceName: [{ required: true, trigger: 'blur', message: '请输入音色名称' }],
-  sexDesc: [{ required: true, trigger: 'blur', message: '请选择性别' }],
-  departName: [{ required: true, trigger: 'blur', message: '请输入所属科室名称' }],
-  departHis: [{ required: true, trigger: 'blur', message: '请输入科室编号' }],
-  password: [
-    { required: true, trigger: 'blur', message: '请输入密码' },
-    { min: 6, message: '密码至少 6 位', trigger: 'blur' },
-  ],
+  projectId: [{ required: true, trigger: 'blur', message: '请输入项目' }],
+  voiceType: [{ required: true, trigger: 'blur', message: '请选择音色类别' }],
 
 }
 const marks = reactive({
@@ -80,7 +77,10 @@ function submit(): void {
       return
     submitLoading.value = true
     const api = props.isAdd ? addVoice : putVoice
-    const data = { ...form.value }
+    const data = {
+      ...form.value,
+      voiceArgs: JSON.stringify(form.value.voiceArgs) as VoiceArgsModel,
+    }
     api(data).then(() => {
       showLoadingMessageSuccess('操作成功')
       visible.value = false
@@ -102,6 +102,7 @@ async function handleUploadAudio(option: UploadRequestOptions) {
     const res = await uploadAudio(formData)
     uploadPercent.value = 100
     form.value.testAudio = res.data.testAudio
+    form.value.voiceId = res.data.voiceId
     uploadLoading.value = false
     uploadRef.value?.clearFiles()
   }
@@ -130,11 +131,43 @@ function beforeUpload(file: File) {
 function resetUpload() {
 }
 
-function onUploadProgress(e: AxiosProgressEvent) {
-  if (e.total) {
-    const percent = Math.round((e.loaded / e.total) * 100)
-    uploadPercent.value = percent
-  }
+/**
+ * 重新生成
+ */
+function regenerate() {
+  putVoiceArgs({
+    testAudio: form.value.testAudio || '',
+    args: {
+      pitch: form.value.voiceArgs?.pitch,
+      quality: form.value.voiceArgs?.quality,
+      strength: form.value.voiceArgs?.strength,
+    },
+  }).then((res) => {
+    if (res.code === 0) {
+      showMessageSuccess('生成成功！')
+      form.value.testAudio = res.msg
+    }
+  })
+}
+
+/**
+ * 远程搜索系统音色
+ */
+function systemVoiceMethod() {
+  if (systemVoiceLoading.value)
+    return
+  systemVoiceLoading.value = true
+  getVoiceList({
+    systemVoice: 0,
+    page: {
+      current: 1,
+      size: 10000,
+    },
+  }).then((res) => {
+    systemVoiceList.value = res.data.records
+  }).finally(() => {
+    systemVoiceLoading.value = false
+  })
 }
 
 watch(() => visible.value, (val) => {
@@ -147,7 +180,7 @@ watch(() => visible.value, (val) => {
 <template>
   <el-dialog
     v-model="visible"
-    :title="isAdd ? '新增用户' : '修改用户'"
+    :title="isAdd ? '新增音色' : '修改音色'"
     width="820"
     :close-on-click-modal="false"
     @close="cancel"
@@ -173,7 +206,7 @@ watch(() => visible.value, (val) => {
           </el-form-item>
         </el-col>
 
-        <el-col :span="24">
+        <el-col :span="12">
           <el-form-item label="上传方式" style="width: 100%">
             <el-radio-group v-model="voiceType">
               <el-radio value="1" size="large">
@@ -186,15 +219,43 @@ watch(() => visible.value, (val) => {
           </el-form-item>
         </el-col>
 
-        <!-- 音色选择 -->
-        <el-col v-if="!isLocalVoice" :span="12">
-          <el-form-item label="音色" prop="testAudio" style="width: 100%">
-            <el-select v-model="form.testAudio" placeholder="请选择音色">
+        <el-col :span="12">
+          <el-form-item
+            label="音色类别" prop="voiceType" style="width: 100%"
+          >
+            <el-select v-model="form.voiceType" placeholder="请选择音色类别">
               <el-option
-                v-for="item in category.categoryList"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id"
+                v-for="item in age_voice_type"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </el-select>
+          </el-form-item>
+        </el-col>
+
+        <el-col v-if="!isLocalVoice" :span="12">
+          <el-form-item
+            label="系统音色" style="width: 100%" prop="testAudio"
+            :rules="{
+              required: true,
+              message: '请选择系统音色',
+            }"
+          >
+            <el-select
+              v-model="form.testAudio"
+              filterable
+              remote
+              reserve-keyword
+              placeholder="请选择系统音色"
+              :remote-method="systemVoiceMethod"
+              :loading="systemVoiceLoading"
+            >
+              <el-option
+                v-for="item in systemVoiceList"
+                :key="item.testAudio"
+                :label="item.voiceName"
+                :value="item.testAudio!"
               />
             </el-select>
           </el-form-item>
@@ -202,7 +263,13 @@ watch(() => visible.value, (val) => {
 
         <!-- 上传区域 -->
         <el-col v-if="isLocalVoice" :span="24">
-          <el-form-item label="上传音色">
+          <el-form-item
+            label="上传音色"
+            :rules="{
+              required: true,
+              message: '请上传音频',
+            }"
+          >
             <div class="flex items-center gap-[16px]">
               <el-upload
                 ref="uploadRef"
@@ -231,14 +298,18 @@ watch(() => visible.value, (val) => {
                 controls
                 style="flex:1;height: 32px;"
               />
-              <el-button size="small" @click="resetUpload">
+              <el-button v-if="form.testAudio" size="small" @click="resetUpload">
                 重新上传
+              </el-button>
+
+              <el-button size="small" type="primary" :disabled="!form.testAudio" @click="regenerate">
+                重新生成
               </el-button>
             </div>
           </el-form-item>
         </el-col>
 
-        <el-col :span="12">
+        <el-col v-if="form.testAudio" :span="12">
           <el-form-item label="音量高低" class="w-full">
             <div class="w-[320px]">
               <el-slider
@@ -248,7 +319,7 @@ watch(() => visible.value, (val) => {
           </el-form-item>
         </el-col>
 
-        <el-col :span="12">
+        <el-col v-if="form.testAudio" :span="12">
           <el-form-item label="效果强度" class="w-full">
             <div class="w-[320px]">
               <el-slider v-model="form.voiceArgs!.strength" :min="-100" show-input :marks="marks" />
@@ -256,7 +327,7 @@ watch(() => visible.value, (val) => {
           </el-form-item>
         </el-col>
 
-        <el-col :span="12">
+        <el-col v-if="form.testAudio" :span="12">
           <el-form-item label="输出质量" class="w-full">
             <div class="w-[320px]">
               <el-slider v-model="form.voiceArgs!.quality" :min="-100" show-input :marks="marks" />

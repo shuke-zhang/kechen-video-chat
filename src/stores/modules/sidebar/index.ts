@@ -1,4 +1,5 @@
 import type { MenuItemRegistered } from 'element-plus'
+import { tr } from 'element-plus/es/locale/index.mjs'
 
 export const useSidebarStore = defineStore('sidebar', () => {
   const route = useRoute()
@@ -57,6 +58,14 @@ export const useSidebarStore = defineStore('sidebar', () => {
     }
   }, {
     immediate: true,
+  })
+  watch(() => currentSidebars.value, (val) => {
+    console.log('变化currentSidebars')
+    if (!val.map(el => el.value).includes(defaultActiveMenu.value)) {
+      defaultActiveMenu.value = val[0].value
+    }
+  }, {
+    deep: true,
   })
   return {
     categorySidebars,
