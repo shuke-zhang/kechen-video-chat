@@ -39,6 +39,7 @@ const form = ref<VoiceModel>({
     quality: 0,
   },
 })
+const lastGeneratedArgs = ref<VoiceArgsModel | null>(null)
 const isLocalVoice = computed(() => voiceType.value === '1')
 const rules: FormRules = {
   voiceName: [{ required: true, trigger: 'blur', message: '请输入音色名称' }],
@@ -50,6 +51,20 @@ const marks = reactive({
   '-100': '-100',
   '0': '0',
   '100': '100',
+})
+// 是否需要重新生成
+const needRegenerate = computed(() => {
+  if (!lastGeneratedArgs.value || !form.value.voiceArgs)
+    return true
+
+  const cur = form.value.voiceArgs
+  const last = lastGeneratedArgs.value
+
+  return (
+    cur.pitch !== last.pitch
+    || cur.strength !== last.strength
+    || cur.quality !== last.quality
+  )
 })
 function cancel(): void {
   visible.value = false
@@ -75,11 +90,17 @@ function submit(): void {
       return
     if (submitLoading.value)
       return
+    if (needRegenerate.value) {
+      showMessageError('参数已修改，请先点击“重新生成”后再提交')
+      return
+    }
+
     submitLoading.value = true
     const api = props.isAdd ? addVoice : putVoice
     const data = {
       ...form.value,
       voiceArgs: JSON.stringify(form.value.voiceArgs) as VoiceArgsModel,
+      voiceStatus: form.value.voiceStatus || 1,
     }
     api(data).then(() => {
       showLoadingMessageSuccess('操作成功')
@@ -146,6 +167,11 @@ function regenerate() {
     if (res.code === 0) {
       showMessageSuccess('生成成功！')
       form.value.testAudio = res.msg
+      lastGeneratedArgs.value = {
+        pitch: form.value.voiceArgs!.pitch,
+        strength: form.value.voiceArgs!.strength,
+        quality: form.value.voiceArgs!.quality,
+      }
     }
   })
 }
@@ -172,7 +198,25 @@ function systemVoiceMethod() {
 
 watch(() => visible.value, (val) => {
   if (val) {
+    if (props.data.id) {
+      form.value = {
+        ...props.data,
+        voiceType: `${props.data.voiceType}`,
+        voiceArgs: props.data.voiceArgs ? JSON.parse(props.data.voiceArgs) : props.data.voiceArgs,
+      }
+    }
     form.value.projectId = category.currentProjectId
+    // 初始化“最近生成参数”
+    if (form.value.voiceArgs) {
+      lastGeneratedArgs.value = {
+        pitch: form.value.voiceArgs.pitch,
+        strength: form.value.voiceArgs.strength,
+        quality: form.value.voiceArgs.quality,
+      }
+    }
+    else {
+      lastGeneratedArgs.value = null
+    }
   }
 })
 </script>
@@ -208,7 +252,7 @@ watch(() => visible.value, (val) => {
 
         <el-col :span="12">
           <el-form-item label="上传方式" style="width: 100%">
-            <el-radio-group v-model="voiceType">
+            <el-radio-group v-model="voiceType" @change="form.testAudio = ''">
               <el-radio value="1" size="large">
                 本地音频
               </el-radio>
@@ -234,7 +278,7 @@ watch(() => visible.value, (val) => {
           </el-form-item>
         </el-col>
 
-        <el-col v-if="!isLocalVoice" :span="12">
+        <el-col v-if="!isLocalVoice" :span="24">
           <el-form-item
             label="系统音色" style="width: 100%" prop="testAudio"
             :rules="{
@@ -242,22 +286,38 @@ watch(() => visible.value, (val) => {
               message: '请选择系统音色',
             }"
           >
-            <el-select
-              v-model="form.testAudio"
-              filterable
-              remote
-              reserve-keyword
-              placeholder="请选择系统音色"
-              :remote-method="systemVoiceMethod"
-              :loading="systemVoiceLoading"
-            >
-              <el-option
-                v-for="item in systemVoiceList"
-                :key="item.testAudio"
-                :label="item.voiceName"
-                :value="item.testAudio!"
-              />
-            </el-select>
+            <div class="flex w-full items-center  justify-between gap-[16px]">
+              <el-select
+                v-model="form.testAudio"
+                filterable
+                remote
+                reserve-keyword
+                placeholder="请选择系统音色"
+                :remote-method="systemVoiceMethod"
+                :loading="systemVoiceLoading"
+              >
+                <el-option
+                  v-for="item in systemVoiceList"
+                  :key="item.testAudio"
+                  :label="item.voiceName"
+                  :value="item.testAudio!"
+                />
+              </el-select>
+
+              <div class="flex  items-center gap-[16px]">
+                <el-icon v-if="form.testAudio" color="#67C23A">
+                  <CircleCheck />
+                </el-icon>
+                <audio
+                  :src="form.testAudio"
+                  controls
+                  style="flex:1;height: 32px;"
+                />
+                <el-button size="small" type="primary" :disabled="!form.testAudio" @click="regenerate">
+                  重新生成
+                </el-button>
+              </div>
+            </div>
           </el-form-item>
         </el-col>
 

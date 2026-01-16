@@ -1,19 +1,19 @@
 <!-- UserPage.vue -->
 <script setup lang="ts">
 import type { ElForm } from 'element-plus'
-import type { UserModel } from '@/model/user'
 import type { VoiceModel } from '@/model/voice'
 import { CircleClose, CirclePlus, Refresh, Search } from '@element-plus/icons-vue'
-import { DelUser, putUserPassword } from '@/api/user'
-import { getVoiceList } from '@/api/voice'
+import { delVoice, getVoiceList } from '@/api/voice'
 import VoicesDialog from './voicesDialog.vue'
 
+const { age_voice_type } = useDict('age_voice_type')
+
 const total = ref(0)
-const list = ref<UserModel[]>([])
+const list = ref<VoiceModel[]>([])
 const loading = ref(false)
 const dialogVisible = ref(false)
 const isAdd = ref(false)
-const dialogData = ref<UserModel>({})
+const dialogData = ref<VoiceModel>({})
 const ids = ref<number[]>([])
 const names = ref<string[]>([])
 const single = ref(true)
@@ -56,39 +56,18 @@ function handleAdd(): void {
   dialogVisible.value = true
 }
 
-function handlePut(row: UserModel): void {
+function handlePut(row: VoiceModel): void {
   isAdd.value = false
   dialogData.value = { ...row }
   dialogVisible.value = true
 }
 
-/**
- * 修改密码
- */
-function handleUpdatePassWord(row: UserModel) {
-  ElMessageBox.prompt(`请输入"${row.name}"的新密码`, '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    closeOnClickModal: false,
-    inputErrorMessage: '用户密码长度至少 6 位',
-  })
-    .then(({ value }) => {
-      return putUserPassword({
-        id: row.id!,
-        password: value,
-      })
-    })
-    .then(() => {
-      showLoadingMessageSuccess('操作成功')
-    })
-}
-
-function handleDel(_ids: number[] | UserModel): void {
+function handleDel(_ids: number[] | VoiceModel): void {
   const delIds = Array.isArray(_ids) ? _ids : [_ids.id!]
-  const delNames = Array.isArray(_ids) ? names.value : [_ids.name!]
-  confirmWarning(`是否确认删除用户：${delNames.join(', ')}？`).then(() => {
+  const delNames = Array.isArray(_ids) ? names.value : [_ids.voiceName!]
+  confirmWarning(`是否确认删除音色：${delNames.join(', ')}？`).then(() => {
     console.log('删除 IDs:', delIds)
-    delMsgLoading(DelUser(delIds), '删除中...').then(() => {
+    delMsgLoading(delVoice(delIds), '删除中...').then(() => {
       loading.value = false
       ids.value = []
       names.value = []
@@ -99,9 +78,9 @@ function handleDel(_ids: number[] | UserModel): void {
   })
 }
 
-function handleSelectionChange(selection: UserModel[]): void {
+function handleSelectionChange(selection: VoiceModel[]): void {
   ids.value = selection.map(i => i.id!)
-  names.value = selection.map(i => i.name!)
+  names.value = selection.map(i => i.voiceName!)
   single.value = selection.length !== 1
   multiple.value = selection.length === 0
 }
@@ -150,18 +129,30 @@ onMounted(() => {
     >
       <el-table-column type="selection" width="55" />
 
-      <el-table-column prop="id" label="用户编号" align="center" width="90" />
+      <el-table-column prop="id" label="音色编号" align="center" width="90" />
 
       <el-table-column prop="voiceName" label="音色名称" align="center" width="140" show-overflow-tooltip />
+
+      <el-table-column prop="voiceType" label="音色类别" align="center" show-overflow-tooltip>
+        <template #default="{ row }">
+          <dict-tag :options="age_voice_type" :value="row.voiceType" />
+        </template>
+      </el-table-column>
+
+      <el-table-column prop="voiceType" label="音色状态" align="center" show-overflow-tooltip>
+        <template #default="{ row }">
+          <el-tag :type="row.voiceStatus === 1 ? 'primary' : 'info'">
+            {{ row.voiceStatus === 1 ? '个人' : row.voiceStatus === 0 ? '系统' : '-' }}
+          </el-tag>
+        </template>
+      </el-table-column>
 
       <el-table-column align="center" label="操作" width="220" fixed="right">
         <template #default="{ row }">
           <el-button size="small" type="primary" @click="handlePut(row)">
             修改
           </el-button>
-          <el-button size="small" type="warning" @click="handleUpdatePassWord(row)">
-            修改密码
-          </el-button>
+
           <el-button size="small" type="danger" @click="handleDel(row)">
             删除
           </el-button>
