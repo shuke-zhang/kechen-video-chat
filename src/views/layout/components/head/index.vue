@@ -6,7 +6,7 @@ import routes from '@/router/routes'
 
 const UserStore = useUserStore()
 const { userName, isLoggedIn } = storeToRefs(UserStore)
-
+const categoryStore = useCategoryStore()
 const router = useRouter()
 const route = useRoute()
 const isActiveCategory = ref(false)
@@ -68,7 +68,8 @@ function handleNavClick(value: TopNavValueModel) {
 
   if (value.includes('category')) {
     const id = String(value).replace(/^\/?category\//, '')
-
+    console.log(id, 'command')
+    categoryStore.currentCategoryId = Number(id)
     isActiveCategory.value = true
     router.push({ path: `/category/${id}` })
 

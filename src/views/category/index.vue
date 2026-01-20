@@ -52,6 +52,7 @@ function getList() {
     publishStatus: sidebarStore.currentPublicStatus,
   }).then((res) => {
     videoProjectList.value = res.data.records || []
+    category.videoProjectList = res.data.records || []
   }).finally(() => {
     loading.value = false
   })
@@ -110,7 +111,7 @@ function handleDelete(_ids: number[] | VideoProjectModel) {
 }
 
 function handleProjectDetail(item: VideoProjectModel) {
-  category.currentProjectId = item.categoryId
+  category.currentProject = item
   router.push({ path: `/category/project/video/${item.categoryId}` })
 }
 

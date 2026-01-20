@@ -41,10 +41,11 @@ const popoverVisible = ref(false)
 const popoverLoading = ref(false)
 const formRef = ref<InstanceType<typeof ElForm> | null>(null)
 const form = ref<CharacterModel>({})
+const topic = ref('')
 const rules: FormRules = {
   voiceName: [{ required: true, trigger: 'blur', message: '请输入音色名称' }],
   projectId: [{ required: true, trigger: 'blur', message: '请输入项目' }],
-  voiceType: [{ required: true, trigger: 'blur', message: '请选择音色类别' }],
+  description: [{ required: true, trigger: 'blur', message: '请输入角色描述' }],
 }
 
 function cancel(): void {
@@ -57,6 +58,7 @@ function reset(): void {
   resetForm(formRef.value)
   submitLoading.value = false
   voiceType.value = '1'
+  topic.value = ''
 }
 
 function submit(): void {
@@ -121,6 +123,10 @@ function regenerate() {
   })
     .then((res) => {
       form.value.posterUrl = res.msg
+      file.value = [{
+        name: res.msg,
+        url: res.msg,
+      }]
     })
     .finally(() => {
       popoverLoading.value = false
@@ -134,6 +140,7 @@ function uploadFileSuccess({
   uploadFiles: UploadFiles
 }) {
   form.value.posterUrl = response.data.accessPath
+  console.log(file, 'file')
 }
 
 watch(
@@ -145,7 +152,7 @@ watch(
           ...props.data,
         }
       }
-      form.value.projectId = category.currentProjectId
+      form.value.projectId = category.currentProject?.id
       // 初始化“最近生成参数”
     }
   },
@@ -185,17 +192,34 @@ watch(
         </el-col>
 
         <el-col :span="12">
-          <el-form-item label="项目" prop="projectId" style="width: 100%">
+          <el-form-item label="项目类别" prop="projectId" style="width: 100%">
             <el-select
-              v-model="form.projectId"
-              placeholder="请选择项目"
+              v-model="category.currentCategoryId"
+              placeholder="请选择项目类别"
               disabled
             >
               <el-option
                 v-for="item in category.categoryList"
                 :key="item.id"
                 :label="item.name"
-                :value="item.id"
+                :value="item.id!"
+              />
+            </el-select>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="12">
+          <el-form-item label="项目名称" prop="projectId" style="width: 100%">
+            <el-select
+              v-model="form.projectId"
+              placeholder="请选择项目名称"
+              disabled
+            >
+              <el-option
+                v-for="item in category.videoProjectList"
+                :key="item.id"
+                :label="item.projectName"
+                :value="item.id!"
               />
             </el-select>
           </el-form-item>
@@ -234,11 +258,7 @@ watch(
           <el-form-item
             label="角色描述"
             style="width: 100%"
-            prop="testAudio"
-            :rules="{
-              required: true,
-              message: '请选择音色',
-            }"
+            prop="description"
           >
             <el-input
               v-model="form.description"
@@ -251,7 +271,7 @@ watch(
         </el-col>
 
         <el-col :span="12">
-          <el-form-item label="角色图片" style="width: 100%" prop="testAudio">
+          <el-form-item label="角色图片" style="width: 100%">
             <div class="flex w-full items-center gap-[10px]">
               <UploadFile
                 v-model:file-data="file"
@@ -272,7 +292,7 @@ watch(
               >
                 <div class="popover-body gap-[10px]">
                   <el-select
-                    v-model="form.voiceId"
+                    v-model="topic"
                     remote
                     reserve-keyword
                     placeholder="请选择主题"

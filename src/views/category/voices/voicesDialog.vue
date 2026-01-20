@@ -205,7 +205,8 @@ watch(() => visible.value, (val) => {
         voiceArgs: props.data.voiceArgs ? JSON.parse(props.data.voiceArgs) : props.data.voiceArgs,
       }
     }
-    form.value.projectId = category.currentProjectId
+    form.value.projectId = category.currentProject?.id
+
     // 初始化“最近生成参数”
     if (form.value.voiceArgs) {
       lastGeneratedArgs.value = {
@@ -238,13 +239,34 @@ watch(() => visible.value, (val) => {
         </el-col>
 
         <el-col :span="12">
-          <el-form-item label="项目" prop="projectId" style="width: 100%">
-            <el-select v-model="form.projectId" placeholder="请选择项目" disabled>
+          <el-form-item label="项目类别" prop="projectId" style="width: 100%">
+            <el-select
+              v-model="category.currentCategoryId"
+              placeholder="请选择项目类别"
+              disabled
+            >
               <el-option
                 v-for="item in category.categoryList"
                 :key="item.id"
                 :label="item.name"
-                :value="item.id"
+                :value="item.id!"
+              />
+            </el-select>
+          </el-form-item>
+        </el-col>
+
+        <el-col :span="12">
+          <el-form-item label="项目名称" prop="projectId" style="width: 100%">
+            <el-select
+              v-model="form.projectId"
+              placeholder="请选择项目名称"
+              disabled
+            >
+              <el-option
+                v-for="item in category.videoProjectList"
+                :key="item.id"
+                :label="item.projectName"
+                :value="item.id!"
               />
             </el-select>
           </el-form-item>
