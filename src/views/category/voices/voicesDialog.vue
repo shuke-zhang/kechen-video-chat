@@ -347,6 +347,7 @@ watch(() => visible.value, (val) => {
         <el-col v-if="isLocalVoice" :span="24">
           <el-form-item
             label="上传音色"
+            prop="testAudio"
             :rules="{
               required: true,
               message: '请上传音频',
