@@ -1,3 +1,4 @@
+import type { generateImageModel } from '@/model/generateImage'
 import type { VideoModel } from '@/model/video'
 
 /**
@@ -35,5 +36,15 @@ export function DelVideo(idList: number[]) {
   return request.delete({
     url: `/api/video/delete`,
     data: idList,
+  })
+}
+
+/**
+ * @description 图片生成
+ */
+export function generateImage(params: generateImageModel) {
+  return request.get({
+    url: `/api/video/imageGen`,
+    params,
   })
 }
