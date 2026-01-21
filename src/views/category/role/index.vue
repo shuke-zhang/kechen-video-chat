@@ -2,12 +2,13 @@
 <script setup lang="ts">
 import type { ElForm } from 'element-plus'
 import type { CharacterModel } from '@/model/character'
+import type { VoiceModel } from '@/model/voice'
 import { CircleClose, CirclePlus, Refresh, Search } from '@element-plus/icons-vue'
-import { getCharacterList } from '@/api/character'
-import { delVoice } from '@/api/voice'
+import { delCharacter, getCharacterList } from '@/api/character'
+import { getVoiceList } from '@/api/voice'
 import RoleDialog from './roleDialog.vue'
 
-const { age_voice_type } = useDict('age_voice_type')
+const category = useCategoryStore()
 
 const total = ref(0)
 const list = ref<CharacterModel[]>([])
@@ -19,6 +20,8 @@ const ids = ref<number[]>([])
 const names = ref<string[]>([])
 const single = ref(true)
 const multiple = ref(true)
+const voiceLoading = ref(false)
+const voiceList = ref<VoiceModel[]>([])
 
 const queryRef = useTemplateRef('queryEl')
 const queryParams = ref<ListPageParamsWrapper<CharacterModel>>({
@@ -27,7 +30,7 @@ const queryParams = ref<ListPageParamsWrapper<CharacterModel>>({
     size: 10,
   },
 })
-
+const srcList = computed(() => list.value.map(it => it.posterUrl || ''))
 function getList(): void {
   if (loading.value)
     return
@@ -65,10 +68,10 @@ function handlePut(row: CharacterModel): void {
 
 function handleDel(_ids: number[] | CharacterModel): void {
   const delIds = Array.isArray(_ids) ? _ids : [_ids.id!]
-  const delNames = Array.isArray(_ids) ? names.value : [_ids.voiceName!]
-  confirmWarning(`是否确认删除音色：${delNames.join(', ')}？`).then(() => {
+  const delNames = Array.isArray(_ids) ? names.value : [_ids.characterName!]
+  confirmWarning(`是否确认删除角色：${delNames.join(', ')}？`).then(() => {
     console.log('删除 IDs:', delIds)
-    delMsgLoading(delVoice(delIds), '删除中...').then(() => {
+    delMsgLoading(delCharacter(delIds), '删除中...').then(() => {
       loading.value = false
       ids.value = []
       names.value = []
@@ -86,8 +89,31 @@ function handleSelectionChange(selection: CharacterModel[]): void {
   multiple.value = selection.length === 0
 }
 
+/**
+ * 远程搜索系统音色
+ */
+function voiceMethod() {
+  if (voiceLoading.value)
+    return
+  voiceLoading.value = true
+  getVoiceList({
+    page: {
+      current: 1,
+      size: 10000,
+    },
+    projectId: category.currentProject?.id,
+  })
+    .then((res) => {
+      voiceList.value = res.data.records
+    })
+    .finally(() => {
+      voiceLoading.value = false
+    })
+}
+
 onMounted(() => {
   getList()
+  voiceMethod()
 })
 </script>
 
@@ -98,7 +124,7 @@ onMounted(() => {
       <el-form-item>
         <el-input
           v-model="queryParams.voiceName"
-          placeholder="请输入音色名查询"
+          placeholder="请输入角色名查询"
           clearable
           style="width: 220px"
           @keyup.enter="getList"
@@ -130,23 +156,30 @@ onMounted(() => {
     >
       <el-table-column type="selection" width="55" />
 
-      <el-table-column prop="id" label="音色编号" align="center" width="90" />
+      <el-table-column prop="id" label="角色编号" align="center" width="90" />
 
-      <el-table-column prop="voiceName" label="音色名称" align="center" width="140" show-overflow-tooltip />
+      <el-table-column prop="characterName" label="角色名称" align="center" width="140" show-overflow-tooltip />
 
-      <el-table-column prop="voiceType" label="音色类别" align="center" show-overflow-tooltip>
+      <el-table-column prop="projectId" label="角色图片" align="center" show-overflow-tooltip>
         <template #default="{ row }">
-          <dict-tag :options="age_voice_type" :value="row.voiceType" />
+          <el-image
+            style="width: 40px; height: 40px"
+            :initial-index="srcList?.findIndex((el) => el === row.posterUrl)"
+            :src="row.posterUrl"
+            fit="cover"
+            :preview-src-list="srcList"
+            :zoom-rate="1.2"
+            :max-scale="7"
+            preview-teleported
+            show-progress
+            append-to-body
+          />
         </template>
       </el-table-column>
 
-      <el-table-column prop="voiceType" label="音色状态" align="center" show-overflow-tooltip>
-        <template #default="{ row }">
-          <el-tag :type="row.voiceStatus === 1 ? 'primary' : 'info'">
-            {{ row.voiceStatus === 1 ? '个人' : row.voiceStatus === 0 ? '系统' : '-' }}
-          </el-tag>
-        </template>
-      </el-table-column>
+      <el-table-column prop="description" label="角色描述" align="center" show-overflow-tooltip />
+
+      <el-table-column prop="voiceName" label="音色" align="center" show-overflow-tooltip :formatter="$formatterTableEmpty" />
 
       <el-table-column align="center" label="操作" width="220" fixed="right">
         <template #default="{ row }">
@@ -175,6 +208,7 @@ onMounted(() => {
       v-model="dialogVisible"
       :is-add="isAdd"
       :data="dialogData"
+      :voice-list="voiceList"
       @success="getList"
     />
   </div>

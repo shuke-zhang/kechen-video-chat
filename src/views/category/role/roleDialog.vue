@@ -9,17 +9,21 @@ import type {
 } from 'element-plus'
 import type { UploadFileResponseModel } from '@/components/UploadFile/types'
 import type { CharacterModel } from '@/model/character'
-import type { DictDataCssModel } from '@/model/dict'
 import type { VoiceModel } from '@/model/voice'
 import { addCharacter, putCharacter } from '@/api/character'
 import { generateImage } from '@/api/video'
-import { getVoiceList } from '@/api/voice'
 
 const props = defineProps({
-  isAdd: { type: Boolean, required: true },
-  data: { type: Object, default: () => ({}) },
-  sysUserSex: {
-    type: Array as PropType<DictDataCssModel[]>,
+  isAdd: {
+    type: Boolean,
+    required: true,
+  },
+  data: {
+    type: Object as PropType<CharacterModel>,
+    default: () => ({}),
+  },
+  voiceList: {
+    type: Array as PropType<VoiceModel[]>,
     default: () => [],
   },
 })
@@ -34,8 +38,7 @@ const voiceType = ref('1')
 const file = ref<UploadUserFile[]>([])
 
 const visible = defineModel({ type: Boolean, required: false })
-const voiceLoading = ref(false)
-const voiceList = ref<VoiceModel[]>([])
+const popoverWrap = useTemplateRef('popoverWrap')
 const submitLoading = ref(false)
 const popoverVisible = ref(false)
 const popoverLoading = ref(false)
@@ -46,8 +49,13 @@ const rules: FormRules = {
   characterName: [{ required: true, trigger: 'blur', message: '请输入音色名称' }],
   voiceId: [{ required: true, trigger: 'blur', message: '请选择音色' }],
   description: [{ required: true, trigger: 'blur', message: '请输入角色描述' }],
+  voiceType: [{ required: true, trigger: 'blur', message: '请选择项目类别' }],
+  projectId: [{ required: true, trigger: 'blur', message: '请选择项目名称' }],
+  posterUrl: [{ required: true, trigger: 'blur', message: '请上传或生成角色图片' }],
 }
-
+const popoverAppendTo = computed<string | HTMLElement>(() => {
+  return popoverWrap.value ?? 'body'
+})
 function cancel(): void {
   visible.value = false
   reset()
@@ -59,6 +67,7 @@ function reset(): void {
   submitLoading.value = false
   voiceType.value = '1'
   topic.value = ''
+  popoverVisible.value = false
 }
 
 function submit(): void {
@@ -72,6 +81,7 @@ function submit(): void {
     const api = props.isAdd ? addCharacter : putCharacter
     const data = {
       ...form.value,
+      voiceName: props.voiceList.find(el => el.id === form.value.voiceId)?.voiceName,
     }
     api(data)
       .then(() => {
@@ -86,28 +96,6 @@ function submit(): void {
   })
 }
 
-/**
- * 远程搜索系统音色
- */
-function voiceMethod() {
-  if (voiceLoading.value)
-    return
-  voiceLoading.value = true
-  getVoiceList({
-    page: {
-      current: 1,
-      size: 10000,
-    },
-    projectId: form.value.projectId,
-  })
-    .then((res) => {
-      voiceList.value = res.data.records
-    })
-    .finally(() => {
-      voiceLoading.value = false
-    })
-}
-
 function regenerate() {
   if (popoverLoading.value)
     return
@@ -120,7 +108,7 @@ function regenerate() {
   generateImage({
     mode: 2,
     text: form.value.description,
-    topic: `${form.value.voiceId}`,
+    topic: topic.value,
   })
     .then((res) => {
       form.value.posterUrl = res.msg
@@ -141,7 +129,6 @@ function uploadFileSuccess({
   uploadFiles: UploadFiles
 }) {
   form.value.posterUrl = response.data.accessPath
-  console.log(file, 'file')
 }
 
 watch(
@@ -149,9 +136,16 @@ watch(
   (val) => {
     if (val) {
       if (props.data.id) {
+        console.log(props.data, 'data')
+
         form.value = {
           ...props.data,
+          voiceId: Number(props.data.voiceId),
         }
+        file.value = [{
+          name: props.data.posterUrl || '',
+          url: props.data.posterUrl,
+        }]
       }
       form.value.projectId = category.currentProject?.id
       // 初始化“最近生成参数”
@@ -193,7 +187,7 @@ watch(
         </el-col>
 
         <el-col :span="12">
-          <el-form-item label="项目类别" prop="projectId" style="width: 100%">
+          <el-form-item label="项目类别" style="width: 100%">
             <el-select
               v-model="category.currentCategoryId"
               placeholder="请选择项目类别"
@@ -242,8 +236,6 @@ watch(
               remote
               reserve-keyword
               placeholder="请选择系统音色"
-              :remote-method="voiceMethod"
-              :loading="voiceLoading"
             >
               <el-option
                 v-for="item in voiceList"
@@ -272,7 +264,7 @@ watch(
         </el-col>
 
         <el-col :span="6">
-          <el-form-item label="角色图片" style="width: 100%">
+          <el-form-item label="角色图片" style="width: 100%" prop="posterUrl">
             <div class="flex w-full items-center gap-[10px]">
               <UploadFile
                 v-model:file-data="file"
@@ -286,14 +278,14 @@ watch(
         </el-col>
 
         <el-col :span="6">
-          <div class="flex size-full justify-end items-center">
+          <div ref="popoverWrap" class=" flex size-full justify-end items-center">
             <el-popover
               :visible="popoverVisible"
               placement="top"
               :width="220"
-              popper-class="topic-popover"
+              :append-to="popoverAppendTo"
             >
-              <div class="popover-body gap-[10px]">
+              <div class=" gap-[10px]">
                 <el-select
                   v-model="topic"
                   remote

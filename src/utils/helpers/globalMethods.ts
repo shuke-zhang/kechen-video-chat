@@ -17,6 +17,8 @@ interface K {
  * :formatter="formatterTableEmpty"
  */
 export function formatterTableEmpty<T extends DefaultRow>(row: T, column: TableColumnCtx<T>, cellValue: T[keyof T], _index: number): string {
+  console.log(cellValue, 'cellValue')
+
   return cellValue ? String(cellValue) : '-' // 如果值为空则输出 "-"
 }
 
@@ -122,7 +124,7 @@ export function getSelectData(
   options: {
     value?: string
     label?: string
-  }
+  },
 ): string
 export function getSelectData<T extends boolean>(list: K[], value: string | number, isFullObject: T): K
 export function getSelectData<T extends boolean>(
@@ -132,7 +134,7 @@ export function getSelectData<T extends boolean>(
   options: {
     value?: string
     label?: string
-  }
+  },
 ): K
 
 export function getSelectData<T extends boolean>(
