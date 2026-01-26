@@ -24,6 +24,10 @@ export interface VideoProjectModel {
   projectName?: string
   /** 最近更新时间（ISO 字符串） */
   updatedTime?: string
+  /**
+   * 主题
+   */
+  styleDesign?: string
 }
 
 /**

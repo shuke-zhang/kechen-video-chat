@@ -1,3 +1,5 @@
+import type { CharacterModel } from './character'
+
 /**
  * 视频实体数据模型
  */
@@ -86,4 +88,16 @@ export interface VideoModel {
    * 表示是否是删除时选中状态
    */
   isDelChecked?: boolean
+}
+
+/**
+ * 新增视频时-生成角色的参数
+ */
+export type TextRolePayload = Pick<CharacterModel, 'characterName' | 'description' | 'posterUrl'>
+
+/**
+ * 新增视频时-生成角色返回
+ */
+export interface TextRoleResponse {
+  add_role: TextRolePayload[]
 }

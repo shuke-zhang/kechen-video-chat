@@ -28,7 +28,6 @@ const props = defineProps({
   },
 })
 const emit = defineEmits(['success'])
-const { topic_type } = useDict('topic_type')
 const category = useCategoryStore()
 /**
  * 1-本地音频
@@ -44,7 +43,6 @@ const popoverVisible = ref(false)
 const popoverLoading = ref(false)
 const formRef = ref<InstanceType<typeof ElForm> | null>(null)
 const form = ref<CharacterModel>({})
-const topic = ref('')
 const rules: FormRules = {
   characterName: [{ required: true, trigger: 'blur', message: '请输入音色名称' }],
   voiceId: [{ required: true, trigger: 'blur', message: '请选择音色' }],
@@ -53,9 +51,7 @@ const rules: FormRules = {
   projectId: [{ required: true, trigger: 'blur', message: '请选择项目名称' }],
   posterUrl: [{ required: true, trigger: 'blur', message: '请上传或生成角色图片' }],
 }
-const popoverAppendTo = computed<string | HTMLElement>(() => {
-  return popoverWrap.value ?? 'body'
-})
+
 function cancel(): void {
   visible.value = false
   reset()
@@ -66,7 +62,6 @@ function reset(): void {
   resetForm(formRef.value)
   submitLoading.value = false
   voiceType.value = '1'
-  topic.value = ''
   popoverVisible.value = false
 }
 
@@ -108,7 +103,6 @@ function regenerate() {
   generateImage({
     mode: 2,
     text: form.value.description,
-    topic: topic.value,
   })
     .then((res) => {
       form.value.posterUrl = res.msg
@@ -279,49 +273,14 @@ watch(
 
         <el-col :span="6">
           <div ref="popoverWrap" class=" flex size-full justify-end items-center">
-            <el-popover
-              :visible="popoverVisible"
-              placement="top"
-              :width="220"
-              :append-to="popoverAppendTo"
+            <el-button
+              type="primary"
+              plain
+              :loading="popoverLoading"
+              @click="regenerate"
             >
-              <div class=" gap-[10px]">
-                <el-select
-                  v-model="topic"
-                  remote
-                  reserve-keyword
-                  placeholder="请选择主题"
-                  class="full-width"
-                >
-                  <el-option
-                    v-for="item in topic_type"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.label!"
-                  />
-                </el-select>
-
-                <div class="mt-[10px] flex justify-end">
-                  <el-button size="small" @click="popoverVisible = false">
-                    取消
-                  </el-button>
-                  <el-button type="primary" size="small" @click="regenerate">
-                    确认
-                  </el-button>
-                </div>
-              </div>
-
-              <template #reference>
-                <el-button
-                  type="primary"
-                  plain
-                  :loading="popoverLoading"
-                  @click="popoverVisible = true"
-                >
-                  生成图片
-                </el-button>
-              </template>
-            </el-popover>
+              生成图片
+            </el-button>
           </div>
         </el-col>
       </el-row>

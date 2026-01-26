@@ -2,9 +2,9 @@
 <script setup lang="ts">
 import type { ElForm } from 'element-plus'
 import type { VideoModel } from '@/model/video'
-import type { VideoCategoryModel } from '@/model/videoCategory'
 import { CircleClose, CirclePlus, Refresh, Search } from '@element-plus/icons-vue'
 import { DelVideo, getVideoList } from '@/api/video'
+import { useAddVideo } from '@/stores'
 import VideoDialog from './videoDialog.vue'
 
 type MeasurableEl = HTMLElement | {
@@ -12,10 +12,11 @@ type MeasurableEl = HTMLElement | {
   clientWidth: number
   clientHeight: number
 }
-
+const useAddVideoStore = useAddVideo()
+const router = useRouter()
+const route = useRoute()
 const total = ref(0)
 const loading = ref(false)
-const videoTree = ref<VideoCategoryModel[]>([])
 const isAdd = ref(false)
 const isBatchDel = ref(false)
 const visible = ref(false)
@@ -128,14 +129,20 @@ function retQuery() {
 }
 
 function handleVideoAdd() {
-  isAdd.value = true
-  visible.value = true
+  useAddVideoStore.isAdd = true
+  useAddVideoStore.currentData = currentData.value
+  router.push({
+    path: `/category/project/addVideo/${route.params.id}`,
+
+  })
 }
 
 function openEdit(row: VideoModel) {
-  currentData.value = JSON.parse(JSON.stringify(row))
-  isAdd.value = false
-  visible.value = true
+  useAddVideoStore.isAdd = false
+  useAddVideoStore.currentData = row
+  router.push({
+    path: `/category/project/addVideo/${route.params.id}`,
+  })
 }
 
 /* ---------------- 预览 ---------------- */
@@ -281,15 +288,6 @@ onMounted(() => {
         </template>
       </div>
 
-      <!-- 分页 -->
-      <Pagination
-        v-show="total > 0"
-        v-model:page="queryParams.page.current"
-        v-model:limit="queryParams.page.size"
-        class="mt-[10px]"
-        :total="total"
-        @pagination="getList"
-      />
       <!-- 预览弹窗 -->
       <transition name="zoom">
         <div v-if="previewVisible" class="fixed inset-0 z-40 grid place-items-center">
@@ -304,7 +302,7 @@ onMounted(() => {
       </transition>
     </main>
 
-    <VideoDialog v-model="visible" :is-add="isAdd" :data="currentData" :video-tree="videoTree" @success="getList" />
+    <VideoDialog v-model="visible" :is-add="isAdd" :data="currentData" @success="getList" />
   </div>
 </template>
 

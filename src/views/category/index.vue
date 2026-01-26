@@ -10,7 +10,7 @@ import { useCategoryStore } from '@/stores'
 const sidebarStore = useSidebarStore()
 const category = useCategoryStore()
 const router = useRouter()
-
+const { topic_type } = useDict('topic_type')
 const { categoryList } = useUserStore()
 const currentCategoryId = computed(() => {
   const raw = router.currentRoute.value.params.id
@@ -35,6 +35,7 @@ const rules: FormRules = {
   projectName: [{ required: true, trigger: 'blur', message: '请输入项目名称' }],
   coverUrl: [{ required: true, trigger: 'blur', message: '请输入封面图链接' }],
   projectDesc: [{ required: true, trigger: 'blur', message: '请输入项目描述' }],
+  styleDesign: [{ required: true, trigger: 'blur', message: '请选择主题' }],
 }
 
 function getList() {
@@ -202,9 +203,14 @@ onMounted(() => {
 
         <!-- 内容 -->
         <div class="p-4 flex-1">
-          <h3 class="text-lg font-semibold text-slate-800 mb-1 truncate group-hover:text-indigo-600 transition">
-            {{ item.projectName }}
-          </h3>
+          <div class="flex">
+            <h3 class="text-lg font-semibold text-slate-800 mb-1 truncate group-hover:text-indigo-600 transition">
+              {{ item.projectName }}
+            </h3>
+            <el-tag class="ml-[4px]">
+              {{ item.styleDesign }}
+            </el-tag>
+          </div>
           <p class="text-slate-500 text-sm leading-relaxed line-clamp-2 min-h-[40px]">
             {{ item.projectDesc }}
           </p>
@@ -258,6 +264,25 @@ onMounted(() => {
           <el-col :span="24">
             <el-form-item label="项目名称" prop="projectName" style="width: 100%">
               <el-input v-model="editForm.projectName" placeholder="请输入项目名称" size="large" />
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="24">
+            <el-form-item label="主题" prop="styleDesign" style="width: 100%">
+              <el-select
+                v-model="editForm.styleDesign"
+                remote
+                reserve-keyword
+                placeholder="请选择主题"
+                class="full-width"
+              >
+                <el-option
+                  v-for="item in topic_type"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.label!"
+                />
+              </el-select>
             </el-form-item>
           </el-col>
 

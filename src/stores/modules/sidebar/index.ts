@@ -1,5 +1,4 @@
 import type { MenuItemRegistered } from 'element-plus'
-import { tr } from 'element-plus/es/locale/index.mjs'
 
 export const useSidebarStore = defineStore('sidebar', () => {
   const route = useRoute()

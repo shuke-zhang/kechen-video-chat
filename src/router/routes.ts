@@ -38,6 +38,15 @@ const routes: RouteRecordRaw[] = [
         },
       },
       {
+        path: 'category/project/addVideo/:id',
+        name: 'ProjectAddVideo',
+        component: () => import('@/views/category/video/addVideo.vue'),
+        meta: {
+          showLeftMenu: false,
+          hidden: true,
+        },
+      },
+      {
         path: 'category/project/role/:id',
         name: 'ProjectRole',
         component: () => import('@/views/category/role/index.vue'),

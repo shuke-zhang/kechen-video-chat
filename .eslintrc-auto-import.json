@@ -193,6 +193,7 @@
     "tansParams": true,
     "withLoadingMessage": true,
     "getFileFromClipboard": true,
-    "useCategoryStore": true
+    "useCategoryStore": true,
+    "useAddVideo": true
   }
 }

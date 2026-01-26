@@ -134,6 +134,7 @@ declare global {
   const toValue: typeof import('vue')['toValue']
   const triggerRef: typeof import('vue')['triggerRef']
   const unref: typeof import('vue')['unref']
+  const useAddVideo: typeof import('../src/stores/modules/addVideo/index')['useAddVideo']
   const useAppStore: typeof import('../src/stores/modules/app/index')['useAppStore']
   const useAppStoreWithOut: typeof import('../src/stores/modules/app/index')['useAppStoreWithOut']
   const useAttrs: typeof import('vue')['useAttrs']

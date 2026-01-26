@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import type { ElForm, UploadFile, UploadFiles, UploadUserFile } from 'element-plus'
+import type { ElForm, UploadUserFile } from 'element-plus'
 import type DragUploadFile from '@/components/DragUploadFile/DragUploadFile.vue'
-import type { UploadFileResponseModel } from '@/components/UploadFile/types'
 import type { UploadRow } from '@/model/upload'
 import type { VideoModel } from '@/model/video'
 import type { VideoCategoryModel } from '@/model/videoCategory'
-import { addVideo, PutVideo } from '@/api/video'
+import { addVideo, PutVideo, textRole, textVideo } from '@/api/video'
 import { useCategoryStore } from '@/stores'
 
 const props = defineProps({
@@ -24,11 +23,14 @@ const props = defineProps({
 const emit = defineEmits(['success'])
 const file = ref<UploadUserFile[]>([])
 const category = useCategoryStore()
-
+const textVideoLoading = ref(false)
+const roleLoading = ref(false)
 const visible = defineModel({ type: Boolean, required: false })
 const submitLoading = ref(false)
 const form = ref<VideoModel>({
   publishStatus: 0,
+  videoText: '在天空的尽头，有一间小小的云朵裁缝铺。\n店主是一只年迈的白猫，名叫絮絮。它不缝衣服，而是用晨雾做线、晚霞当布，为伤心的人缝补破碎的梦。一天，一个小女孩坐在屋顶上哭泣。她的风筝断了线，飞进了乌云里，再也没回来。\n“那是妈妈最后送我的礼物……”她抽泣着说。絮絮轻轻跳上屋顶，从怀里掏出一团蓬松的云：“别怕，我帮你把它缝回来。”它用月光穿针，把星星缀在风筝的角上，又剪下一小片彩虹做尾巴。\n第二天清晨，小女孩睁开眼——那只风筝正轻轻落在她的窗台上，比从前更亮、更轻，仿佛能带人飞到任何想念的地方。\n\n从此，每当有人失落或难过，絮絮就会悄悄出现在他们梦里，问一句：\n“需要我为你缝点什么吗？”\n\n寓意：温柔与善意，能修补世间最细碎的遗憾。',
+  videoName: '《云朵裁缝》',
 })
 const DragUploadFileRef = ref<InstanceType<typeof DragUploadFile> | null>(null)
 const formRef = ref<InstanceType<typeof ElForm> | null>(null)
@@ -41,20 +43,6 @@ const rules = {
   publishStatus: [{ required: true, trigger: 'blur', message: '请选择是否公开' }],
   videoText: [{ required: true, trigger: 'blur', message: '请输入视频文本' }],
   coverUrl: [{ required: true, trigger: 'blur', message: '请上传视频封面' }],
-}
-function handleUploadSuccess(file: UploadRow) {
-  if (file.status !== 'success')
-    return
-  form.value.videoUrl = file.response?.data.accessPath
-}
-
-function copyAddress() {
-  const url = form.value.videoUrl
-  if (!url) {
-    ElMessage.warning('视频地址为空，无法复制')
-    return
-  }
-  copyText(url)
 }
 
 function uploadAbort() {
@@ -112,9 +100,41 @@ function submit() {
   })
 }
 
-function uploadFileSuccess({ response}: { response: ResponseData<UploadFileResponseModel>, uploadFile: UploadFile, uploadFiles: UploadFiles }) {
-  form.value.coverUrl = response.data.accessPath
-  console.log(file.value, 'flie1111')
+function handleTextVideo() {
+  if (textVideoLoading.value)
+    return
+  textVideoLoading.value = true
+  console.log(category.currentProject, '内容')
+
+  textVideo({
+    projectId: category.currentProject?.id,
+    publishStatus: form.value.publishStatus,
+    videoName: form.value.videoName,
+    videoText: form.value.videoText,
+  }).finally(() => {
+    textVideoLoading.value = false
+  })
+}
+
+function handleRole() {
+  if (roleLoading.value)
+    return
+  roleLoading.value = true
+  textRole({
+    projectId: category.currentProject?.id,
+    publishStatus: form.value.publishStatus,
+    videoName: form.value.videoName,
+    videoText: form.value.videoText,
+  }).then((res) => {
+    if (res.data.add_role.length <= 0) {
+      return showMessageSuccess('检测到已有角色，无须生成')
+    }
+    else {
+      console.log(',,')
+    }
+  }).finally(() => {
+    roleLoading.value = false
+  })
 }
 
 watch(() => props.data, (newVal) => {
@@ -128,7 +148,7 @@ watch(() => visible.value, (val) => {
   // 重置
   uploadFile.value = null
   if (val) {
-    form.value.projectId = category.currentProjectId
+    form.value.projectId = category.currentCategoryId
     file.value.push({
       name: props.data?.coverUrl || '',
       url: props.data?.coverUrl,
@@ -159,31 +179,10 @@ onMounted(() => {
       label-width="100"
     >
       <el-row :gutter="20">
-        <!-- 视频名称 -->
-        <el-col :span="12">
-          <el-form-item label="视频名称" prop="videoName" style="width: 100%">
-            <el-input v-model="form.videoName" clearable placeholder="请输入视频名称" size="large" />
-          </el-form-item>
-        </el-col>
-
-        <el-col :span="12">
-          <el-form-item label="项目" prop="projectId" style="width: 100%">
-            <el-select v-model="form.projectId" placeholder="请选择项目">
-              <el-option
-                v-for="item in category.categoryList"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id"
-              />
-            </el-select>
-          </el-form-item>
-        </el-col>
-
         <el-col :span="8">
-          <el-form-item label="是否公开" prop="publishStatus" style="width: 100%">
+          <el-form-item label="是否公开" prop="publishStatus">
             <el-switch
               v-model="form.publishStatus"
-              class="mb-2"
               active-text="公开"
               :active-value="1"
               inactive-text="不公开"
@@ -192,86 +191,37 @@ onMounted(() => {
           </el-form-item>
         </el-col>
 
-        <!-- 视频链接地址 -->
-        <el-col :span="16">
-          <el-form-item label="视频地址" prop="videoUrl" style="width: 100%">
-            <el-input v-model="form.videoUrl" clearable placeholder="请输入视频链接地址或上传视频自动获取地址" size="large" />
-          </el-form-item>
-        </el-col>
+        <el-form-item label="文本标题" prop="videoName" style="width: 100%">
+          <el-input
+            v-model="form.videoName"
+            type="textarea"
+            :min-rows="2"
+            clearable
+            placeholder="请输入文本标题"
+          />
+        </el-form-item>
 
-        <!-- 视频文本 -->
-        <el-col :span="24">
-          <el-form-item label="视频文本" prop="videoText" style="width: 100%">
-            <el-input
-              v-model="form.videoText"
-              type="textarea"
-              :rows="4"
-              clearable
-              placeholder="请输入视频文本"
-            />
-          </el-form-item>
-        </el-col>
-        <!-- 上传封面 -->
-        <el-col :span="8">
-          <el-form-item label="视频封面" prop="coverUrl" style="width: 100%">
-            <UploadFile
-              v-model:file-data="file"
-              :limit="1"
-              file-types="image"
-              :show-file-list="false"
-              @on-success="uploadFileSuccess"
-            />
-            <div class="text-[10px] text-red-300">
-              请尽量上传比例为2:1的封面图
-            </div>
-          </el-form-item>
-        </el-col>
+        <el-form-item label="内容" prop="videoText" style="width: 100%">
+          <el-input
+            v-model="form.videoText"
+            type="textarea"
+            :min-rows="6"
+            autosize
+            clearable
+            placeholder="请输入文本标题"
+          />
+        </el-form-item>
 
-        <!-- 上传视频· -->
-        <el-col :span="16">
-          <el-form-item label="视频文件" prop="video" style="width: 100%">
-            <div class="flex  items-center w-full">
-              <div class="size-[140px]">
-                <DragUploadFile ref="DragUploadFileRef" v-model:files="uploadFile" :limit="1" file-types="video" @success="handleUploadSuccess" />
-              </div>
-
-              <div class="ml-[10px] flex-1 ">
-                <div class="flex items-center justify-between gap-2">
-                  <div class="min-w-0 flex-1">
-                    <!-- 前面省略，后面展示 -->
-                    <div
-                      v-trunc="{ lines: 1, titleWhenTruncated: true, observeMutations: true }"
-                      class="w-[180px] overflow-hidden text-ellipsis whitespace-nowrap [direction:rtl] [text-align:left] "
-                    >
-                      {{ uploadFile?.name || '--' }}
-                    </div>
-                  </div>
-
-                  <span class="shrink-0">
-                    {{ uploadFile?.size || 0 }}
-                  </span>
-                </div>
-                <el-progress
-                  :key="uploadFile?.uid"
-                  :text-inside="true"
-                  :stroke-width="14"
-                  :percentage="uploadFile?.progress"
-                  status="success"
-                />
-                <div class="mt-2 flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50/80 px-3 py-2 text-sm text-blue-700 dark:border-blue-900/40 dark:bg-blue-900/20 dark:text-blue-300">
-                  <div class="flex items-center gap-2 min-w-0">
-                    <span class="h-2.5 w-2.5 rounded-full bg-green-500 shadow-[0_0_0_3px_rgba(34,197,94,0.2)]" />
-                    <span class="truncate text-xs">上传成功后自动填充视频地址
-                    </span>
-                  </div>
-                  <el-button type="primary" size="small" class="ml-[5px]" plain @click="copyAddress">
-                    复制
-                  </el-button>
-                </div>
-              </div>
-            </div>
-          </el-form-item>
-        </el-col>
+        <el-form-item label="" class="w-full">
+          <div class="w-full flex justify-end gap-[10px]">
+            <el-button :loading="roleLoading" @click="handleRole">
+              生成角色
+            </el-button>
+            <el-button :loading="textVideoLoading" @click="handleTextVideo">
+              生成
+            </el-button>
+          </div>
+        </el-form-item>
       </el-row>
     </el-form>
 

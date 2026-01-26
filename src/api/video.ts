@@ -1,5 +1,5 @@
 import type { generateImageModel } from '@/model/generateImage'
-import type { VideoModel } from '@/model/video'
+import type { TextRoleResponse, VideoModel } from '@/model/video'
 
 /**
  * @description 分页查询视频类别列表
@@ -46,5 +46,25 @@ export function generateImage(params: generateImageModel) {
   return request.get({
     url: `/api/video/imageGen`,
     params,
+  })
+}
+
+/**
+ * @description 视频表生成图片
+ */
+export function textVideo(data: VideoModel) {
+  return request.post({
+    url: '/api/video/textSplit',
+    data,
+  })
+}
+
+/**
+ * @description 视频表生成图片
+ */
+export function textRole(data: VideoModel) {
+  return request.post<ResponseData<TextRoleResponse>>({
+    url: '/api/video/textRole',
+    data,
   })
 }

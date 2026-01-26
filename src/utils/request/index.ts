@@ -10,7 +10,7 @@ const cancelMap = new Map<string, Canceler>()
 const request = new HttpRequest<UserCustomConfig>(
   {
     baseURL: import.meta.env.VITE_API_URL,
-    timeout: 60 * 1000,
+    timeout: 30 * 60 * 1000,
     withToken: true,
     showErrorMsg: true,
     joinTime: true,
