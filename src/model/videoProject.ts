@@ -28,6 +28,10 @@ export interface VideoProjectModel {
    * 主题
    */
   styleDesign?: string
+  /**
+   * 主题id
+   */
+  styleDesignId?: string
 }
 
 /**

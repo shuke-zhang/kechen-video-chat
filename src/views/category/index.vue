@@ -86,7 +86,10 @@ function handleSubmit() {
       submitLoading.value = true
       const api = isAdd.value ? addVideoProject : PutVideoProject
 
-      api({ ...editForm.value, publishStatus: sidebarStore.currentPublicStatus }).then(() => {
+      api({
+        ...editForm.value,
+        publishStatus: sidebarStore.currentPublicStatus,
+      }).then(() => {
         visible.value = false
         showMessageSuccess(isAdd.value ? '新增成功' : '编辑成功')
         reset()

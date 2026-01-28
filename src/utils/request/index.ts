@@ -60,14 +60,12 @@ const request = new HttpRequest<UserCustomConfig>(
         return _response
       }
       const responseData = _response.data as ResponseResultData<object>
-      console.log(responseData, 'responseData')
 
       // 成功 - 0  警告300 没登录 401  服务器错误501
       if (responseData.code === 0) {
         // 请求成功
         return responseData as any
       }
-      console.log(responseData, 'responseData')
 
       const msg = responseData.msg || getSystemErrorMessage(responseData.code)
       if (responseData.code === 401) {

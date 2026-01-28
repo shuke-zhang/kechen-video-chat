@@ -1,3 +1,4 @@
+import type { UploadUserFile } from 'element-plus'
 import type { CharacterModel } from './character'
 
 /**
@@ -94,6 +95,14 @@ export interface VideoModel {
  * 新增视频时-生成角色的参数
  */
 export type TextRolePayload = Pick<CharacterModel, 'characterName' | 'description' | 'posterUrl'>
+
+/**
+ * 新增视频时-生成角色的参数时提交的修改参数
+ */
+export type RoleFormItem = TextRolePayload & {
+  file: UploadUserFile[]
+  voiceId: string
+}
 
 /**
  * 新增视频时-生成角色返回

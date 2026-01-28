@@ -151,7 +151,7 @@ watch(
 <template>
   <el-dialog
     v-model="visible"
-    :title="isAdd ? '新增音色' : '修改音色'"
+    :title="isAdd ? '新增角色' : '修改角色'"
     width="820"
     :close-on-click-modal="false"
     @close="cancel"
@@ -174,7 +174,7 @@ watch(
             <el-input
               v-model="form.characterName"
               clearable
-              placeholder="请输入音色名称"
+              placeholder="请输入角色名称"
               size="large"
             />
           </el-form-item>

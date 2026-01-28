@@ -7,6 +7,7 @@ import { delVoice, getVoiceList } from '@/api/voice'
 import VoicesDialog from './voicesDialog.vue'
 
 const { age_voice_type } = useDict('age_voice_type')
+const category = useCategoryStore()
 
 const total = ref(0)
 const list = ref<VoiceModel[]>([])
@@ -25,6 +26,7 @@ const queryParams = ref<ListPageParamsWrapper<VoiceModel>>({
     current: 1,
     size: 10,
   },
+  projectId: category.currentProject?.id,
 })
 
 function getList(): void {
