@@ -89,6 +89,7 @@ function handleSubmit() {
       api({
         ...editForm.value,
         publishStatus: sidebarStore.currentPublicStatus,
+        styleDesignId: topic_type.value.find(it => it.label === editForm.value.styleDesign)?.value,
       }).then(() => {
         visible.value = false
         showMessageSuccess(isAdd.value ? '新增成功' : '编辑成功')

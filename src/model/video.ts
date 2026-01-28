@@ -124,7 +124,7 @@ export interface TextSplitPayload {
    */
   characterName?: string
   /**
-   * 角色图片
+   * 视频图片
    */
   imageUrl?: string
   /**

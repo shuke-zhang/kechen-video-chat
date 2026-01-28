@@ -10,6 +10,7 @@ import { generateImage } from '@/api/video'
 
 interface RoleFormItemWithState extends RoleFormItem {
   submitLoading?: boolean
+  imageGenerating?: boolean
 }
 
 interface RoleForm {
@@ -37,7 +38,6 @@ const visible = defineModel<boolean>()
  * ====================== */
 
 const formRef = ref<InstanceType<typeof ElForm> | null>(null)
-const popoverLoading = ref(false)
 
 const form = ref<RoleForm>({
   roles: [],
@@ -98,7 +98,9 @@ watch(
           ? [{ name: it.posterUrl, url: it.posterUrl }]
           : [],
         submitLoading: false,
+        imageGenerating: false,
       }))
+      console.log(form.value.roles, '内容')
     }
   },
 )
@@ -118,7 +120,10 @@ function cancel() {
  */
 function submitRow(index: number) {
   const role = form.value.roles[index]
-
+  if (role.imageGenerating) {
+    ElMessage.warning('角色图片正在生成中，请等待完成后再提交')
+    return
+  }
   if (!formRef.value)
     return
 
@@ -154,6 +159,9 @@ function submitRow(index: number) {
       })
       form.value.roles.splice(index, 1)
       showMessageSuccess(`角色「${role.characterName}」提交成功`)
+      if (form.value.roles.length === 0) {
+        visible.value = false
+      }
       emit('success', role)
     }
     finally {
@@ -173,11 +181,14 @@ function regenerate(index: number) {
     return
   }
 
-  popoverLoading.value = true
-
+  if (role.imageGenerating) {
+    return
+  }
+  role.imageGenerating = true
   generateImage({
     mode: 2,
     text: role.description,
+    topic: category.currentProject?.styleDesignId,
   })
     .then((res) => {
       role.file = [{
@@ -186,7 +197,7 @@ function regenerate(index: number) {
       }]
     })
     .finally(() => {
-      popoverLoading.value = false
+      role.imageGenerating = false
     })
 }
 </script>
@@ -198,7 +209,7 @@ function regenerate(index: number) {
     width="1200"
     :close-on-click-modal="false"
     :close-on-press-escape="false"
-    :show-close="false"
+    :show-close="true"
     @close="cancel"
   >
     <el-form
@@ -269,7 +280,7 @@ function regenerate(index: number) {
                 <el-button
                   type="primary"
                   plain
-                  :loading="popoverLoading"
+                  :loading="item.imageGenerating"
                   @click="regenerate(index)"
                 >
                   重新生成

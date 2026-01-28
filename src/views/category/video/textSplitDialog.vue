@@ -3,22 +3,12 @@ import type {
   ElForm,
   UploadUserFile,
 } from 'element-plus'
-import type { RoleFormItem, TextRolePayload } from '@/model/video'
-import type { VoiceModel } from '@/model/voice'
+import type { RoleFormItem, TextSplitPayload } from '@/model/video'
 import { addCharacter } from '@/api/character'
 import { generateImage } from '@/api/video'
 
-interface RoleFormItemWithState extends RoleFormItem {
-  submitLoading?: boolean
-}
-
-interface RoleForm {
-  roles: RoleFormItemWithState[]
-}
-
 const props = defineProps<{
-  data: TextRolePayload[]
-  voiceList: VoiceModel[]
+  data: TextSplitPayload[]
 }>()
 
 const emit = defineEmits<{
@@ -39,8 +29,10 @@ const visible = defineModel<boolean>()
 const formRef = ref<InstanceType<typeof ElForm> | null>(null)
 const popoverLoading = ref(false)
 
-const form = ref<RoleForm>({
-  roles: [],
+const form = ref<{
+  plot_image: TextSplitPayload[]
+}>({
+  plot_image: [],
 })
 
 /* ======================
@@ -91,11 +83,11 @@ watch(
   () => visible.value,
   (val) => {
     if (val && props.data?.length) {
-      form.value.roles = props.data.map(it => ({
+      form.value.plot_image = props.data.map(it => ({
         ...it,
         voiceId: '',
-        file: it.posterUrl
-          ? [{ name: it.posterUrl, url: it.posterUrl }]
+        file: it.imageUrl
+          ? [{ name: it.textInfo?.plot, url: it.textInfo?.plot }]
           : [],
         submitLoading: false,
       }))
@@ -109,7 +101,7 @@ watch(
 
 function cancel() {
   visible.value = false
-  form.value.roles = []
+  form.value.plot_image = []
   formRef.value?.clearValidate()
 }
 
@@ -117,16 +109,16 @@ function cancel() {
  * 单行提交
  */
 function submitRow(index: number) {
-  const role = form.value.roles[index]
+  const role = form.value.plot_image[index]
 
   if (!formRef.value)
     return
 
   const fields = [
-    `roles.${index}.characterName`,
-    `roles.${index}.voiceId`,
-    `roles.${index}.file`,
-    `roles.${index}.description`,
+    `plot_image.${index}.characterName`,
+    `plot_image.${index}.voiceId`,
+    `plot_image.${index}.file`,
+    `plot_image.${index}.description`,
   ]
 
   formRef.value.validateField(fields, async (valid) => {
@@ -152,9 +144,9 @@ function submitRow(index: number) {
         projectId: category.currentProject?.id,
         voiceName: props.voiceList.find(el => el.id === Number(role.voiceId))?.voiceName,
       })
-      form.value.roles.splice(index, 1)
+      form.value.plot_image.splice(index, 1)
       showMessageSuccess(`角色「${role.characterName}」提交成功`)
-      emit('success', role)
+      emit('success', plot_image)
     }
     finally {
       role.submitLoading = false
@@ -163,10 +155,10 @@ function submitRow(index: number) {
 }
 
 /**
- * 重新生成图片（仍然是全局 loading，符合你的原设计）
+ * 重新生成图片
  */
 function regenerate(index: number) {
-  const role = form.value.roles[index]
+  const role = form.value.plot_image[index]
 
   if (!role.description?.trim()) {
     ElMessage.error('请先填写角色描述')
@@ -194,120 +186,120 @@ function regenerate(index: number) {
 <template>
   <el-dialog
     v-model="visible"
-    title="修改角色"
+    title="修改视频"
     width="1200"
     :close-on-click-modal="false"
     :close-on-press-escape="false"
-    :show-close="false"
     @close="cancel"
   >
-    <el-form
-      ref="formRef"
-      :model="form"
-      label-width="110"
-    >
-      <el-row :gutter="20">
-        <template
-          v-for="(item, index) in form.roles"
-          :key="index"
-        >
-          <!-- 角色名称 -->
-          <el-col :span="6">
-            <el-form-item
-              :label="`角色信息-${index + 1}`"
-              :prop="`roles.${index}.characterName`"
-              :rules="[{ validator: validateRoleName, trigger: 'blur' }]"
-            >
-              <el-input
-                v-model="item.characterName"
-                placeholder="请输入角色名称"
-                clearable
-              />
-            </el-form-item>
-          </el-col>
-
-          <!-- 音色 -->
-          <el-col :span="4">
-            <el-form-item
-              label-width="0"
-              style="width: 100%"
-              :prop="`roles.${index}.voiceId`"
-              :rules="[{ validator: validateVoice, trigger: 'blur' }]"
-            >
-              <el-select
-                v-model="item.voiceId"
-                filterable
-                placeholder="请选择音色"
+    <el-scrollbar height="500px">
+      <el-form
+        ref="formRef"
+        :model="form"
+        label-width="110"
+      >
+        <el-row :gutter="20">
+          <template
+            v-for="(item, index) in form.plot_image"
+            :key="index"
+          >
+            <!-- 视频名称 -->
+            <el-col :span="12">
+              <el-form-item
+                :label="`信息-${index + 1}`"
+                :prop="`plot_image.${index}.videoName`"
+                :rules="[{ validator: validateRoleName, trigger: 'blur' }]"
               >
-                <el-option
-                  v-for="el in voiceList"
-                  :key="el.id"
-                  :label="el.voiceName"
-                  :value="el.id!"
+                <el-input
+                  v-model="item.videoName"
+                  placeholder="请输入视频名称"
+                  clearable
                 />
-              </el-select>
-            </el-form-item>
-          </el-col>
+              </el-form-item>
+            </el-col>
 
-          <!-- 角色图片 -->
-          <el-col :span="4">
-            <el-form-item
-              label-width="0"
-              :prop="`roles.${index}.file`"
-              :rules="[{ validator: validateRoleImage, trigger: 'change' }]"
-            >
-              <div class="flex items-center gap-[10px]">
-                <UploadFile
-                  v-model:file-data="item.file"
-                  :limit="1"
-                  file-types="image"
-                  :show-file-list="false"
-                  width="60"
-                  height="60"
-                />
+            <el-col :span="4">
+              <el-form-item
+                label-width="0"
+                :prop="`plot_image.${index}.file`"
+                :rules="[{ validator: validateRoleImage, trigger: 'change' }]"
+              >
+                <div class="flex items-center gap-[10px]">
+                  <UploadFile
+                    v-model:file-data="item.file"
+                    :limit="1"
+                    file-types="image"
+                    :show-file-list="false"
+                    width="60"
+                    height="60"
+                  />
 
-                <el-button
-                  type="primary"
-                  plain
-                  :loading="popoverLoading"
-                  @click="regenerate(index)"
+                  <el-button
+                    type="primary"
+                    plain
+                    :loading="popoverLoading"
+                    @click="regenerate(index)"
+                  >
+                    重新生成
+                  </el-button>
+                </div>
+              </el-form-item>
+            </el-col>
+
+            <!-- 音色 -->
+            <el-col :span="4">
+              <el-form-item
+                label-width="0"
+                style="width: 100%"
+                :prop="`plot_image.${index}.voiceId`"
+                :rules="[{ validator: validateVoice, trigger: 'blur' }]"
+              >
+                <el-select
+                  v-model="item.voiceId"
+                  filterable
+                  placeholder="请选择音色"
                 >
-                  重新生成
-                </el-button>
-              </div>
-            </el-form-item>
-          </el-col>
+                  <el-option
+                    v-for="el in voiceList"
+                    :key="el.id"
+                    :label="el.voiceName"
+                    :value="el.id!"
+                  />
+                </el-select>
+              </el-form-item>
+            </el-col>
 
-          <!-- 角色描述 -->
-          <el-col :span="8">
-            <el-form-item
-              label-width="0"
-              :prop="`roles.${index}.description`"
-              :rules="[{ validator: validateRoleDesc, trigger: 'blur' }]"
-            >
-              <el-input
-                v-model="item.description"
-                type="textarea"
-                :rows="2"
-                autosize
-                placeholder="请输入角色描述"
-              />
-            </el-form-item>
-          </el-col>
+            <!-- 角色描述 -->
+            <el-col :span="8">
+              <el-form-item
+                label-width="0"
+                :prop="`plot_image.${index}.description`"
+                :rules="[{ validator: validateRoleDesc, trigger: 'blur' }]"
+              >
+                <el-input
+                  v-model="item.description"
+                  type="textarea"
+                  :rows="2"
+                  autosize
+                  placeholder="请输入角色描述"
+                />
+              </el-form-item>
+            </el-col>
 
-          <!-- 提交 -->
-          <el-col :span="2" class="flex items-center">
-            <el-button
-              type="primary"
-              :loading="item.submitLoading"
-              @click="submitRow(index)"
-            >
-              提 交
-            </el-button>
-          </el-col>
-        </template>
-      </el-row>
-    </el-form>
+            <!-- 提交 -->
+            <el-col :span="2" class="flex items-center">
+              <el-button
+                type="primary"
+                :loading="item.submitLoading"
+                @click="submitRow(index)"
+              >
+                提 交
+              </el-button>
+            </el-col>
+          </template>
+        </el-row>
+      </el-form>
+    </el-scrollbar>
   </el-dialog>
 </template>
 
