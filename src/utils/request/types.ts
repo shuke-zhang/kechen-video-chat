@@ -33,6 +33,10 @@ export interface UserCustomConfig {
    * 是否进入401鉴权守卫
    */
   enable401AuthGuard?: boolean
+  /**
+   * 返回数据是否为json
+   */
+  isJsonResponse?: boolean
 }
 
 export interface Canceler {

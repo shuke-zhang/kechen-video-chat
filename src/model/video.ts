@@ -110,3 +110,48 @@ export type RoleFormItem = TextRolePayload & {
 export interface TextRoleResponse {
   add_role: TextRolePayload[]
 }
+
+/**
+ * 新增视频时的-textSplit的返回
+ */
+export interface TextSplitResponse {
+  plot_image: TextSplitPayload[]
+}
+
+export interface TextSplitPayload {
+  /**
+   * 角色名称
+   */
+  characterName?: string
+  /**
+   * 角色图片
+   */
+  imageUrl?: string
+  /**
+   * 视频名称
+   */
+  videoName?: string
+  /**
+   * 文本信息
+   */
+  textInfo?: {
+    /**
+     * 扩展描述
+     */
+    desc?: string
+    /**
+     * 分片场景
+     */
+    plot?: string
+    talk?: {
+      /**
+       * 角色名
+       */
+      name?: string
+      /**
+       * 人儿说的话
+       */
+      words?: string
+    }
+  }
+}

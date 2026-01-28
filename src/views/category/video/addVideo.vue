@@ -72,8 +72,7 @@ function handleTextVideo() {
     videoName: form.value.videoName,
     videoText: form.value.videoText,
   }).then((res) => {
-    const _res = JSON.parse(res.msg)
-    console.log(_res, '_res')
+    console.log(res, '_res')
   }).finally(() => {
     textVideoLoading.value = false
   })
@@ -225,7 +224,7 @@ onMounted(() => {
             <el-form-item label="" class="w-full">
               <div class="w-full flex justify-end gap-[10px]">
                 <el-button :loading="roleLoading" @click="handleRole">
-                  生成角色
+                  角色
                 </el-button>
                 <el-button :loading="textVideoLoading" @click="handleTextVideo">
                   生成

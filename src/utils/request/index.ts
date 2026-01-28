@@ -16,6 +16,7 @@ const request = new HttpRequest<UserCustomConfig>(
     joinTime: true,
     ignoreRepeatRequest: false,
     enable401AuthGuard: true,
+    isJsonResponse: false,
   },
   {
     // 请求拦截器
@@ -59,10 +60,28 @@ const request = new HttpRequest<UserCustomConfig>(
       if (config.getResponse) {
         return _response
       }
+
       const responseData = _response.data as ResponseResultData<object>
 
       // 成功 - 0  警告300 没登录 401  服务器错误501
       if (responseData.code === 0) {
+        // 1先判断 data
+        if (config.isJsonResponse && isJSON(responseData.data)) {
+          config.isJsonResponse = true
+
+          return typeof responseData.data === 'string'
+            ? { ...responseData, data: JSON.parse(responseData.data) }
+            : responseData
+        }
+
+        // 判断 msg
+        if (config.isJsonResponse && isJSON(responseData.msg)) {
+          config.isJsonResponse = true
+
+          return typeof responseData.msg === 'string'
+            ? { ...responseData, msg: JSON.parse(responseData.msg) }
+            : responseData
+        }
         // 请求成功
         return responseData as any
       }
@@ -160,4 +179,29 @@ function handleWarning(msg: string, showErrorMsg = true) {
 
   // 静默失败时，不抛错
   return undefined
+}
+
+function isJSON(value: unknown): boolean {
+  if (Array.isArray(value)) {
+    return true
+  }
+
+  if (Object.prototype.toString.call(value) === '[object Object]') {
+    return true
+  }
+
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value)
+      return (
+        Array.isArray(parsed)
+        || Object.prototype.toString.call(parsed) === '[object Object]'
+      )
+    }
+    catch {
+      return false
+    }
+  }
+
+  return false
 }

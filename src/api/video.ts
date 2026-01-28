@@ -1,5 +1,5 @@
 import type { generateImageModel } from '@/model/generateImage'
-import type { TextRoleResponse, VideoModel } from '@/model/video'
+import type { TextRoleResponse, TextSplitResponse, VideoModel } from '@/model/video'
 
 /**
  * @description 分页查询视频类别列表
@@ -53,9 +53,10 @@ export function generateImage(params: generateImageModel) {
  * @description 视频表生成图片
  */
 export function textVideo(data: VideoModel) {
-  return request.post({
+  return request.post<ResponseResult<TextSplitResponse>>({
     url: '/api/video/textSplit',
     data,
+    isJsonResponse: true,
   })
 }
 
