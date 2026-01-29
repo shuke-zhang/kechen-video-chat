@@ -51,13 +51,6 @@ const dropdownItems: Array<{ label: string, value: UserDropdownValueModel }> = [
   { label: '退出', value: 'logout' },
 ]
 
-const _settingDropdownItems: Array<{ label: string, value: SettingDropdownValueModel }> = [
-  { label: '模型配置', value: 'modelSettings' },
-  { label: '音色配置', value: 'voiceSettings' },
-  { label: '个人设置', value: 'userProfile' },
-  { label: '字典管理', value: 'dict' },
-]
-
 const activeNavItem = ref<TopNavValueModel | null>(null)
 
 function handleNavClick(value: TopNavValueModel) {

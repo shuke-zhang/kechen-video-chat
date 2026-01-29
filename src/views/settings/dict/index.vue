@@ -2,7 +2,6 @@
 <script setup lang="ts">
 import type { ElForm, FormRules } from 'element-plus'
 import type { DictModel } from '@/model/dict'
-import { log } from 'node:console'
 import { CircleClose, CirclePlus, Refresh, Search } from '@element-plus/icons-vue'
 import { addDict, DelDict, getDictList, PutDict } from '@/api/dict'
 
@@ -85,6 +84,11 @@ function handleSelectionChange(selection: DictModel[]) {
   names.value = selection.map(item => item.dictName!)
   single.value = selection.length !== 1
   multiple.value = !selection.length
+}
+
+function handleRefreshCache() {
+  useDictStore().cleanDict()
+  showMessageSuccess('刷新成功')
 }
 
 function retQuery(): void {
@@ -175,6 +179,15 @@ onMounted(() => {
         </el-button>
         <el-button type="danger" :icon="CircleClose" @click="handleDel(ids)">
           删除
+        </el-button>
+
+        <el-button
+          type="danger"
+          plain
+          :icon="Refresh"
+          @click="handleRefreshCache"
+        >
+          刷新缓存
         </el-button>
       </el-form-item>
     </el-form>

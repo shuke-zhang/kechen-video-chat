@@ -114,7 +114,15 @@ const routes: RouteRecordRaw[] = [
               hidden: true,
             },
           },
-
+          {
+            path: '/settings/systemVoice',
+            name: 'systemVoice',
+            component: () => import('@/views/settings/systemVoice/index.vue'),
+            meta: {
+              title: '系统音色',
+              hidden: false,
+            },
+          },
         ],
       },
 
