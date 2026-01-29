@@ -155,3 +155,59 @@ export interface TextSplitPayload {
     }
   }
 }
+
+/**
+ * 新增视频-视频生成
+ * 0-关闭
+ * 1-打开
+ */
+export interface VideoGenModel {
+  /**
+   * 视频是否携带背景音乐
+   * 0-关
+   * 1-开
+   */
+  isMusic?: number
+  /**
+   * 视频生成模式
+   */
+  genMode?: number
+  /**
+   * 视频名称
+   */
+  videoName?: string
+  /**
+   * 视频链接
+   */
+  videoURL?: string
+  /**
+   * 角色名称
+   */
+  characterName?: string
+  /**
+   * 图片地址
+   */
+  imageUrl?: string
+  /**
+   * 描述
+   */
+  textInfo?: string
+  /**
+   * 项目id
+   */
+  projectId?: number
+
+  // 仅用于前端展示可用
+  /**
+   * 分片场景
+   */
+  plot?: string
+  /**
+   * 扩展描述
+   */
+  desc?: string
+  /**
+   * 人儿说的话
+   */
+  words?: string
+}

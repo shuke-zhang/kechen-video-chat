@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import type { CharacterModel } from '@/model/character'
 import type { TextRolePayload, TextSplitPayload, VideoModel } from '@/model/video'
 import type { VoiceModel } from '@/model/voice'
 import { Back } from '@element-plus/icons-vue'
+import { getCharacterList } from '@/api/character'
 import { addVideo, PutVideo, textRole } from '@/api/video'
 import { getVoiceList } from '@/api/voice'
 import TextRoleDialog from './textRoleDialog.vue'
@@ -16,8 +18,9 @@ const visible = ref(false)
 const textRoleData = ref<TextRolePayload[]>([])
 const formRef = useTemplateRef('formRef')
 const voiceLoading = ref(false)
-
 const voiceList = ref<VoiceModel[]>([])
+const characterLoading = ref(false)
+const characterList = ref<CharacterModel[]>([])
 
 const form = ref<VideoModel>({
   publishStatus: 0,
@@ -262,8 +265,30 @@ function voiceMethod() {
     })
 }
 
+/**
+ * 搜索角色
+ */
+function characterListMethod() {
+  if (characterLoading.value)
+    return
+  characterLoading.value = true
+  getCharacterList({
+    page: {
+      current: 1,
+      size: 10000,
+    },
+    projectId: category.currentProject?.id,
+  }).then((res) => {
+    characterList.value = res.data.records
+    console.log(characterList.value, 'characterList')
+  }).finally(() => {
+    characterLoading.value = false
+  })
+}
+
 onMounted(() => {
   voiceMethod()
+  characterListMethod()
 })
 </script>
 
@@ -357,7 +382,7 @@ onMounted(() => {
 
     <TextRoleDialog v-model="visible" :data="textRoleData" :voice-list="voiceList" />
 
-    <TextSplitDialog v-model="textSplitVisible" :data="textSplitData" />
+    <TextSplitDialog v-model="textSplitVisible" :data="textSplitData" :character-list="characterList" />
   </div>
 </template>
 

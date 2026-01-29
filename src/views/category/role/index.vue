@@ -29,6 +29,7 @@ const queryParams = ref<ListPageParamsWrapper<CharacterModel>>({
     current: 1,
     size: 10,
   },
+  projectId: category.currentProject?.id,
 })
 const srcList = computed(() => list.value.map(it => it.posterUrl || ''))
 function getList(): void {
@@ -49,6 +50,8 @@ function retQuery(): void {
       current: 1,
       size: 10,
     },
+    projectId: category.currentProject?.id,
+
   }
   resetForm(queryRef.value)
   getList()
