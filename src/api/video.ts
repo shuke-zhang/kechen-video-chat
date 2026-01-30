@@ -53,7 +53,7 @@ export function generateImage(params: generateImageModel) {
  * @description 视频表生成图片
  */
 export function textVideo(data: VideoModel) {
-  return request.post<ResponseResult<TextSplitResponse>>({
+  return request.post<ResponseMsgData<TextSplitResponse>>({
     url: '/api/video/textSplit',
     data,
     isJsonResponse: true,

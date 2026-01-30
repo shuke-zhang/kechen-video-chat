@@ -184,7 +184,7 @@ function systemVoiceMethod() {
     return
   systemVoiceLoading.value = true
   getVoiceList({
-    systemVoice: 0,
+    voiceStatus: 0,
     page: {
       current: 1,
       size: 10000,
@@ -194,6 +194,12 @@ function systemVoiceMethod() {
   }).finally(() => {
     systemVoiceLoading.value = false
   })
+}
+
+function handleSysVoiceChange(e: string) {
+  console.log(e, 'sss')
+  const _voiceId = systemVoiceList.value.find(el => el.testAudio === e)?.voiceId
+  form.value.voiceId = _voiceId
 }
 
 watch(() => visible.value, (val) => {
@@ -219,6 +225,10 @@ watch(() => visible.value, (val) => {
       lastGeneratedArgs.value = null
     }
   }
+})
+
+onMounted(() => {
+  systemVoiceMethod()
 })
 </script>
 
@@ -315,8 +325,8 @@ watch(() => visible.value, (val) => {
                 remote
                 reserve-keyword
                 placeholder="请选择系统音色"
-                :remote-method="systemVoiceMethod"
                 :loading="systemVoiceLoading"
+                @change="handleSysVoiceChange"
               >
                 <el-option
                   v-for="item in systemVoiceList"

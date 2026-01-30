@@ -4,7 +4,7 @@ import type { TextRolePayload, TextSplitPayload, VideoModel } from '@/model/vide
 import type { VoiceModel } from '@/model/voice'
 import { Back } from '@element-plus/icons-vue'
 import { getCharacterList } from '@/api/character'
-import { addVideo, PutVideo, textRole } from '@/api/video'
+import { addVideo, PutVideo, textRole, textVideo } from '@/api/video'
 import { getVoiceList } from '@/api/voice'
 import TextRoleDialog from './textRoleDialog.vue'
 import TextSplitDialog from './textSplitDialog.vue'
@@ -68,125 +68,20 @@ function handleRole() {
 function handleTextVideo() {
   if (textVideoLoading.value)
     return
-  // textVideoLoading.value = true
+  textVideoLoading.value = true
   console.log(category.currentProject, '内容')
-  textSplitVisible.value = true
-  textSplitData.value = [
-    {
-      textInfo: {
-        plot: '在天空的尽头，有一间小小的云朵裁缝铺。',
-        talk: {
-          words: '',
-          name: '',
-        },
-        desc: '场景位于天空尽头的高远空域，一间由蓬松白云构筑的小型裁缝铺静静悬浮于气流之中，周围弥漫着微光与稀薄水汽，时间处于永恒静谧的晨昏交界时刻。',
-      },
-      videoName: '在天空的尽头，有一间小小的云朵裁缝铺。',
-      imageUrl: 'http://192.168.3.22:8000/view/videogen/4/plot/3c87acc94f6c4ec7b58858cd95672b93.png',
-      characterName: '',
-    },
-    {
-      textInfo: {
-        plot: '店主是一只年迈的白猫，名叫絮絮。它不缝衣服，而是用晨雾做线、晚霞当布，为伤心的人缝补破碎的梦。',
-        talk: {
-          words: '',
-          name: '絮絮',
-        },
-        desc: '云朵裁缝铺内，一只毛色如初雪、眉宇间刻着细密皱纹的年迈白猫端坐于织云木台后；台面浮悬着半透明的晨雾纺线与流淌着金橙渐变光泽的晚霞布片；空间中漂浮着若隐若现的、由碎光组成的残缺梦境轮廓。',
-      },
-      videoName: '店主是一只年迈的白猫，名叫絮絮。它不缝衣服，而是用晨雾做线、晚霞当布，为伤心的人缝补破碎的梦。',
-      imageUrl: 'http://192.168.3.22:8000/view/videogen/4/plot/7fbca5fb3eaf45abbe12dc85353165dd.png',
-      characterName: '絮絮',
-    },
-    {
-      textInfo: {
-        plot: '一天，一个小女孩坐在屋顶上哭泣。她的风筝断了线，飞进了乌云里，再也没回来。',
-        talk: {
-          words: '',
-          name: '小女孩',
-        },
-        desc: '城市边缘一栋青瓦老屋的斜坡屋顶上，阳光微斜，风略带凉意；小女孩蜷坐在烟囱旁，双肩耸动，泪水滑落衣襟；一只纸扎蝴蝶形风筝正消失在远处低垂翻涌的铅灰色乌云边缘，细线在风中绷直后骤然断裂。',
-      },
-      videoName: '一天，一个小女孩坐在屋顶上哭泣。她的风筝断了线，飞进了乌云里，再也没回来。',
-      imageUrl: 'http://192.168.3.22:8000/view/videogen/4/plot/aa307fe35bbd425088d6de80ee57b283.png',
-      characterName: '小女孩',
-    },
-    {
-      textInfo: {
-        plot: '那是妈妈最后送我的礼物……她抽泣着说。',
-        talk: {
-          words: '那是妈妈最后送我的礼物……',
-          name: '小女孩',
-        },
-        desc: '小女孩仍坐在青瓦屋顶上，双手紧攥裙角，脸颊泪痕未干，声音断续哽咽；背景中乌云缓慢移动，屋檐滴落一滴积水。',
-      },
-      videoName: '那是妈妈最后送我的礼物……她抽泣着说。',
-      imageUrl: 'http://192.168.3.22:8000/view/videogen/4/plot/719e99e3b3e24fcea2f027b2842f4b37.png',
-      characterName: '小女孩',
-    },
-    {
-      textInfo: {
-        plot: '絮絮轻轻跳上屋顶，从怀里掏出一团蓬松的云。',
-        talk: {
-          words: '',
-          name: '絮絮',
-        },
-        desc: '白猫絮絮自天际轻盈跃下，四爪无声落在青瓦屋顶边缘，尾尖微翘，胸前绒毛间缓缓浮起一团柔光氤氲、边缘微微颤动的蓬松白云。',
-      },
-      videoName: '絮絮轻轻跳上屋顶，从怀里掏出一团蓬松的云。',
-      imageUrl: 'http://192.168.3.22:8000/view/videogen/4/plot/d280591804514afe89d2f4b6a9c8024d.png',
-      characterName: '絮絮',
-    },
-    {
-      textInfo: {
-        plot: '别怕，我帮你把它缝回来。它用月光穿针，把星星缀在风筝的角上，又剪下一小片彩虹做尾巴。',
-        talk: {
-          words: '别怕，我帮你把它缝回来。',
-          name: '絮絮',
-        },
-        desc: '絮絮立于屋顶中央，前爪托起一道凝练银辉化作的纤细月光之针；夜空背景悄然浮现，数粒冷蓝星芒自动吸附于风筝骨架四角；东南天际裂开一道微隙，一缕七彩光带被云剪裁下，柔顺垂落为风筝飘逸尾翼。',
-      },
-      videoName: '别怕，我帮你把它缝回来。它用月光穿针，把星星缀在风筝的角上，又剪下一小片彩虹做尾巴。',
-      imageUrl: 'http://192.168.3.22:8000/view/videogen/4/plot/a10f179fc0e6467d9595cc5242959799.png',
-      characterName: '絮絮',
-    },
-    {
-      textInfo: {
-        plot: '第二天清晨，小女孩睁开眼——那只风筝正轻轻落在她的窗台上，比从前更亮、更轻，仿佛能带人飞到任何想念的地方。',
-        talk: {
-          words: '',
-          name: '',
-        },
-        desc: '晨光初透的卧室中，浅蓝色窗帘微漾；小女孩躺在床上刚苏醒，睫毛轻颤；窗外透入淡金色天光，窗台木纹清晰可见，那只蝴蝶风筝静置其上，通体泛着珍珠母贝般的柔光，翅缘有细碎星点明灭，尾部彩虹丝带微微浮动。',
-      },
-      videoName: '第二天清晨，小女孩睁开眼——那只风筝正轻轻落在她的窗台上，比从前更亮、更轻，仿佛能带人飞到任何想念的地方。',
-      imageUrl: 'http://192.168.3.22:8000/view/videogen/4/plot/5255715b031046b7afc25799c72309a8.png',
-      characterName: '',
-    },
-    {
-      textInfo: {
-        plot: '从此，每当有人失落或难过，絮絮就会悄悄出现在他们梦里，问一句：需要我为你缝点什么吗？',
-        talk: {
-          words: '需要我为你缝点什么吗？',
-          name: '絮絮',
-        },
-        desc: '多个模糊叠化的梦境场景交替闪现：不同年龄、性别的人物在各自睡颜中眉头微蹙；絮絮的身影如薄雾般浮现在每一场梦境深处，姿态安静，双眼映着微光；背景是流动的云絮、半隐的织机与飘散的星尘线头。',
-      },
-      videoName: '从此，每当有人失落或难过，絮絮就会悄悄出现在他们梦里，问一句：需要我为你缝点什么吗？',
-      imageUrl: 'http://192.168.3.22:8000/view/videogen/4/plot/464f5955e2ae4dc4b318f1ac9b5b090b.png',
-      characterName: '絮絮',
-    },
-  ]
-  // textVideo({
-  //   projectId: category.currentProject?.id,
-  //   publishStatus: form.value.publishStatus,
-  //   videoName: form.value.videoName,
-  //   videoText: form.value.videoText,
-  // }).then((res) => {
-  //   console.log(res, '_res')
-  // }).finally(() => {
-  //   textVideoLoading.value = false
-  // })
+  textVideo({
+    projectId: category.currentProject?.id,
+    publishStatus: form.value.publishStatus,
+    videoName: form.value.videoName,
+    videoText: form.value.videoText,
+  }).then((res) => {
+    console.log(res.msg.plot_image, '_res')
+    textSplitData.value = res.msg.plot_image
+    textSplitVisible.value = true
+  }).finally(() => {
+    textVideoLoading.value = false
+  })
 }
 
 function reset() {

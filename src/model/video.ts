@@ -185,29 +185,30 @@ export interface VideoGenModel {
    */
   characterName?: string
   /**
+   * 角色id
+   */
+  characterId?: number
+  /**
    * 图片地址
    */
   imageUrl?: string
   /**
    * 描述
    */
-  textInfo?: string
+  textInfo?: Pick<TextSplitPayload, 'textInfo'>['textInfo']
   /**
    * 项目id
    */
   projectId?: number
+}
 
-  // 仅用于前端展示可用
+export interface VideoGenResult {
   /**
-   * 分片场景
+   * 当做视频key用，跟VideoGenModel的imageUrl一样
    */
-  plot?: string
+  plot_image: string
   /**
-   * 扩展描述
+   * 视频地址
    */
-  desc?: string
-  /**
-   * 人儿说的话
-   */
-  words?: string
+  video_url: string
 }

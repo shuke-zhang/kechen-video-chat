@@ -31,6 +31,15 @@ declare interface ResponseList<T> {
 }
 
 /**
+ * @description 基础数据类型
+ */
+declare interface ResponseMsgData<T extends AnyObject = AnyObject> {
+  code: number
+  msg: T
+  error: string
+}
+
+/**
  * @description 数据类型在 records 里面
  */
 declare type ResponseRecords<T = any> = ResponseResult<{

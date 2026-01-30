@@ -2,12 +2,9 @@
 import type { ElForm, UploadUserFile } from 'element-plus'
 import type { CharacterModel } from '@/model/character'
 import type { TextSplitPayload, VideoGenModel } from '@/model/video'
+import { VideoPlay } from '@element-plus/icons-vue'
 import { generateImage } from '@/api/video'
 import { videoGen } from '@/api/videoMergeRecord'
-
-/* ======================
- * 类型扩展（前端状态）
- * ====================== */
 
 interface TextSplitPayloadWithState
   extends VideoGenModel {
@@ -15,7 +12,7 @@ interface TextSplitPayloadWithState
   submitLoading?: boolean
   imageGenerating?: boolean
   videoGenerating?: boolean
-  videoUrl?: string // ⭐ 视频回显地址
+  videoUrl?: string
 }
 
 const props = defineProps<{
@@ -27,18 +24,11 @@ const emit = defineEmits<{
   (e: 'success', t: TextSplitPayload): void
 }>()
 
-/* ======================
- * Props / Emits
- * ====================== */
 const category = useCategoryStore()
 
 const { video_gen_type } = useDict('video_gen_type')
 
 const visible = defineModel<boolean>()
-
-/* ======================
- * 表单状态
- * ====================== */
 
 const formRef = ref<InstanceType<typeof ElForm> | null>(null)
 
@@ -55,7 +45,17 @@ const form = ref<{
 /* ======================
  * 操作方法
  * ====================== */
+const videoPreviewVisible = ref(false)
+const previewVideoUrl = ref<string>('')
 
+function openVideoPreview(url?: string) {
+  if (!url) {
+    ElMessage.warning('暂无可预览的视频')
+    return
+  }
+  previewVideoUrl.value = url
+  videoPreviewVisible.value = true
+}
 function cancel() {
   visible.value = false
   form.value.plot_image = []
@@ -68,7 +68,7 @@ function cancel() {
 function regenerate(index: number) {
   const item = form.value.plot_image[index]
 
-  if (!item.plot?.trim()) {
+  if (!item.textInfo?.plot?.trim()) {
     ElMessage.warning('请先填写分片场景内容')
     return
   }
@@ -80,7 +80,7 @@ function regenerate(index: number) {
 
   generateImage({
     mode: 2,
-    text: item.plot,
+    text: item.textInfo?.plot,
   })
     .then((res) => {
       item.imageUrl = res.msg
@@ -114,20 +114,23 @@ function submitRow(index: number) {
   videoGen([{
     videoName: item.videoName,
     characterName: item.characterName,
+    // characterId: item.characterId,
     imageUrl: item.imageUrl,
     isMusic: item.isMusic,
     // genMode: item.genMode,
     genMode: 1,
-    textInfo: item.desc,
+    textInfo: JSON.stringify(item.textInfo) as any,
     projectId: category.currentProject?.id,
   }])
     .then((_res) => {
+      const data = _res.data[0]
+
       /**
        * 假设后端返回：
        * res.videoUrl
        */
-      // item.videoUrl = res.videoUrl
-      ElMessage.success(`「${item.videoName}」视频生成成功`)
+      item.videoUrl = data.video_url
+      showMessageSuccess(`「${item.videoName}」视频生成成功`)
       // emit('success', item)
     })
     .finally(() => {
@@ -151,9 +154,7 @@ watch(
       imageGenerating: false,
       videoGenerating: false,
       isMusic: 0,
-      plot: it.textInfo?.plot ?? '',
-      desc: it.textInfo?.desc ?? '',
-      words: it.textInfo?.talk?.words ?? '',
+      textInfo: it.textInfo,
     }))
   },
 )
@@ -180,18 +181,7 @@ watch(
             <el-card shadow="hover" class="mb-[8px]">
               <!-- 基础信息 -->
               <el-row :gutter="16">
-                <el-col :span="8">
-                  <el-form-item label="视频名称">
-                    <el-input
-                      v-model="item.videoName"
-                      type="textarea"
-                      autosize
-                      placeholder="请输入视频名称"
-                    />
-                  </el-form-item>
-                </el-col>
-
-                <el-col :span="6">
+                <el-col v-if="item.characterName" :span="6">
                   <el-form-item label="角色">
                     <el-select
                       v-model="item.characterName"
@@ -208,7 +198,7 @@ watch(
                   </el-form-item>
                 </el-col>
 
-                <el-col :span="4">
+                <el-col :span="4.5">
                   <el-form-item label="背景音乐">
                     <el-switch
                       v-model="item.isMusic"
@@ -220,7 +210,7 @@ watch(
                   </el-form-item>
                 </el-col>
 
-                <el-col :span="6">
+                <el-col :span="4">
                   <el-form-item label="生成模式">
                     <el-select
                       v-model="item.genMode"
@@ -236,7 +226,7 @@ watch(
                   </el-form-item>
                 </el-col>
 
-                <el-col :span="6">
+                <el-col :span="4">
                   <el-form-item label="场景图片">
                     <div class="flex items-center gap-[10px]">
                       <UploadFile
@@ -247,60 +237,107 @@ watch(
                         width="80"
                         height="80"
                       />
-                      <el-button
-                        type="primary"
-                        plain
-                        :loading="item.imageGenerating"
-                        @click="regenerate(index)"
-                      >
-                        生成图片
-                      </el-button>
                     </div>
                   </el-form-item>
                 </el-col>
 
-                <!-- 文本 -->
-                <el-col :span="12">
-                  <el-form-item label="扩展描述">
+                <el-col :span="5.5">
+                  <el-form-item label="生成视频">
+                    <div
+                      class="relative flex cursor-pointer items-center justify-center rounded border bg-black"
+                      style="width: 120px; height: 70px;"
+                      @click="openVideoPreview(item.videoUrl)"
+                    >
+                      <!-- 视频缩略帧 -->
+                      <video
+                        v-if="item.videoUrl"
+                        :src="item.videoUrl"
+                        muted
+                        preload="metadata"
+                        class="h-full w-full object-contain"
+                      />
+
+                      <!-- 无视频占位 -->
+                      <el-empty
+                        v-else
+                        description="暂无视频"
+                        :image-size="10"
+                        class="absolute inset-0 flex items-center justify-center"
+                      />
+
+                      <!-- ✅ 播放按钮（关键） -->
+                      <div
+                        v-if="item.videoUrl"
+                        class="absolute inset-0 z-10 flex items-center justify-center bg-black/20"
+                      >
+                        <el-icon size="28" class="text-white drop-shadow">
+                          <VideoPlay />
+                        </el-icon>
+                      </div>
+                    </div>
+                  </el-form-item>
+                </el-col>
+
+                <el-col :span="8">
+                  <el-form-item label="视频名称">
                     <el-input
-                      v-model="item.desc"
+                      v-model="item.videoName"
                       type="textarea"
-                      autosize
+
+                      :rows="6"
+                      placeholder="请输入视频名称"
                     />
                   </el-form-item>
                 </el-col>
 
-                <el-col :span="12">
+                <!-- 文本 -->
+                <el-col :span="8">
+                  <el-form-item label="扩展描述">
+                    <el-input
+                      v-model="item.textInfo!.desc"
+                      type="textarea"
+                      :rows="6"
+                    />
+                  </el-form-item>
+                </el-col>
+
+                <el-col :span="8">
                   <el-form-item label="分片场景">
                     <el-input
-                      v-model="item.plot"
+                      v-model="item.textInfo!.plot"
                       type="textarea"
-                      autosize
+                      :rows="6"
                     />
                   </el-form-item>
                 </el-col>
               </el-row>
 
               <!-- 视频预览 -->
-              <div v-if="item.videoUrl" class="mt-3">
-                <video
-                  :src="item.videoUrl"
-                  controls
-                  preload="metadata"
-                  class="w-full rounded border"
-                  style="max-height: 260px;"
-                />
-              </div>
 
               <!-- 操作 -->
-              <div class="flex justify-end mt-3">
+              <div iv class="flex justify-end gap-[10px]">
+                <el-button
+                  type="primary"
+                  plain
+                  :loading="item.imageGenerating"
+                  @click="regenerate(index)"
+                >
+                  生成图片
+                </el-button>
+
                 <el-button
                   type="primary"
                   :loading="item.videoGenerating"
                   :disabled="item.imageGenerating"
                   @click="submitRow(index)"
                 >
-                  {{ item.videoGenerating ? '视频生成中...' : '生成视频' }}
+                  {{
+                    item.videoGenerating
+                      ? '视频生成中...'
+                      : item.videoUrl
+                        ? '重新生成'
+                        : '生成视频'
+                  }}
                 </el-button>
               </div>
             </el-card>
@@ -308,6 +345,23 @@ watch(
         </el-row>
       </div>
     </el-scrollbar>
+
+    <el-dialog
+      v-model="videoPreviewVisible"
+      title="视频预览"
+      width="800px"
+      :close-on-click-modal="false"
+    >
+      <div class="flex justify-center">
+        <video
+          :src="previewVideoUrl"
+          controls
+          autoplay
+          class="w-full rounded"
+          style="max-height: 450px;"
+        />
+      </div>
+    </el-dialog>
   </el-dialog>
 </template>
 
