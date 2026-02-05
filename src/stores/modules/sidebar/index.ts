@@ -4,7 +4,6 @@ export const useSidebarStore = defineStore('sidebar', () => {
   const route = useRoute()
   const currentSidebarItem = ref<MenuItemRegistered | null>(null)
   const currentPublicStatus = computed(() => {
-    console.log('测试', currentSidebarItem.value)
     if (!currentSidebarItem.value) {
       return 0 // 执行时机的问题直接取公共第一个
     }
@@ -39,15 +38,14 @@ export const useSidebarStore = defineStore('sidebar', () => {
   const defaultActiveMenu = ref(publicSidebars[0].value)
   const isShowSidebar = ref(!!route.meta?.showLeftMenu)
 
-  /**
-   * 设置侧边栏
-   */
-  function setCurrentSidebarItem(item: MenuItemRegistered) {
-    currentSidebarItem.value = item
-  }
-
   watch(() => route.path, () => {
     currentSidebars.value = route.path.includes('category/project') ? categorySidebars : publicSidebars
+    const item = {
+      index: currentSidebars.value[0].value,
+      indexPath: [currentSidebars.value[0].value],
+      active: true,
+    }
+    currentSidebarItem.value = item
     if (route.path.includes('category')) {
       isShowSidebar.value = true
       return
@@ -59,7 +57,6 @@ export const useSidebarStore = defineStore('sidebar', () => {
     immediate: true,
   })
   watch(() => currentSidebars.value, (val) => {
-    console.log('变化currentSidebars')
     if (!val.map(el => el.value).includes(defaultActiveMenu.value)) {
       defaultActiveMenu.value = val[0].value
     }
@@ -74,7 +71,6 @@ export const useSidebarStore = defineStore('sidebar', () => {
     currentSidebars,
     defaultActiveMenu,
     currentPublicStatus,
-    setCurrentSidebarItem,
   }
 }, {
   persist: {

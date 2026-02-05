@@ -16,8 +16,7 @@ function hasTitle(title: string) {
 }
 
 function handleMenuItemClick(item: MenuItemRegistered) {
-  sidebarStore.setCurrentSidebarItem(item)
-  console.log(item, 'item123456')
+  sidebarStore.currentSidebarItem = item
   if (sidebarStore.categorySidebars.map(it => it.value,
   ).includes(item.index)) {
     router.push({ path: `/category/project/${item.index}/${route.params.id}` })
