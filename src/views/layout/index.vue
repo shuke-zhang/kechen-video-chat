@@ -1,15 +1,11 @@
 <!-- src/components/DocsLayout.vue -->
 <script setup lang="ts">
-import type { MenuItemRegistered } from 'element-plus'
 import AppMain from './AppMain.vue'
 import Head from './components/head/index.vue'
 import Sidebar from './components/sidebar/index.vue'
 
 const sidebarStore = useSidebarStore()
-/**
- * 当前点击的是公共还是私有侧边栏菜单
- */
-const currentSidebarItem = ref<MenuItemRegistered | null>(null)
+
 const isShowSidebar = computed(() => sidebarStore.isShowSidebar)
 </script>
 
@@ -23,7 +19,7 @@ const isShowSidebar = computed(() => sidebarStore.isShowSidebar)
     <div
       class="app-wrapper" :class="{ 'no-sidebar': !isShowSidebar }"
     >
-      <AppMain :current-sidebar-item="currentSidebarItem" />
+      <AppMain />
     </div>
 
     <!-- 中间内容区：可伸展 -->

@@ -12,6 +12,7 @@ type MeasurableEl = HTMLElement | {
   clientWidth: number
   clientHeight: number
 }
+const category = useCategoryStore()
 const useAddVideoStore = useAddVideo()
 const router = useRouter()
 const route = useRoute()
@@ -62,11 +63,20 @@ function getList() {
   if (loading.value)
     return
   loading.value = true
-  getVideoList(queryParams.value).then((res) => {
-    list.value = res.data.records.map(item => ({
-      ...item,
-      isDelChecked: false,
-    }))
+  getVideoList({
+    ...queryParams.value,
+    projectId: category.currentProject?.id,
+  }).then(async (res) => {
+    list.value = await Promise.all(
+      res.data.records.map(async item => ({
+        ...item,
+        isDelChecked: false,
+        coverUrl: item.videoUrl
+          ? await getVideoFirstFrame(item.videoUrl)
+          : '',
+      })),
+    )
+
     total.value = res.data.total
   }).finally(() => {
     loading.value = false
@@ -112,6 +122,10 @@ function handleDel(_ids: number[] | VideoModel) {
   confirmWarning(`是否确认删除视频：${delNames.join(', ')}？`).then(() => {
     delMsgLoading(DelVideo(delIds), '正在删除...').then(() => {
       showMessageSuccess('删除成功')
+      ids.value = []
+      names.value = []
+      console.log(ids.value, 'ids.value')
+
       getList()
     })
   })
@@ -158,6 +172,37 @@ function fmtDuration(sec: number) {
   const m = Math.floor(sec / 60).toString()
   const s = Math.floor(sec % 60).toString().padStart(2, '0')
   return `${m}:${s}`
+}
+
+function getVideoFirstFrame(videoUrl: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video')
+
+    video.crossOrigin = 'anonymous'
+    video.src = videoUrl
+    video.muted = true
+    video.playsInline = true
+
+    video.addEventListener('loadeddata', () => {
+      // 避免第一帧黑屏
+      video.currentTime = 0.2
+    })
+
+    video.addEventListener('seeked', () => {
+      const canvas = document.createElement('canvas')
+
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
+
+      const ctx = canvas.getContext('2d')
+      ctx?.drawImage(video, 0, 0)
+
+      const base64 = canvas.toDataURL('image/jpeg', 0.9)
+      resolve(base64)
+    })
+
+    video.addEventListener('error', reject)
+  })
 }
 
 onMounted(() => {

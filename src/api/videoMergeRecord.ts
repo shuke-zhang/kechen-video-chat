@@ -9,3 +9,13 @@ export function videoGen(data: VideoGenModel[]) {
     data,
   })
 }
+
+/**
+ * @description 视频表生成图片
+ */
+export function videoMerge(data: VideoGenModel[]) {
+  return request.post<ResponseData<string>>({
+    url: '/api/videoMergeRecord/videoMerge',
+    data,
+  })
+}

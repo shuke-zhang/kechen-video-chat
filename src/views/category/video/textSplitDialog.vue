@@ -4,7 +4,7 @@ import type { CharacterModel } from '@/model/character'
 import type { TextSplitPayload, VideoGenModel } from '@/model/video'
 import { VideoPlay } from '@element-plus/icons-vue'
 import { generateImage } from '@/api/video'
-import { videoGen } from '@/api/videoMergeRecord'
+import { videoGen, videoMerge } from '@/api/videoMergeRecord'
 
 interface TextSplitPayloadWithState
   extends VideoGenModel {
@@ -21,7 +21,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'success', t: TextSplitPayload): void
+  (e: 'success', t: string): void
 }>()
 
 const category = useCategoryStore()
@@ -38,13 +38,8 @@ const form = ref<{
   plot_image: [],
 })
 
-/* ======================
- * 生命周期 / 回显
- * ====================== */
-
-/* ======================
- * 操作方法
- * ====================== */
+const videoMergeLoading = ref(false)
+const submitAllLoading = ref(false)
 const videoPreviewVisible = ref(false)
 const previewVideoUrl = ref<string>('')
 
@@ -81,6 +76,7 @@ function regenerate(index: number) {
   generateImage({
     mode: 2,
     text: item.textInfo?.plot,
+    topic: category.currentProject?.styleDesignId,
   })
     .then((res) => {
       item.imageUrl = res.msg
@@ -114,7 +110,7 @@ function submitRow(index: number) {
   videoGen([{
     videoName: item.videoName,
     characterName: item.characterName,
-    // characterId: item.characterId,
+    characterId: item.characterId,
     imageUrl: item.imageUrl,
     isMusic: item.isMusic,
     // genMode: item.genMode,
@@ -137,6 +133,100 @@ function submitRow(index: number) {
       item.videoGenerating = false
       item.submitLoading = false
     })
+}
+/**
+ * 一键生成
+ */
+function submitAll() {
+  if (form.value.plot_image.map(it => it.imageGenerating).some(item => item)) {
+    return showMessageWarning('场景图片正在生成中，请等待完成后再生成视频')
+  }
+  if (submitAllLoading.value)
+    return
+
+  if (form.value.plot_image.map(it => it.videoGenerating).some(item => item)) {
+    return false
+  }
+  submitAllLoading.value = true
+  form.value.plot_image = form.value.plot_image.map((it) => {
+    return {
+      ...it,
+      videoGenerating: true,
+      submitLoading: true,
+    }
+  })
+  const data = form.value.plot_image.map((item) => {
+    return {
+      videoName: item.videoName,
+      characterName: item.characterName,
+      characterId: item.characterId,
+      imageUrl: item.imageUrl,
+      isMusic: item.isMusic,
+      // genMode: item.genMode,
+      genMode: 1,
+      textInfo: JSON.stringify(item.textInfo) as any,
+      projectId: category.currentProject?.id,
+    }
+  })
+  videoGen(data).then((_res) => {
+    const data = _res.data
+    form.value.plot_image = form.value.plot_image.map((it) => {
+      return {
+        ...it,
+        videoUrl: data.find(el => el.plot_image === it.imageUrl)?.video_url || '',
+      }
+    })
+    showMessageSuccess(`视频生成成功`)
+  }).finally(() => {
+    submitAllLoading.value = false
+
+    form.value.plot_image = form.value.plot_image.map((it) => {
+      return {
+        ...it,
+        videoGenerating: false,
+        submitLoading: false,
+      }
+    })
+  })
+}
+
+function mergeVideos() {
+  if (!form.value.plot_image?.length) {
+    showMessageWarning('暂无分镜数据')
+    return
+  }
+
+  const notGenerated = form.value.plot_image.find(
+    item => !item.videoUrl,
+  )
+
+  if (notGenerated) {
+    ElMessage.warning(`「${notGenerated.videoName || '未命名分镜'}」尚未生成视频`)
+    return
+  }
+  if (videoMergeLoading.value)
+    return
+  videoMergeLoading.value = true
+  const data = form.value.plot_image.map((it) => {
+    return {
+      videoName: it.videoName,
+      characterName: it.characterName,
+      characterId: it.characterId,
+      imageUrl: it.imageUrl,
+      isMusic: it.isMusic,
+      videoUrl: it.videoUrl,
+      genMode: 1,
+      textInfo: JSON.stringify(it.textInfo) as any,
+      projectId: category.currentProject?.id,
+    }
+  })
+  videoMerge(data).then((res) => {
+    emit('success', res.data)
+    console.log('生成视频啦', res)
+    visible.value = false
+  }).finally(() => {
+    videoMergeLoading.value = false
+  })
 }
 
 watch(
@@ -167,10 +257,10 @@ watch(
     width="1200px"
     :close-on-click-modal="false"
     :close-on-press-escape="false"
-    lock-scroll
+    :align-center="true"
     @close="cancel"
   >
-    <el-scrollbar height="520px" wrap-style="overflow-x: hidden;">
+    <el-scrollbar class="flex flex-col max-h-[60vh] overflow-auto" wrap-style="overflow-x: hidden;">
       <div class="px-[8px]">
         <el-row :gutter="16">
           <el-col
@@ -178,7 +268,22 @@ watch(
             :key="index"
             :span="24"
           >
-            <el-card shadow="hover" class="mb-[8px]">
+            <el-card shadow="hover" class="mb-[32px]">
+              <div class="flex items-center gap-[10px] mb-[4px]">
+                <!-- 青瓷强调条 -->
+                <div class="h-[18px] w-[4px] rounded bg-primary" />
+
+                <!-- 标题文字 -->
+                <div class="flex items-baseline gap-[6px]">
+                  <span class="text-[16px] font-semibold text-gray-800">
+                    分镜
+                  </span>
+
+                  <span class="text-[14px] font-medium text-primary">
+                    {{ String(index + 1).padStart(2, '0') }}
+                  </span>
+                </div>
+              </div>
               <!-- 基础信息 -->
               <el-row :gutter="16">
                 <el-col v-if="item.characterName" :span="6">
@@ -345,6 +450,23 @@ watch(
         </el-row>
       </div>
     </el-scrollbar>
+
+    <div class="flex justify-end pt-[12px] border-t border-gray-200">
+      <el-button
+        :loading="submitAllLoading"
+        @click="submitAll"
+      >
+        {{ submitAllLoading ? '视频生成中...' : '一键生成' }}
+      </el-button>
+
+      <el-button
+        type="primary"
+        :loading="videoMergeLoading"
+        @click="mergeVideos"
+      >
+        {{ videoMergeLoading ? '视频合成中...' : '视频合成' }}
+      </el-button>
+    </div>
 
     <el-dialog
       v-model="videoPreviewVisible"

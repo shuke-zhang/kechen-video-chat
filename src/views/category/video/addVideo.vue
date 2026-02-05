@@ -7,6 +7,7 @@ import { getCharacterList } from '@/api/character'
 import { addVideo, PutVideo, textRole, textVideo } from '@/api/video'
 import { getVoiceList } from '@/api/voice'
 import TextRoleDialog from './textRoleDialog.vue'
+import { result111 } from './textSplit'
 import TextSplitDialog from './textSplitDialog.vue'
 
 const useAddVideoStore = useAddVideo()
@@ -14,6 +15,7 @@ const category = useCategoryStore()
 const router = useRouter()
 const textSplitVisible = ref(false)
 const textSplitData = ref<TextSplitPayload[]>([])
+const textSplitVideoUrl = ref('')
 const visible = ref(false)
 const textRoleData = ref<TextRolePayload[]>([])
 const formRef = useTemplateRef('formRef')
@@ -76,8 +78,7 @@ function handleTextVideo() {
     videoName: form.value.videoName,
     videoText: form.value.videoText,
   }).then((res) => {
-    console.log(res.msg.plot_image, '_res')
-    textSplitData.value = res.msg.plot_image
+    textSplitData.value = res.data.plot_image
     textSplitVisible.value = true
   }).finally(() => {
     textVideoLoading.value = false
@@ -98,14 +99,24 @@ function cancel() {
   reset()
 }
 
+function handleTextSplit(url: string) {
+  textSplitVideoUrl.value = url
+}
+
 function submit() {
   formRef.value?.validate((valid) => {
     if (valid) {
+      if (!textSplitVideoUrl.value) {
+        showMessageError('请先生成视频')
+        return
+      }
       if (submitLoading.value)
         return
       submitLoading.value = true
       const data: VideoModel = {
         ...form.value,
+        videoUrl: textSplitVideoUrl.value,
+        projectId: category.currentProject?.id,
       }
       console.log(data, 'submit')
       const api = isAdd.value ? addVideo : PutVideo
@@ -122,19 +133,8 @@ function submit() {
 }
 
 function test() {
-  textRoleData.value = [
-    {
-      description: '一只年迈的白猫，毛发蓬松灰白相间，体型瘦小而优雅，眼睛呈淡金色，胡须长而微卷，颈部系着一条褪色的靛蓝丝巾，四肢纤细，尾巴尖略带弯钩，背景为白色。',
-      posterUrl: 'https://dashscope-result-sh.oss-cn-shanghai.aliyuncs.com/1d/20/20260126/eb920ed5/4822b601-75e7-490a-ac3b-a5f03d93388a.png?Expires=1769494059&OSSAccessKeyId=LTAI5tKPD3TMqf2Lna1fASuh&Signature=5EEk6fWggTOsBByv7G5h%2FLeVFXo%3D',
-      characterName: '絮絮',
-    },
-    {
-      description: '约七八岁的亚洲女孩，齐耳黑发略带自然卷，穿着浅黄色棉布连衣裙和白色短袜，脚上是一双红色小布鞋，脸颊微圆，皮肤白皙，双手抱着膝盖坐在屋顶边缘，背景为白色。',
-      posterUrl: 'https://dashscope-result-sh.oss-cn-shanghai.aliyuncs.com/1d/89/20260126/eb920ed5/e2334a75-e209-4f39-bdcd-dc490a5997dc.png?Expires=1769494058&OSSAccessKeyId=LTAI5tKPD3TMqf2Lna1fASuh&Signature=%2FTCiB%2BxC7SQsej9wwybiRbcPfGU%3D',
-      characterName: '小女孩',
-    },
-  ]
-  visible.value = true
+  textSplitData.value = result111 as any
+  textSplitVisible.value = true
 }
 
 /**
@@ -188,7 +188,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="app-container ">
+  <div class="app-container h-full flex">
     <div class="card size-full">
       <div class="flex justify-between">
         <div>{{ isAdd ? "新增视频" : "编辑视频" }}</div>
@@ -200,68 +200,72 @@ onMounted(() => {
           测试
         </el-button>
       </div>
+
       <el-divider />
 
-      <el-form
-        ref="formRef"
-        :inline="false"
-        :rules="rules"
-        :model="form"
-        class="large-form"
-        label-width="100"
-      >
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="是否公开" prop="publishStatus">
-              <el-switch
-                v-model="form.publishStatus"
-                active-text="公开"
-                :active-value="1"
-                inactive-text="不公开"
-                :inactive-value="0"
-              />
-            </el-form-item>
-          </el-col>
+      <div class="flex-1 overflow-y-auto pr-2">
+        <el-form
+          ref="formRef"
+          :inline="false"
+          :rules="rules"
+          :model="form"
+          class="large-form"
+          label-width="100"
+        >
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <el-form-item label="是否公开" prop="publishStatus">
+                <el-switch
+                  v-model="form.publishStatus"
+                  active-text="公开"
+                  :active-value="1"
+                  inactive-text="不公开"
+                  :inactive-value="0"
+                />
+              </el-form-item>
+            </el-col>
 
-          <el-col :span="24">
-            <el-form-item label="文本标题" prop="videoName" style="width: 100%">
-              <el-input
-                v-model="form.videoName"
-                type="textarea"
-                :min-rows="2"
-                clearable
-                placeholder="请输入文本标题"
-              />
-            </el-form-item>
-          </el-col>
+            <el-col :span="24">
+              <el-form-item label="文本标题" prop="videoName" style="width: 100%">
+                <el-input
+                  v-model="form.videoName"
+                  type="textarea"
+                  :min-rows="2"
+                  clearable
+                  placeholder="请输入文本标题"
+                />
+              </el-form-item>
+            </el-col>
 
-          <el-col :span="24">
-            <el-form-item label="内容" prop="videoText" style="width: 100%">
-              <el-input
-                v-model="form.videoText"
-                type="textarea"
-                :min-rows="6"
-                autosize
-                clearable
-                placeholder="请输入文本标题"
-              />
-            </el-form-item>
-          </el-col>
+            <el-col :span="24">
+              <el-form-item label="内容" prop="videoText" style="width: 100%">
+                <el-input
+                  v-model="form.videoText"
+                  type="textarea"
+                  :min-rows="6"
+                  autosize
+                  clearable
+                  placeholder="请输入文本标题"
+                />
+              </el-form-item>
+            </el-col>
 
-          <el-col :span="24">
-            <el-form-item label="" class="w-full">
-              <div class="w-full flex justify-end gap-[10px]">
-                <el-button :loading="roleLoading" @click="handleRole">
-                  角色
-                </el-button>
-                <el-button :loading="textVideoLoading" @click="handleTextVideo">
-                  生成
-                </el-button>
-              </div>
-            </el-form-item>
-          </el-col>
-        </el-row>
-      </el-form>
+            <el-col :span="24">
+              <el-form-item label="" class="w-full">
+                <div class="w-full flex justify-end gap-[10px]">
+                  <el-button :loading="roleLoading" @click="handleRole">
+                    角色
+                  </el-button>
+                  <el-button :loading="textVideoLoading" @click="handleTextVideo">
+                    生成
+                  </el-button>
+                </div>
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </el-form>
+      </div>
+
       <el-divider />
 
       <div class="flex justify-end">
@@ -277,7 +281,7 @@ onMounted(() => {
 
     <TextRoleDialog v-model="visible" :data="textRoleData" :voice-list="voiceList" />
 
-    <TextSplitDialog v-model="textSplitVisible" :data="textSplitData" :character-list="characterList" />
+    <TextSplitDialog v-model="textSplitVisible" :data="textSplitData" :character-list="characterList" @success="handleTextSplit" />
   </div>
 </template>
 
