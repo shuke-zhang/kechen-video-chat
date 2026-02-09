@@ -71,7 +71,6 @@ function handleTextVideo() {
   if (textVideoLoading.value)
     return
   textVideoLoading.value = true
-  console.log(category.currentProject, '内容')
   textVideo({
     projectId: category.currentProject?.id,
     publishStatus: form.value.publishStatus,
@@ -79,6 +78,8 @@ function handleTextVideo() {
     videoText: form.value.videoText,
   }).then((res) => {
     textSplitData.value = res.data.plot_image
+    console.log(textSplitData.value, '内容')
+
     textSplitVisible.value = true
   }).finally(() => {
     textVideoLoading.value = false
@@ -196,7 +197,7 @@ onMounted(() => {
           返回
         </el-button>
 
-        <el-button v-if="true" :icon="Back" @click="test">
+        <el-button v-if="false" :icon="Back" @click="test">
           测试
         </el-button>
       </div>
@@ -253,7 +254,7 @@ onMounted(() => {
             <el-col :span="24">
               <el-form-item label="" class="w-full">
                 <div class="w-full flex justify-end gap-[10px]">
-                  <el-button :loading="roleLoading" @click="handleRole">
+                  <el-button v-if="category.currentCategoryId !== 3" :loading="roleLoading" @click="handleRole">
                     角色
                   </el-button>
                   <el-button :loading="textVideoLoading" @click="handleTextVideo">

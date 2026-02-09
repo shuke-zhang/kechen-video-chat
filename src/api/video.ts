@@ -1,4 +1,5 @@
 import type { generateImageModel } from '@/model/generateImage'
+import type { PlotImageParamsModel } from '@/model/plotImage'
 import type { TextRoleResponse, TextSplitResponse, VideoModel } from '@/model/video'
 
 /**
@@ -67,5 +68,21 @@ export function textRole(data: VideoModel) {
   return request.post<ResponseData<TextRoleResponse>>({
     url: '/api/video/textRole',
     data,
+  })
+}
+
+/**
+ * @description 分镜图片生成
+ */
+export function plotImage(data: PlotImageParamsModel) {
+  return request.post<ResponseData<{
+    /**
+     * 返回的图片
+     */
+    plot_image: string
+  }>>({
+    url: `/api/video/plotImage`,
+    data,
+    isJsonResponse: true,
   })
 }

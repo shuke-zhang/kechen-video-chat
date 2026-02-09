@@ -3,7 +3,7 @@ import type { ElForm, UploadUserFile } from 'element-plus'
 import type { CharacterModel } from '@/model/character'
 import type { TextSplitPayload, VideoGenModel } from '@/model/video'
 import { VideoPlay } from '@element-plus/icons-vue'
-import { generateImage } from '@/api/video'
+import { plotImage } from '@/api/video'
 import { videoGen, videoMerge } from '@/api/videoMergeRecord'
 
 interface TextSplitPayloadWithState
@@ -64,7 +64,7 @@ function regenerate(index: number) {
   const item = form.value.plot_image[index]
 
   if (!item.textInfo?.plot?.trim()) {
-    ElMessage.warning('请先填写分片场景内容')
+    showMessageWarning('请先填写分片场景内容')
     return
   }
 
@@ -73,16 +73,17 @@ function regenerate(index: number) {
 
   item.imageGenerating = true
 
-  generateImage({
-    mode: 2,
-    text: item.textInfo?.plot,
+  plotImage({
+    desc: item.textInfo?.plot,
+    roleName: item.characterName,
+    projectId: category.currentProject?.id,
     topic: category.currentProject?.styleDesignId,
   })
     .then((res) => {
-      item.imageUrl = res.msg
+      item.imageUrl = res.data.plot_image
       item.file = [{
         name: item.videoName ?? 'image',
-        url: res.msg,
+        url: res.data.plot_image,
       }]
     })
     .finally(() => {
