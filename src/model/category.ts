@@ -15,7 +15,7 @@ export interface CategoryModel {
   showTextTitle?: boolean
   /**
    * 是否展示生成角色-仅仅用于前端展示
-   * 古诗不展示-3
+   * 古诗、美女不展示-3 5
    */
   showCharacter?: boolean
 }

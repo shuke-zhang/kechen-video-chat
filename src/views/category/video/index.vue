@@ -288,8 +288,8 @@ onMounted(() => {
                   <div class="text-sm font-semibold line-clamp-1">
                     {{ it.videoName }}
                   </div>
-                  <el-tag :type="it.publishStatus ? 'danger' : 'success'" size="small" class="ml-[4px]">
-                    {{ it.publishStatus ? '不公开' : '公开' }}
+                  <el-tag :type="it.publishStatus === 0 ? 'danger' : 'success'" size="small" class="ml-[4px]">
+                    {{ it.publishStatus === 0 ? '不公开' : '公开' }}
                   </el-tag>
                 </div>
 

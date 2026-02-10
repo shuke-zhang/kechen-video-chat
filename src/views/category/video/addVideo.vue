@@ -230,7 +230,7 @@ onMounted(() => {
               </el-form-item>
             </el-col>
 
-            <el-col :span="24">
+            <el-col v-if="category.currentCategory?.showTextTitle" :span="24">
               <el-form-item label="文本标题" prop="videoName" style="width: 100%">
                 <el-input
                   v-model="form.videoName"

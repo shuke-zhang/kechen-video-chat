@@ -23,15 +23,14 @@ export const useCategoryStore = defineStore('category', () => {
         size: 1000,
       },
     })
-    const list = res.data.records.map((item) => {
+    const list: CategoryModel[] = res.data.records.map((item) => {
       return {
         ...item,
         path: `/category/${item.id}`,
-        showCharacter: item.id !== 3,
-        showTextTitle: item.id !== 4,
+        showCharacter: Number(item.id) !== 3,
+        showTextTitle: Number(item.id) !== 4,
       }
     })
-
     categoryList.value = list
     if (list.length > 0) {
       currentCategoryId.value = list[0].id
