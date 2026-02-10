@@ -43,7 +43,6 @@ export const useUserStore = defineStore('user', () => {
     setCache('IS_LOGGED_IN', true)
     await getInfo()
     await categoryStore.getCategory()
-    console.log(categoryList, 'categoryList')
   }
   function logout() {
     resetAllState()

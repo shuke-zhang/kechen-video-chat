@@ -2,6 +2,7 @@
 import type { LoginFormModel } from '@/model/login'
 
 const title = import.meta.env.VITE_APP_TITLE
+const categoryStore = useCategoryStore()
 const userStore = useUserStore()
 const router = useRouter()
 const route = useRoute()
@@ -46,7 +47,9 @@ function handleLogin() {
             },
             {},
           )
-          console.log('进行跳转')
+          const id = String(redirect.value).replace(/^\/?category\//, '')
+          categoryStore.currentCategoryId = Number(id)
+          categoryStore.currentCategory = categoryStore.categoryList.find(el => Number(el.id) === Number(id))
 
           router.push({ path: redirect.value || '/', query: otherQueryParams })
         })

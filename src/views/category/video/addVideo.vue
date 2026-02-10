@@ -29,6 +29,8 @@ const form = ref<VideoModel>({
   videoText: '在天空的尽头，有一间小小的云朵裁缝铺。\n店主是一只年迈的白猫，名叫絮絮。它不缝衣服，而是用晨雾做线、晚霞当布，为伤心的人缝补破碎的梦。一天，一个小女孩坐在屋顶上哭泣。她的风筝断了线，飞进了乌云里，再也没回来。\n“那是妈妈最后送我的礼物……”她抽泣着说。絮絮轻轻跳上屋顶，从怀里掏出一团蓬松的云：“别怕，我帮你把它缝回来。”它用月光穿针，把星星缀在风筝的角上，又剪下一小片彩虹做尾巴。\n第二天清晨，小女孩睁开眼——那只风筝正轻轻落在她的窗台上，比从前更亮、更轻，仿佛能带人飞到任何想念的地方。\n\n从此，每当有人失落或难过，絮絮就会悄悄出现在他们梦里，问一句：\n“需要我为你缝点什么吗？”\n\n寓意：温柔与善意，能修补世间最细碎的遗憾。',
   videoName: '《云朵裁缝》',
 })
+
+const expandText = ref('')
 const submitLoading = ref(false)
 
 const roleLoading = ref(false)
@@ -51,7 +53,7 @@ function handleRole() {
   textRole({
     projectId: category.currentProject?.id,
     publishStatus: form.value.publishStatus,
-    videoName: form.value.videoName,
+    videoName: category.currentCategory?.showTextTitle ? form.value.videoName : undefined,
     videoText: form.value.videoText,
   }).then((res) => {
     if (res.data.add_role.length <= 0) {
@@ -59,6 +61,8 @@ function handleRole() {
     }
     else {
       textRoleData.value = res.data.add_role || []
+      expandText.value = res.data.expand_text
+
       visible.value = true
       console.log('')
     }
@@ -76,10 +80,10 @@ function handleTextVideo() {
     publishStatus: form.value.publishStatus,
     videoName: form.value.videoName,
     videoText: form.value.videoText,
+    expandText: expandText.value,
   }).then((res) => {
     textSplitData.value = res.data.plot_image
     console.log(textSplitData.value, '内容')
-
     textSplitVisible.value = true
   }).finally(() => {
     textVideoLoading.value = false
@@ -118,8 +122,8 @@ function submit() {
         ...form.value,
         videoUrl: textSplitVideoUrl.value,
         projectId: category.currentProject?.id,
+        // videoName: category.currentCategory?.showTextTitle ? form.value.videoName : undefined,
       }
-      console.log(data, 'submit')
       const api = isAdd.value ? addVideo : PutVideo
       api(data).then(() => {
         showMessageSuccess('操作成功')
@@ -254,7 +258,7 @@ onMounted(() => {
             <el-col :span="24">
               <el-form-item label="" class="w-full">
                 <div class="w-full flex justify-end gap-[10px]">
-                  <el-button v-if="category.currentCategoryId !== 3" :loading="roleLoading" @click="handleRole">
+                  <el-button v-if="category.currentCategory?.showCharacter" :loading="roleLoading" @click="handleRole">
                     角色
                   </el-button>
                   <el-button :loading="textVideoLoading" @click="handleTextVideo">

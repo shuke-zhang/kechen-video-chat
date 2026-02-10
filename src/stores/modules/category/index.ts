@@ -6,11 +6,13 @@ export const useCategoryStore = defineStore('category', () => {
   const categoryList = ref<CategoryModel[]>([])
   const videoProjectList = ref<VideoProjectModel[]>([])
   const currentProject = ref<VideoProjectModel>()
+  const currentCategory = ref<CategoryModel>()
   const currentCategoryId = ref<number>()
   return {
     videoProjectList,
     categoryList,
     currentProject,
+    currentCategory,
     currentCategoryId,
     getCategory,
   }
@@ -25,12 +27,15 @@ export const useCategoryStore = defineStore('category', () => {
       return {
         ...item,
         path: `/category/${item.id}`,
+        showCharacter: item.id !== 3,
+        showTextTitle: item.id !== 4,
       }
     })
 
     categoryList.value = list
     if (list.length > 0) {
       currentCategoryId.value = list[0].id
+      currentCategory.value = list[0]
     }
   }
 }, {

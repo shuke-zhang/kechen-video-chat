@@ -89,6 +89,10 @@ export interface VideoModel {
    * 表示是否是删除时选中状态
    */
   isDelChecked?: boolean
+  /**
+   * 分类为成语时的扩展文本
+   */
+  expandText?: string
 }
 
 /**
@@ -109,6 +113,11 @@ export type RoleFormItem = TextRolePayload & {
  */
 export interface TextRoleResponse {
   add_role: TextRolePayload[]
+  /**
+   * 分类为成语下的内容扩展 仅成语时有，需要传入textSplit
+   *
+   */
+  expand_text: string
 }
 
 /**

@@ -61,8 +61,9 @@ function handleNavClick(value: TopNavValueModel) {
 
   if (value.includes('category')) {
     const id = String(value).replace(/^\/?category\//, '')
-    console.log(id, 'command')
     categoryStore.currentCategoryId = Number(id)
+    categoryStore.currentCategory = categoryStore.categoryList.find(el => Number(el.id) === Number(id))
+
     isActiveCategory.value = true
     router.push({ path: `/category/${id}` })
 

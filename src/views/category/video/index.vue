@@ -334,17 +334,25 @@ onMounted(() => {
       </div>
 
       <!-- 预览弹窗 -->
-      <transition name="zoom">
-        <div v-if="previewVisible" class="fixed inset-0 z-40 grid place-items-center">
-          <div class="absolute inset-0 bg-black/60" @click="previewVisible = false" />
-          <div class="relative w-[94vw] max-w-4xl rounded-2xl bg-black p-3 shadow-xl">
-            <video v-if="current?.videoUrl" autoplay :src="current.videoUrl" controls class="w-full rounded-lg" />
-            <button class="absolute right-3 top-3 rounded-md bg-white/90 px-2 py-1 text-sm cursor-pointer" @click="previewVisible = false">
-              关闭
-            </button>
-          </div>
+      <el-dialog
+        v-model="previewVisible"
+        width="800px"
+        align-center
+        :destroy-on-close="true"
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+        class="video-preview-dialog"
+      >
+        <div class="relative bg-black rounded-2xl h-[500px]">
+          <video
+            v-if="current?.videoUrl"
+            autoplay
+            :src="current.videoUrl"
+            controls
+            class="w-full rounded-lg h-[500px]"
+          />
         </div>
-      </transition>
+      </el-dialog>
     </main>
 
     <VideoDialog v-model="visible" :is-add="isAdd" :data="currentData" @success="getList" />
