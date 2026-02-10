@@ -123,6 +123,15 @@ const routes: RouteRecordRaw[] = [
               hidden: false,
             },
           },
+          {
+            path: '/settings/userConfig',
+            name: 'UserConfig',
+            component: () => import('@/views/settings/userConfig/index.vue'),
+            meta: {
+              title: '个人设置',
+              hidden: false,
+            },
+          },
         ],
       },
 

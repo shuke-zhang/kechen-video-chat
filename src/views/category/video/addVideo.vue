@@ -208,7 +208,7 @@ onMounted(() => {
 
       <el-divider />
 
-      <div class="flex-1 overflow-y-auto pr-2">
+      <div class="flex-1 overflow-y-auto px-[10px]">
         <el-form
           ref="formRef"
           :inline="false"
